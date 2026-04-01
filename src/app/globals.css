@@ -1,26 +1,419 @@
 @import "tailwindcss";
 
+/* =============================================================================
+ * Design System — Teal Theme (แบบเจริญดี88)
+ *
+ * สีหลัก: Teal (#0d6e6e)
+ * พื้นหลัง: Light gray-green (#dce8e8)
+ * Mobile-first, card-based layout
+ * ============================================================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* === Primary Teal === */
+  --color-primary: #0d6e6e;
+  --color-primary-dark: #095555;
+  --color-primary-darker: #064242;
+  --color-primary-light: #0f8a8a;
+  --color-primary-lighter: #12a5a5;
+
+  /* === Background === */
+  --color-bg: #dce8e8;
+  --color-bg-card: #ffffff;
+  --color-bg-card-alt: #f0f6f6;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* === Text === */
+  --color-text: #1a1a1a;
+  --color-text-secondary: #5a6a6a;
+  --color-text-muted: #8a9a9a;
+  --color-text-on-primary: #ffffff;
+
+  /* === Accent Colors === */
+  --color-gold: #d4a017;
+  --color-gold-light: #f0c040;
+  --color-red: #e53e3e;
+  --color-red-light: #fc8181;
+  --color-green: #25a55f;
+  --color-green-light: #68d391;
+  --color-blue: #3182ce;
+  --color-orange: #dd6b20;
+  --color-pink: #ed64a6;
+
+  /* === Spacing === */
+  --bottom-nav-height: 64px;
+  --header-height: 56px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* === Radius === */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* === Shadow === */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-bottom-nav: 0 -2px 12px rgba(0, 0, 0, 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-bg: var(--color-bg);
+  --color-bg-card: var(--color-bg-card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* === Base Styles === */
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* === Mobile App Container === */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  background: var(--color-bg);
 }
+
+/* === Header === */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--header-height);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  color: var(--color-text-on-primary);
+}
+
+/* === Content Area === */
+.app-content {
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 8px);
+  min-height: calc(100dvh - var(--header-height));
+}
+
+/* === Bottom Navigation === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  padding-bottom: var(--safe-area-bottom);
+  background: #ffffff;
+  box-shadow: var(--shadow-bottom-nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 6px 0;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.bottom-nav-item svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 2px;
+}
+
+.bottom-nav-item span {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* === Card Styles === */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.card-alt {
+  background: var(--color-bg-card-alt);
+  border-radius: var(--radius-md);
+}
+
+/* === Gradient Header Card (User Balance) === */
+.balance-card {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-lg);
+  color: white;
+  padding: 20px;
+}
+
+/* === Ticker Bar (Running Text) === */
+.ticker-bar {
+  background: var(--color-primary-darker);
+  color: var(--color-gold-light);
+  font-size: 12px;
+  padding: 6px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-bar .ticker-content {
+  display: inline-block;
+  animation: ticker 20s linear infinite;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* === Menu Grid === */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 16px;
+}
+
+.menu-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 12px 4px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-grid-item:active {
+  transform: scale(0.95);
+}
+
+.menu-grid-item .icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.menu-grid-item .label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+}
+
+/* === Game Cards (Lottery Type) === */
+.game-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-card:active {
+  transform: scale(0.98);
+}
+
+.game-card .game-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+/* === Buttons === */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, #c49000 100%);
+  color: white;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-gold:active {
+  opacity: 0.85;
+}
+
+/* === Chip / Badge === */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.chip-teal {
+  background: rgba(13, 110, 110, 0.1);
+  color: var(--color-primary);
+}
+
+.chip-gold {
+  background: rgba(212, 160, 23, 0.15);
+  color: var(--color-gold);
+}
+
+.chip-red {
+  background: rgba(229, 62, 62, 0.1);
+  color: var(--color-red);
+}
+
+.chip-green {
+  background: rgba(37, 165, 95, 0.1);
+  color: var(--color-green);
+}
+
+/* === Quick Amount Buttons === */
+.quick-amount {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-amount button {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card-alt);
+  border: 1px solid #e0e8e8;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.quick-amount button:active,
+.quick-amount button.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 4px;
+}
+
+/* === Section Title === */
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  padding: 0 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title .see-all {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+/* === Loading Skeleton === */
+.skeleton {
+  background: linear-gradient(90deg, #e8f0f0 25%, #d8e4e4 50%, #e8f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* === Utilities === */
+.text-primary { color: var(--color-primary); }
+.text-gold { color: var(--color-gold); }
+.text-red { color: var(--color-red); }
+.text-green { color: var(--color-green); }
+.bg-primary { background: var(--color-primary); }
+.text-muted { color: var(--color-text-muted); }
+.text-secondary { color: var(--color-text-secondary); }

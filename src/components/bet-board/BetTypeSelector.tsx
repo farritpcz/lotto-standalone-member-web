@@ -1,5 +1,5 @@
 /**
- * BetTypeSelector — เลือกประเภทการแทง (3ตัวบน, 2ตัวล่าง, วิ่ง, etc.)
+ * BetTypeSelector — เลือกประเภทการแทง (แบบเจริญดี88 — teal theme)
  *
  * ⭐ Share กับ provider-game-web (#8)
  *
@@ -14,11 +14,15 @@ import type { BetType } from '@/types'
 // ชื่อแสดงผลภาษาไทย
 const betTypeLabels: Record<string, string> = {
   '3TOP': '3 ตัวบน',
+  '3BOTTOM': '3 ตัวล่าง',
   '3TOD': '3 ตัวโต๊ด',
   '2TOP': '2 ตัวบน',
   '2BOTTOM': '2 ตัวล่าง',
   'RUN_TOP': 'วิ่งบน',
   'RUN_BOT': 'วิ่งล่าง',
+  '4TOP': '4 ตัวบน',
+  '4TOD': '4 ตัวโต๊ด',
+  '3FRONT': '3 ตัวหน้า',
 }
 
 export default function BetTypeSelector() {
@@ -32,19 +36,27 @@ export default function BetTypeSelector() {
           <button
             key={bt.code}
             onClick={() => selectBetType(bt.code as BetType)}
-            className={`rounded-xl p-3 text-center transition border-2
-              ${isSelected
-                ? 'bg-blue-600/20 border-blue-500 text-blue-400'
-                : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-500'
-              }`}
+            className="rounded-xl p-3 text-center transition-all border-2"
+            style={{
+              background: isSelected ? 'var(--color-primary)' : 'var(--color-bg-card)',
+              borderColor: isSelected ? 'var(--color-primary)' : 'transparent',
+              boxShadow: isSelected ? 'none' : 'var(--shadow-card)',
+              color: isSelected ? 'white' : 'var(--color-text)',
+            }}
           >
-            <div className="font-semibold text-sm">
+            <div className="font-bold text-sm">
               {betTypeLabels[bt.code] || bt.name}
             </div>
-            <div className="text-xs mt-1 text-gray-500">
-              จ่าย ×{bt.rate}
+            <div
+              className="text-xs mt-0.5"
+              style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)' }}
+            >
+              จ่าย x{bt.rate}
             </div>
-            <div className="text-xs text-gray-600">
+            <div
+              className="text-[10px]"
+              style={{ color: isSelected ? 'rgba(255,255,255,0.5)' : 'var(--color-text-muted)' }}
+            >
               {bt.digit_count} หลัก
             </div>
           </button>

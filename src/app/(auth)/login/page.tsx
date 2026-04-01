@@ -1,5 +1,5 @@
 /**
- * หน้า Login สำหรับสมาชิก
+ * หน้า Login สำหรับสมาชิก (แบบเจริญดี88 — teal theme)
  *
  * ความสัมพันธ์:
  * - เรียก API: authApi.login() → standalone-member-api (#3)
@@ -32,11 +32,7 @@ export default function LoginPage() {
     try {
       const res = await authApi.login({ username, password })
       const { access_token, refresh_token, member } = res.data.data
-
-      // เก็บ auth state → Zustand + localStorage
       setAuth(member, access_token, refresh_token)
-
-      // redirect ไป dashboard
       router.push('/dashboard')
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } }
@@ -47,37 +43,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="w-full max-w-md bg-gray-800 rounded-2xl p-8 shadow-xl">
-        <h1 className="text-2xl font-bold text-white text-center mb-2">เข้าสู่ระบบ</h1>
-        <p className="text-gray-400 text-center mb-8">Lotto Standalone</p>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'var(--color-bg)' }}>
+      {/* Logo */}
+      <div className="mb-8 text-center">
+        <div
+          className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-3xl font-bold shadow-lg"
+          style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)' }}
+        >
+          L
+        </div>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>LOTTO</h1>
+        <p className="text-sm text-muted mt-1">หวยออนไลน์ จ่ายจริง ถอนไว</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Login Card */}
+      <div className="w-full max-w-sm card p-6">
+        <h2 className="text-lg font-bold text-center mb-6" style={{ color: 'var(--color-text)' }}>เข้าสู่ระบบ</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Username</label>
+            <label className="block text-sm font-medium text-secondary mb-1">ชื่อผู้ใช้</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg px-4 py-3 text-sm border border-gray-200 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
+              style={{ background: 'var(--color-bg-card-alt)' }}
               placeholder="กรอก username"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Password</label>
+            <label className="block text-sm font-medium text-secondary mb-1">รหัสผ่าน</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg px-4 py-3 text-sm border border-gray-200 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
+              style={{ background: 'var(--color-bg-card-alt)' }}
               placeholder="กรอก password"
               required
             />
@@ -86,15 +96,40 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
+            className="btn-primary w-full py-3 text-sm rounded-xl"
           >
             {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </button>
         </form>
 
-        <p className="text-gray-400 text-center mt-6 text-sm">
+        {/* Demo Login — ข้ามการ login เพื่อทดสอบ UI */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <button
+            onClick={() => {
+              setAuth(
+                {
+                  id: 1,
+                  username: 'demo_user',
+                  phone: '0812345678',
+                  email: 'demo@lotto.com',
+                  balance: 12500.50,
+                  status: 'active',
+                  created_at: '2025-01-15T00:00:00Z',
+                },
+                'demo-token-xxx',
+                'demo-refresh-xxx'
+              )
+              router.push('/dashboard')
+            }}
+            className="btn-gold w-full py-3 text-sm rounded-xl"
+          >
+            เข้าสู่ระบบ Demo
+          </button>
+        </div>
+
+        <p className="text-center mt-6 text-sm text-muted">
           ยังไม่มีบัญชี?{' '}
-          <Link href="/register" className="text-blue-400 hover:text-blue-300">
+          <Link href="/register" className="font-semibold" style={{ color: 'var(--color-primary)' }}>
             สมัครสมาชิก
           </Link>
         </p>

@@ -1,5 +1,5 @@
 /**
- * หน้าประวัติการแทง
+ * หน้าประวัติการแทง (แบบเจริญดี88 — teal theme)
  *
  * แสดง bets ทั้งหมดของสมาชิก + filter status + pagination
  * เรียก API: betApi.getMyBets() → standalone-member-api (#3)
@@ -11,21 +11,24 @@ import { useEffect, useState } from 'react'
 import { betApi } from '@/lib/api'
 import type { Bet } from '@/types'
 
-const statusColors: Record<string, string> = {
-  pending: 'text-yellow-400 bg-yellow-900/30',
-  won: 'text-green-400 bg-green-900/30',
-  lost: 'text-red-400 bg-red-900/30',
-  cancelled: 'text-gray-400 bg-gray-700',
-  refunded: 'text-blue-400 bg-blue-900/30',
+const statusStyles: Record<string, { bg: string; text: string }> = {
+  pending: { bg: 'bg-amber-50', text: 'text-amber-600' },
+  won: { bg: 'bg-green-50', text: 'text-green-600' },
+  lost: { bg: 'bg-red-50', text: 'text-red-600' },
+  cancelled: { bg: 'bg-gray-100', text: 'text-gray-500' },
+  refunded: { bg: 'bg-blue-50', text: 'text-blue-600' },
 }
 
 const statusLabels: Record<string, string> = {
-  pending: 'รอผล',
-  won: 'ชนะ',
-  lost: 'แพ้',
-  cancelled: 'ยกเลิก',
-  refunded: 'คืนเงิน',
+  pending: 'รอผล', won: 'ชนะ', lost: 'แพ้', cancelled: 'ยกเลิก', refunded: 'คืนเงิน',
 }
+
+const filterTabs = [
+  { key: '', label: 'ทั้งหมด' },
+  { key: 'pending', label: 'รอผล' },
+  { key: 'won', label: 'ชนะ' },
+  { key: 'lost', label: 'แพ้' },
+]
 
 export default function HistoryPage() {
   const [bets, setBets] = useState<Bet[]>([])
@@ -45,66 +48,119 @@ export default function HistoryPage() {
   }, [status, page])
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      <h1 className="text-xl font-bold text-white mb-4">ประวัติการแทง</h1>
+    <div>
+      {/* Page Title */}
+      <div className="px-4 pt-4 pb-2">
+        <h1 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>โพยหวย / ประวัติ</h1>
+      </div>
 
-      {/* Filter status */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-        {['', 'pending', 'won', 'lost'].map(s => (
+      {/* Filter Tabs */}
+      <div className="flex gap-2 px-4 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {filterTabs.map(tab => (
           <button
-            key={s}
-            onClick={() => { setStatus(s); setPage(1) }}
-            className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${status === s ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300'}`}
+            key={tab.key}
+            onClick={() => { setStatus(tab.key); setPage(1) }}
+            className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+              status === tab.key ? 'text-white' : 'text-secondary'
+            }`}
+            style={{
+              background: status === tab.key ? 'var(--color-primary)' : 'var(--color-bg-card)',
+              boxShadow: status === tab.key ? 'none' : 'var(--shadow-card)',
+            }}
           >
-            {s === '' ? 'ทั้งหมด' : statusLabels[s]}
+            {tab.label}
           </button>
         ))}
       </div>
 
-      {loading ? (
-        <div className="text-center text-gray-400 py-10">กำลังโหลด...</div>
-      ) : bets.length === 0 ? (
-        <div className="text-center text-gray-500 py-10">ยังไม่มีประวัติ</div>
-      ) : (
-        <div className="space-y-2">
-          {bets.map(bet => (
-            <div key={bet.id} className="bg-gray-800 rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-white font-mono font-bold text-lg">{bet.number}</span>
-                  <span className="text-gray-400 text-xs bg-gray-700 px-2 py-0.5 rounded">{bet.bet_type?.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded ${statusColors[bet.status]}`}>
-                    {statusLabels[bet.status]}
-                  </span>
-                </div>
-                <div className="text-gray-500 text-xs mt-1">
-                  {bet.lottery_round?.lottery_type?.name} • รอบ {bet.lottery_round?.round_number}
-                </div>
-                <div className="text-gray-600 text-xs">
-                  {new Date(bet.created_at).toLocaleString('th-TH')}
+      {/* Bet List */}
+      <div className="px-4 pb-4">
+        {loading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="card p-3 flex items-center gap-3">
+                <div className="skeleton w-14 h-14 rounded-lg" />
+                <div className="flex-1">
+                  <div className="skeleton h-4 w-24 mb-1.5" />
+                  <div className="skeleton h-3 w-36" />
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-white font-semibold">฿{bet.amount.toLocaleString()}</div>
-                {bet.status === 'won' && (
-                  <div className="text-green-400 text-sm font-semibold">+฿{bet.win_amount.toLocaleString()}</div>
-                )}
-                <div className="text-gray-500 text-xs">rate ×{bet.rate}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        ) : bets.length === 0 ? (
+          <div className="card p-8 text-center">
+            <p className="text-3xl mb-2">📋</p>
+            <p className="text-muted text-sm">ยังไม่มีประวัติการแทง</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {bets.map(bet => {
+              const style = statusStyles[bet.status] || statusStyles.pending
+              return (
+                <div key={bet.id} className="card p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* เลขที่แทง */}
+                      <div
+                        className="w-14 h-14 rounded-lg flex items-center justify-center font-mono font-bold text-lg"
+                        style={{ background: 'var(--color-primary)', color: 'white' }}
+                      >
+                        {bet.number}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'var(--color-bg-card-alt)' }}>
+                            {bet.bet_type?.name}
+                          </span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style.bg} ${style.text}`}>
+                            {statusLabels[bet.status]}
+                          </span>
+                        </div>
+                        <p className="text-muted text-xs mt-1">
+                          {bet.lottery_round?.lottery_type?.name} • รอบ {bet.lottery_round?.round_number}
+                        </p>
+                        <p className="text-muted text-[10px] mt-0.5">
+                          {new Date(bet.created_at).toLocaleString('th-TH')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-bold text-sm">฿{bet.amount.toLocaleString()}</div>
+                      {bet.status === 'won' && (
+                        <div className="text-green-600 text-sm font-bold">+฿{bet.win_amount.toLocaleString()}</div>
+                      )}
+                      <div className="text-muted text-[10px]">rate x{bet.rate}</div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
-      {total > 20 && (
-        <div className="flex justify-center gap-2 mt-6">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50">ก่อนหน้า</button>
-          <span className="px-4 py-2 text-gray-400">หน้า {page} ({total} รายการ)</span>
-          <button onClick={() => setPage(p => p + 1)} disabled={bets.length < 20}
-            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50">ถัดไป</button>
-        </div>
-      )}
+        {/* Pagination */}
+        {total > 20 && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition"
+              style={{ background: 'var(--color-bg-card)', boxShadow: 'var(--shadow-card)' }}
+            >
+              ← ก่อนหน้า
+            </button>
+            <span className="text-sm text-muted px-2">หน้า {page} ({total} รายการ)</span>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={bets.length < 20}
+              className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition"
+              style={{ background: 'var(--color-bg-card)', boxShadow: 'var(--shadow-card)' }}
+            >
+              ถัดไป →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
