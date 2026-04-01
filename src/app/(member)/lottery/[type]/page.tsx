@@ -37,7 +37,7 @@ export default function LotteryBetPage() {
   const lotteryCode = params.type as string
 
   const { member, updateBalance } = useAuthStore()
-  const { betTypes, selectedBetType, betSlip, setBetTypes, setCurrentRound, addToBetSlip, clearBetSlip } = useBetStore()
+  const { betTypes, selectedBetTypes, betSlip, setBetTypes, setCurrentRound, addToBetSlip, clearBetSlip, getSelectedDigitCount } = useBetStore()
 
   const [rounds, setRounds] = useState<LotteryRound[]>([])
   const [selectedRound, setSelectedRound] = useState<LotteryRound | null>(null)
@@ -103,9 +103,9 @@ export default function LotteryBetPage() {
     perms.forEach(perm => addToBetSlip(perm, betAmount))
   }, [betAmount, addToBetSlip])
 
-  // ยืนยันแทง
-  const handleConfirm = useCallback(async () => {
-    if (!selectedRound || betSlip.length === 0) return
+  // ยืนยันแทง — return true ถ้าสำเร็จ, false ถ้าไม่
+  const handleConfirm = useCallback(async (): Promise<boolean> => {
+    if (!selectedRound || betSlip.length === 0) return false
     setSubmitting(true)
     setMessage('')
 
@@ -121,19 +121,32 @@ export default function LotteryBetPage() {
       const data = res.data.data
 
       if (data.success_count > 0) {
-        setMessage(`แทงสำเร็จ ${data.success_count} รายการ (฿${data.total_amount.toLocaleString()})`)
         updateBalance(data.balance_after)
         clearBetSlip()
+        setSubmitting(false)
+        return true
       }
 
       if (data.errors && data.errors.length > 0) {
-        const errMsgs = data.errors.map((e: { number: string; reason: string }) => `${e.number}: ${e.reason}`).join(', ')
-        setMessage(prev => prev + ` | ไม่สำเร็จ: ${errMsgs}`)
+        // แปลง error เป็นภาษาไทย
+        const translateReason = (r: string) => {
+          if (r.includes('banned')) return 'เลขอั้น'
+          if (r.includes('insufficient')) return 'เครดิตไม่พอ'
+          if (r.includes('closed')) return 'ปิดรับแล้ว'
+          if (r.includes('limit')) return 'เกินวงเงิน'
+          return r
+        }
+        const errMsgs = data.errors.map((e: { number: string; BetType: string; Reason: string }) =>
+          `เลข ${e.number} (${e.BetType}): ${translateReason(e.Reason)}`
+        ).join('\n')
+        setMessage(errMsgs)
       }
+      setSubmitting(false)
+      return false
     } catch {
       setMessage('เกิดข้อผิดพลาด กรุณาลองใหม่')
-    } finally {
       setSubmitting(false)
+      return false
     }
   }, [selectedRound, betSlip, updateBalance, clearBetSlip])
 
@@ -149,8 +162,8 @@ export default function LotteryBetPage() {
     )
   }
 
-  const selectedBT = betTypes.find((bt: BetTypeInfo) => bt.code === selectedBetType)
-  const digitCount = selectedBT?.digit_count || 3
+  // ⭐ Multi-select: digit count จาก bet types ที่เลือก (ใช้กำหนด number pad)
+  const digitCount = getSelectedDigitCount() || 3
 
   return (
     <div>
@@ -271,30 +284,38 @@ export default function LotteryBetPage() {
               ))}
             </div>
 
-            {/* Tab Content */}
-            {activeTab === 'keypad' && selectedBetType && (
-              <div>
-                <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">กดเลข ({digitCount} หลัก)</h2>
-                <NumberPad
-                  digitCount={digitCount}
-                  onComplete={handleAddNumber}
-                  resetTrigger={resetKey}
-                />
+            {/* Tab Content — ต้องเลือกประเภทแทงก่อนถึงจะกดเลขได้ */}
+            {selectedBetTypes.length === 0 ? (
+              <div className="card p-6 text-center">
+                <p className="text-muted text-sm">กรุณาเลือกประเภทการแทงก่อน</p>
               </div>
-            )}
+            ) : (
+              <>
+                {activeTab === 'keypad' && (
+                  <div>
+                    <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">กดเลข ({digitCount} หลัก)</h2>
+                    <NumberPad
+                      digitCount={digitCount}
+                      onComplete={handleAddNumber}
+                      resetTrigger={resetKey}
+                    />
+                  </div>
+                )}
 
-            {activeTab === 'grid' && (
-              <NumberGrid
-                digitCount={digitCount}
-                onSelect={handleAddNumber}
-              />
-            )}
+                {activeTab === 'grid' && (
+                  <NumberGrid
+                    digitCount={digitCount}
+                    onSelect={handleAddNumber}
+                  />
+                )}
 
-            {activeTab === 'lucky' && (
-              <LuckyNumbers
-                digitCount={digitCount}
-                onSelect={handleAddNumber}
-              />
+                {activeTab === 'lucky' && (
+                  <LuckyNumbers
+                    digitCount={digitCount}
+                    onSelect={handleAddNumber}
+                  />
+                )}
+              </>
             )}
           </div>
 

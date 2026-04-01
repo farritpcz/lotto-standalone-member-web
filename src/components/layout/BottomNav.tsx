@@ -1,11 +1,13 @@
 /**
- * BottomNav — Bottom Navigation 5 tabs (แบบเจริญดี88)
+ * BottomNav — iOS 17 HIG Tab Bar
  *
- * Tabs: หน้าหลัก / แทงหวย / ผลรางวัล / กระเป๋า / บัญชี
- *
- * - ไฮไลท์ tab ปัจจุบันตาม pathname
- * - ใช้ SVG icons (inline) เพื่อไม่ต้องพึ่ง icon library
- * - Fixed bottom, max-width 480px (mobile-first)
+ * - rgba(249,249,249,0.94) + backdrop-filter blur
+ * - 0.5px top border
+ * - 83px height (iOS standard)
+ * - 25px icons
+ * - Active: systemGreen (#34C759) filled
+ * - Inactive: #8E8E93 outline
+ * - 10pt labels
  */
 
 'use client'
@@ -16,9 +18,7 @@ import { usePathname } from 'next/navigation'
 interface NavItem {
   href: string
   label: string
-  /** SVG path data for the icon */
   iconPaths: React.ReactNode
-  /** Match paths that start with these prefixes */
   matchPrefixes?: string[]
 }
 
@@ -108,10 +108,10 @@ export default function BottomNav() {
               viewBox="0 0 24 24"
               fill={active ? 'currentColor' : 'none'}
               stroke="currentColor"
-              strokeWidth={active ? 1.5 : 2}
+              strokeWidth={active ? 0 : 1.8}
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ width: 24, height: 24, marginBottom: 2 }}
+              style={{ width: 25, height: 25 }}
             >
               {item.iconPaths}
             </svg>

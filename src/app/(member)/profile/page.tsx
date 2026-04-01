@@ -1,7 +1,6 @@
 /**
- * หน้า Profile — บัญชีผู้ใช้ (แบบเจริญดี88 — teal theme)
- *
- * แสดง: ข้อมูลโปรไฟล์ + แก้ไข + เปลี่ยนรหัสผ่าน + logout
+ * หน้า Profile — iOS 17 HIG Design
+ * บัญชีผู้ใช้, แก้ไขโปรไฟล์, เปลี่ยนรหัสผ่าน, logout
  */
 
 'use client'
@@ -21,7 +20,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
-  // เปลี่ยนรหัสผ่าน
   const [showPwForm, setShowPwForm] = useState(false)
   const [oldPw, setOldPw] = useState('')
   const [newPw, setNewPw] = useState('')
@@ -63,17 +61,41 @@ export default function ProfilePage() {
 
   const isError = message && message.includes('ไม่')
 
+  const inputStyle = {
+    display: 'block',
+    width: '100%',
+    boxSizing: 'border-box' as const,
+    padding: '6px 0 12px',
+    fontSize: 16,
+    color: 'var(--ios-label)',
+    background: 'transparent',
+    border: 'none',
+    outline: 'none',
+  }
+
   return (
     <div>
-      {/* Profile Header */}
-      <div className="p-4">
-        <div className="balance-card flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+      {/* Profile Header — balance card style */}
+      <div style={{ padding: '16px 16px 8px' }}>
+        <div className="balance-card" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: 24,
+            fontWeight: 700,
+            flexShrink: 0,
+          }}>
             {member?.username?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div>
-            <div className="text-white font-bold text-lg">{member?.username || 'สมาชิก'}</div>
-            <div className="text-white/60 text-xs mt-0.5">
+            <div style={{ color: 'white', fontWeight: 700, fontSize: 18 }}>{member?.username || 'สมาชิก'}</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 }}>
               สมาชิกตั้งแต่ {member?.created_at ? new Date(member.created_at).toLocaleDateString('th-TH') : '-'}
             </div>
           </div>
@@ -82,119 +104,211 @@ export default function ProfilePage() {
 
       {/* Message */}
       {message && (
-        <div className="px-4 mb-2">
-          <div className={`rounded-lg px-4 py-2.5 text-sm font-medium text-center ${
-            isError ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-          }`}>
+        <div style={{ padding: '0 16px 8px' }}>
+          <div style={{
+            borderRadius: 10,
+            padding: '10px 14px',
+            fontSize: 14,
+            fontWeight: 500,
+            textAlign: 'center',
+            background: isError ? 'rgba(255,59,48,0.10)' : 'rgba(52,199,89,0.10)',
+            color: isError ? 'var(--ios-red)' : 'var(--ios-green-dark)',
+          }}>
             {isError ? '✗' : '✓'} {message}
           </div>
         </div>
       )}
 
-      {/* Profile Info */}
-      <div className="px-4 mb-3">
-        <div className="card p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-sm">ข้อมูลบัญชี</h3>
+      {/* Profile Info — iOS grouped input style */}
+      <div style={{ padding: '8px 16px' }}>
+        <div style={{
+          background: 'var(--ios-card)',
+          borderRadius: 16,
+          overflow: 'hidden',
+          boxShadow: 'var(--shadow-card)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
+            <span style={{ fontSize: 15, fontWeight: 600 }}>ข้อมูลบัญชี</span>
             {!editing && (
               <button
                 onClick={() => setEditing(true)}
-                className="text-xs font-semibold px-3 py-1 rounded-full"
-                style={{ color: 'var(--color-primary)', background: 'rgba(13,110,110,0.08)' }}
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: 'var(--ios-green)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                }}
               >
                 แก้ไข
               </button>
             )}
           </div>
 
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] font-medium text-muted uppercase tracking-wider">ชื่อผู้ใช้</label>
-              <div className="font-medium text-sm mt-0.5">{member?.username || '-'}</div>
-            </div>
-            <div>
-              <label className="text-[10px] font-medium text-muted uppercase tracking-wider">เบอร์โทร</label>
-              {editing ? (
-                <input
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  className="w-full rounded-lg px-3 py-2 text-sm border border-gray-200 focus:border-teal-500 focus:outline-none mt-1"
-                  style={{ background: 'var(--color-bg-card-alt)' }}
-                />
-              ) : (
-                <div className="font-medium text-sm mt-0.5">{member?.phone || '-'}</div>
-              )}
-            </div>
-            <div>
-              <label className="text-[10px] font-medium text-muted uppercase tracking-wider">อีเมล</label>
-              {editing ? (
-                <input
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full rounded-lg px-3 py-2 text-sm border border-gray-200 focus:border-teal-500 focus:outline-none mt-1"
-                  style={{ background: 'var(--color-bg-card-alt)' }}
-                />
-              ) : (
-                <div className="font-medium text-sm mt-0.5">{member?.email || '-'}</div>
-              )}
+          {/* Username (read-only) */}
+          <div style={{ padding: '0 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+              ชื่อผู้ใช้
+            </label>
+            <div style={{ fontSize: 16, color: 'var(--ios-label)', paddingBottom: 12, opacity: 0.6 }}>
+              {member?.username || '-'}
             </div>
           </div>
 
-          {editing && (
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={handleSaveProfile}
-                disabled={saving}
-                className="btn-primary flex-1 py-2.5 text-sm rounded-lg"
-              >
-                {saving ? 'กำลังบันทึก...' : 'บันทึก'}
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="flex-1 py-2.5 rounded-lg text-sm font-medium"
-                style={{ background: 'var(--color-bg-card-alt)', color: 'var(--color-text-secondary)' }}
-              >
-                ยกเลิก
-              </button>
-            </div>
-          )}
+          {/* Phone */}
+          <div style={{ padding: '0 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+              เบอร์โทร
+            </label>
+            {editing ? (
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                style={inputStyle}
+              />
+            ) : (
+              <div style={{ fontSize: 16, paddingBottom: 12, color: 'var(--ios-label)' }}>{member?.phone || '-'}</div>
+            )}
+          </div>
+
+          {/* Email */}
+          <div style={{ padding: '0 16px' }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+              อีเมล
+            </label>
+            {editing ? (
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={inputStyle}
+              />
+            ) : (
+              <div style={{ fontSize: 16, paddingBottom: 12, color: 'var(--ios-label)' }}>{member?.email || '-'}</div>
+            )}
+          </div>
         </div>
+
+        {/* Save / Cancel buttons */}
+        {editing && (
+          <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+            <button
+              onClick={handleSaveProfile}
+              disabled={saving}
+              style={{
+                flex: 1,
+                padding: '13px',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                color: 'white',
+                background: 'var(--ios-green)',
+                border: 'none',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.6 : 1,
+                minHeight: 50,
+              }}
+            >
+              {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              style={{
+                flex: 1,
+                padding: '13px',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                color: 'var(--ios-secondary-label)',
+                background: 'var(--ios-card)',
+                border: 'none',
+                cursor: 'pointer',
+                minHeight: 50,
+              }}
+            >
+              ยกเลิก
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* เปลี่ยนรหัสผ่าน */}
-      <div className="px-4 mb-3">
-        <div className="card p-4">
+      {/* Change Password */}
+      <div style={{ padding: '8px 16px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
           <button
             onClick={() => setShowPwForm(!showPwForm)}
-            className="w-full flex items-center justify-between"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 16px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 15,
+              fontWeight: 600,
+              color: 'var(--ios-label)',
+            }}
           >
-            <span className="font-bold text-sm">เปลี่ยนรหัสผ่าน</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={`w-5 h-5 text-muted transition ${showPwForm ? 'rotate-180' : ''}`}>
+            <span>เปลี่ยนรหัสผ่าน</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+              style={{
+                width: 18, height: 18,
+                color: 'var(--ios-secondary-label)',
+                transition: 'transform 0.2s',
+                transform: showPwForm ? 'rotate(180deg)' : 'none',
+              }}>
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </button>
+
           {showPwForm && (
-            <div className="mt-4 space-y-3">
-              <input
-                type="password"
-                placeholder="รหัสผ่านเดิม"
-                value={oldPw}
-                onChange={e => setOldPw(e.target.value)}
-                className="w-full rounded-lg px-3 py-2.5 text-sm border border-gray-200 focus:border-teal-500 focus:outline-none"
-                style={{ background: 'var(--color-bg-card-alt)' }}
-              />
-              <input
-                type="password"
-                placeholder="รหัสผ่านใหม่"
-                value={newPw}
-                onChange={e => setNewPw(e.target.value)}
-                className="w-full rounded-lg px-3 py-2.5 text-sm border border-gray-200 focus:border-teal-500 focus:outline-none"
-                style={{ background: 'var(--color-bg-card-alt)' }}
-              />
+            <div style={{ borderTop: '0.5px solid var(--ios-separator)', padding: '0 16px 16px' }}>
+              <div style={{ borderBottom: '0.5px solid var(--ios-separator)' }}>
+                <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+                  รหัสผ่านเดิม
+                </label>
+                <input
+                  type="password"
+                  value={oldPw}
+                  onChange={e => setOldPw(e.target.value)}
+                  placeholder="กรอกรหัสผ่านเดิม"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+                  รหัสผ่านใหม่
+                </label>
+                <input
+                  type="password"
+                  value={newPw}
+                  onChange={e => setNewPw(e.target.value)}
+                  placeholder="กรอกรหัสผ่านใหม่"
+                  style={inputStyle}
+                />
+              </div>
               <button
                 onClick={handleChangePw}
                 disabled={saving || !oldPw || !newPw}
-                className="btn-primary w-full py-2.5 text-sm rounded-lg"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: 'white',
+                  background: 'var(--ios-green)',
+                  border: 'none',
+                  cursor: (saving || !oldPw || !newPw) ? 'not-allowed' : 'pointer',
+                  opacity: (saving || !oldPw || !newPw) ? 0.4 : 1,
+                  minHeight: 50,
+                }}
               >
                 {saving ? 'กำลังเปลี่ยน...' : 'เปลี่ยนรหัสผ่าน'}
               </button>
@@ -204,25 +318,31 @@ export default function ProfilePage() {
       </div>
 
       {/* Menu Items */}
-      <div className="px-4 mb-3">
-        <div className="card overflow-hidden">
+      <div style={{ padding: '8px 16px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
           {[
-            { label: 'ประวัติการเล่น', href: '/history', icon: '📋' },
-            { label: 'อัตราจ่าย', href: '/results', icon: '💹' },
-            { label: 'กฎกติกา', href: '#', icon: '📜' },
-            { label: 'แนะนำเพื่อน', href: '#', icon: '👥' },
-          ].map((item, i) => (
+            { label: 'ประวัติการเล่น', href: '/history', emoji: '📋' },
+            { label: 'อัตราจ่าย', href: '/rates', emoji: '💹' },
+            { label: 'กฎกติกา', href: '/rules', emoji: '📜' },
+            { label: 'แนะนำเพื่อน', href: '/referral', emoji: '👥' },
+          ].map((item, i, arr) => (
             <a
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-3 p-3.5 hover:bg-gray-50 transition ${
-                i > 0 ? 'border-t border-gray-100' : ''
-              }`}
-              style={{ textDecoration: 'none', color: 'var(--color-text)' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '13px 16px',
+                textDecoration: 'none',
+                color: 'var(--ios-label)',
+                borderBottom: i < arr.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
+                fontSize: 15,
+              }}
             >
-              <span className="text-lg">{item.icon}</span>
-              <span className="flex-1 text-sm font-medium">{item.label}</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-muted">
+              <span style={{ fontSize: 20, width: 24, textAlign: 'center' }}>{item.emoji}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14, color: 'var(--ios-tertiary-label)' }}>
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </a>
@@ -231,14 +351,26 @@ export default function ProfilePage() {
       </div>
 
       {/* Logout */}
-      <div className="px-4 pb-6">
-        <button
-          onClick={handleLogout}
-          className="w-full py-3 rounded-xl font-bold text-sm text-red-500 transition"
-          style={{ background: 'rgba(229,62,62,0.06)' }}
-        >
-          ออกจากระบบ
-        </button>
+      <div style={{ padding: '8px 16px 32px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+          <button
+            onClick={handleLogout}
+            style={{
+              display: 'block',
+              width: '100%',
+              padding: '14px 16px',
+              fontSize: 15,
+              fontWeight: 400,
+              color: 'var(--ios-red)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'center',
+            }}
+          >
+            ออกจากระบบ
+          </button>
+        </div>
       </div>
     </div>
   )

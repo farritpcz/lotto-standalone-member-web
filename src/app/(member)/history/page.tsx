@@ -1,8 +1,8 @@
 /**
- * หน้าประวัติการแทง (แบบเจริญดี88 — teal theme)
+ * หน้าโพยหวย — แสดงเป็นบิล (group by batch_id)
  *
- * แสดง bets ทั้งหมดของสมาชิก + filter status + pagination
- * เรียก API: betApi.getMyBets() → standalone-member-api (#3)
+ * แต่ละบิล = 1 ครั้งที่กดยืนยันแทง (อาจมีหลายเลข)
+ * กดเข้าไปดูรายละเอียดทุกเลขในบิล
  */
 
 'use client'
@@ -11,16 +11,12 @@ import { useEffect, useState } from 'react'
 import { betApi } from '@/lib/api'
 import type { Bet } from '@/types'
 
-const statusStyles: Record<string, { bg: string; text: string }> = {
-  pending: { bg: 'bg-amber-50', text: 'text-amber-600' },
-  won: { bg: 'bg-green-50', text: 'text-green-600' },
-  lost: { bg: 'bg-red-50', text: 'text-red-600' },
-  cancelled: { bg: 'bg-gray-100', text: 'text-gray-500' },
-  refunded: { bg: 'bg-blue-50', text: 'text-blue-600' },
-}
-
-const statusLabels: Record<string, string> = {
-  pending: 'รอผล', won: 'ชนะ', lost: 'แพ้', cancelled: 'ยกเลิก', refunded: 'คืนเงิน',
+const statusConfig: Record<string, { bg: string; color: string; label: string }> = {
+  pending:   { bg: 'rgba(255,159,10,0.12)',  color: '#B25000', label: 'รอผล' },
+  won:       { bg: 'rgba(52,199,89,0.12)',   color: '#1a8a40', label: 'ชนะ' },
+  lost:      { bg: 'rgba(255,59,48,0.10)',   color: '#CC2020', label: 'แพ้' },
+  cancelled: { bg: 'rgba(142,142,147,0.12)', color: '#888', label: 'ยกเลิก' },
+  refunded:  { bg: 'rgba(0,122,255,0.10)',   color: '#0055CC', label: 'คืนเงิน' },
 }
 
 const filterTabs = [
@@ -30,42 +26,85 @@ const filterTabs = [
   { key: 'lost', label: 'แพ้' },
 ]
 
+// จัดกลุ่ม bets เป็นบิล (group by batch_id หรือ id ถ้าไม่มี batch)
+interface Bill {
+  batchId: string
+  bets: Bet[]
+  totalAmount: number
+  totalWin: number
+  status: string        // pending ถ้ายังมี pending, won ถ้ามี won, lost ถ้าทุกตัว lost
+  lotteryName: string
+  roundNumber: string
+  createdAt: string
+}
+
+function groupIntoBills(bets: Bet[]): Bill[] {
+  const map = new Map<string, Bet[]>()
+  for (const bet of bets) {
+    const key = bet.batch_id || `single-${bet.id}`
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(bet)
+  }
+
+  return Array.from(map.entries()).map(([batchId, bets]) => {
+    const totalAmount = bets.reduce((s, b) => s + b.amount, 0)
+    const totalWin = bets.reduce((s, b) => s + (b.win_amount || 0), 0)
+    const hasWon = bets.some(b => b.status === 'won')
+    const hasPending = bets.some(b => b.status === 'pending')
+    const status = hasPending ? 'pending' : hasWon ? 'won' : 'lost'
+    return {
+      batchId,
+      bets,
+      totalAmount,
+      totalWin,
+      status,
+      lotteryName: bets[0]?.lottery_round?.lottery_type?.name || 'หวย',
+      roundNumber: bets[0]?.lottery_round?.round_number || '-',
+      createdAt: bets[0]?.created_at || '',
+    }
+  })
+}
+
 export default function HistoryPage() {
   const [bets, setBets] = useState<Bet[]>([])
-  const [status, setStatus] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
 
   useEffect(() => {
     setLoading(true)
-    betApi.getMyBets({ status: status || undefined, page, per_page: 20 })
+    betApi.getMyBets({ status: statusFilter || undefined, page, per_page: 50 })
       .then(res => {
         setBets(res.data.data?.items || [])
         setTotal(res.data.data?.total || 0)
       })
+      .catch(() => {})
       .finally(() => setLoading(false))
-  }, [status, page])
+  }, [statusFilter, page])
+
+  const bills = groupIntoBills(bets)
 
   return (
     <div>
-      {/* Page Title */}
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>โพยหวย / ประวัติ</h1>
+      <div style={{ padding: '16px 16px 8px' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--ios-label)', margin: 0 }}>โพยหวย</h1>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 px-4 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+      <div style={{ display: 'flex', gap: 8, padding: '4px 16px 12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {filterTabs.map(tab => (
           <button
             key={tab.key}
-            onClick={() => { setStatus(tab.key); setPage(1) }}
-            className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-              status === tab.key ? 'text-white' : 'text-secondary'
-            }`}
+            onClick={() => { setStatusFilter(tab.key); setPage(1) }}
             style={{
-              background: status === tab.key ? 'var(--color-primary)' : 'var(--color-bg-card)',
-              boxShadow: status === tab.key ? 'none' : 'var(--shadow-card)',
+              padding: '7px 14px', borderRadius: 9999, fontSize: 13,
+              fontWeight: statusFilter === tab.key ? 600 : 400, whiteSpace: 'nowrap',
+              border: 'none', cursor: 'pointer', flexShrink: 0,
+              background: statusFilter === tab.key ? 'var(--ios-green)' : 'var(--ios-card)',
+              color: statusFilter === tab.key ? 'white' : 'var(--ios-label)',
+              boxShadow: statusFilter === tab.key ? '0 2px 10px rgba(52,199,89,0.3)' : 'var(--shadow-card)',
             }}
           >
             {tab.label}
@@ -73,64 +112,82 @@ export default function HistoryPage() {
         ))}
       </div>
 
-      {/* Bet List */}
-      <div className="px-4 pb-4">
+      {/* Bills List */}
+      <div style={{ padding: '0 16px', paddingBottom: 16 }}>
         {loading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="card p-3 flex items-center gap-3">
-                <div className="skeleton w-14 h-14 rounded-lg" />
-                <div className="flex-1">
-                  <div className="skeleton h-4 w-24 mb-1.5" />
-                  <div className="skeleton h-3 w-36" />
-                </div>
+          <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+            {[1,2,3].map(i => (
+              <div key={i} style={{ padding: '16px', borderBottom: i < 3 ? '0.5px solid var(--ios-separator)' : 'none' }}>
+                <div className="skeleton" style={{ height: 16, width: 120, marginBottom: 8, borderRadius: 4 }} />
+                <div className="skeleton" style={{ height: 12, width: 200, borderRadius: 4 }} />
               </div>
             ))}
           </div>
-        ) : bets.length === 0 ? (
-          <div className="card p-8 text-center">
-            <p className="text-3xl mb-2">📋</p>
-            <p className="text-muted text-sm">ยังไม่มีประวัติการแทง</p>
+        ) : bills.length === 0 ? (
+          <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '48px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
+            <p style={{ fontSize: 32, marginBottom: 8 }}>📋</p>
+            <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีประวัติการแทง</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {bets.map(bet => {
-              const style = statusStyles[bet.status] || statusStyles.pending
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {bills.map(bill => {
+              const cfg = statusConfig[bill.status] || statusConfig.pending
+              const numbers = bill.bets.map(b => b.number).join(', ')
               return (
-                <div key={bet.id} className="card p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {/* เลขที่แทง */}
-                      <div
-                        className="w-14 h-14 rounded-lg flex items-center justify-center font-mono font-bold text-lg"
-                        style={{ background: 'var(--color-primary)', color: 'white' }}
-                      >
-                        {bet.number}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'var(--color-bg-card-alt)' }}>
-                            {bet.bet_type?.name}
-                          </span>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style.bg} ${style.text}`}>
-                            {statusLabels[bet.status]}
-                          </span>
-                        </div>
-                        <p className="text-muted text-xs mt-1">
-                          {bet.lottery_round?.lottery_type?.name} • รอบ {bet.lottery_round?.round_number}
-                        </p>
-                        <p className="text-muted text-[10px] mt-0.5">
-                          {new Date(bet.created_at).toLocaleString('th-TH')}
-                        </p>
-                      </div>
+                <div
+                  key={bill.batchId}
+                  onClick={() => setSelectedBill(bill)}
+                  style={{
+                    background: 'var(--ios-card)', borderRadius: 16,
+                    padding: '14px 16px', cursor: 'pointer',
+                    boxShadow: 'var(--shadow-card)',
+                    transition: 'transform 0.1s',
+                  }}
+                >
+                  {/* Top row: lottery name + status + amount */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ios-label)' }}>
+                        {bill.lotteryName}
+                      </span>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6,
+                        background: cfg.bg, color: cfg.color,
+                      }}>
+                        {cfg.label}
+                      </span>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-bold text-sm">฿{bet.amount.toLocaleString()}</div>
-                      {bet.status === 'won' && (
-                        <div className="text-green-600 text-sm font-bold">+฿{bet.win_amount.toLocaleString()}</div>
-                      )}
-                      <div className="text-muted text-[10px]">rate x{bet.rate}</div>
-                    </div>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)' }}>
+                      ฿{bill.totalAmount.toLocaleString()}
+                    </span>
+                  </div>
+
+                  {/* Numbers preview */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+                    {bill.bets.slice(0, 6).map((b, i) => (
+                      <span key={i} style={{
+                        fontFamily: 'monospace', fontWeight: 700, fontSize: 14,
+                        background: 'rgba(13,110,110,0.08)', color: '#0d6e6e',
+                        padding: '2px 8px', borderRadius: 6,
+                      }}>
+                        {b.number}
+                      </span>
+                    ))}
+                    {bill.bets.length > 6 && (
+                      <span style={{ fontSize: 12, color: '#888', alignSelf: 'center' }}>+{bill.bets.length - 6}</span>
+                    )}
+                  </div>
+
+                  {/* Bottom: date + bill id + bet count + win */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+                      บิล #{bill.batchId.substring(0, 8).toUpperCase()} · {bill.bets.length} รายการ
+                    </span>
+                    {bill.totalWin > 0 && (
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#34C759' }}>
+                        +฿{bill.totalWin.toLocaleString()}
+                      </span>
+                    )}
                   </div>
                 </div>
               )
@@ -138,29 +195,160 @@ export default function HistoryPage() {
           </div>
         )}
 
-        {/* Pagination */}
-        {total > 20 && (
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition"
-              style={{ background: 'var(--color-bg-card)', boxShadow: 'var(--shadow-card)' }}
-            >
+        {total > 50 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 16 }}>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+              style={{ padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, border: 'none', cursor: 'pointer', background: 'var(--ios-card)', boxShadow: 'var(--shadow-card)', color: 'var(--ios-label)', opacity: page === 1 ? 0.4 : 1 }}>
               ← ก่อนหน้า
             </button>
-            <span className="text-sm text-muted px-2">หน้า {page} ({total} รายการ)</span>
-            <button
-              onClick={() => setPage(p => p + 1)}
-              disabled={bets.length < 20}
-              className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition"
-              style={{ background: 'var(--color-bg-card)', boxShadow: 'var(--shadow-card)' }}
-            >
+            <span style={{ fontSize: 14, color: 'var(--ios-secondary-label)' }}>หน้า {page}</span>
+            <button onClick={() => setPage(p => p + 1)} disabled={bets.length < 50}
+              style={{ padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, border: 'none', cursor: 'pointer', background: 'var(--ios-card)', boxShadow: 'var(--shadow-card)', color: 'var(--ios-label)', opacity: bets.length < 50 ? 0.4 : 1 }}>
               ถัดไป →
             </button>
           </div>
         )}
       </div>
+
+      {/* ── Bill Detail Modal (Fullscreen) ──────────────────────────────── */}
+      {selectedBill && (() => {
+        const bill = selectedBill
+        const cfg = statusConfig[bill.status] || statusConfig.pending
+        return (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'white', display: 'flex', flexDirection: 'column' }}>
+            {/* Header */}
+            <div style={{ background: '#1a3d35', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <button onClick={() => setSelectedBill(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} style={{ width: 22, height: 22 }}>
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>รายละเอียดบิล</span>
+              <div style={{ width: 30 }} />
+            </div>
+
+            {/* Summary card */}
+            <div style={{ padding: 16, background: '#f8f8f8', flexShrink: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#1a3d35' }}>{bill.lotteryName}</div>
+                  <div style={{ fontSize: 13, color: '#888' }}>รอบ {bill.roundNumber}</div>
+                </div>
+                <span style={{
+                  fontSize: 13, fontWeight: 700, padding: '4px 14px', borderRadius: 20,
+                  background: cfg.bg, color: cfg.color,
+                }}>
+                  {cfg.label}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+                <span style={{ color: '#888' }}>จำนวน</span>
+                <span style={{ fontWeight: 600 }}>{bill.bets.length} รายการ</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+                <span style={{ color: '#888' }}>ยอดแทงรวม</span>
+                <span style={{ fontWeight: 700, color: '#1a3d35' }}>฿{bill.totalAmount.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+                <span style={{ color: '#888' }}>ถ้าถูกทั้งหมดจะได้</span>
+                <span style={{ fontWeight: 700, color: '#0d6e6e' }}>
+                  ฿{bill.bets.reduce((s, b) => s + b.amount * b.rate, 0).toLocaleString()}
+                </span>
+              </div>
+              {bill.totalWin > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#888' }}>เงินรางวัลที่ได้</span>
+                  <span style={{ fontWeight: 700, color: '#34C759' }}>+฿{bill.totalWin.toLocaleString()}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #e8e8e8' }}>
+                <span style={{ fontSize: 12, color: '#aaa' }}>
+                  {new Date(bill.createdAt).toLocaleString('th-TH')}
+                </span>
+                <span style={{ fontSize: 11, color: '#aaa', fontFamily: 'monospace' }}>
+                  บิล #{bill.batchId.substring(0, 8).toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            {/* Bet items */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {bill.bets.map((bet, idx) => {
+                const betCfg = statusConfig[bet.status] || statusConfig.pending
+                return (
+                  <div key={bet.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 16px',
+                    borderBottom: idx < bill.bets.length - 1 ? '0.5px solid #f0f0f0' : 'none',
+                  }}>
+                    {/* Number */}
+                    <div style={{
+                      width: 50, height: 50, borderRadius: 12,
+                      background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'white', fontWeight: 700, fontSize: 17, fontFamily: 'monospace', flexShrink: 0,
+                    }}>
+                      {bet.number}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 3 }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, padding: '1px 6px', borderRadius: 4, background: '#f0f0f0', color: '#666' }}>
+                          {bet.bet_type?.name}
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 4, background: betCfg.bg, color: betCfg.color }}>
+                          {betCfg.label}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#aaa' }}>
+                        x{bet.rate} · ถูกได้ <span style={{ color: '#0d6e6e', fontWeight: 600 }}>฿{(bet.amount * bet.rate).toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Amount */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600 }}>฿{bet.amount.toLocaleString()}</div>
+                      {bet.status === 'won' && (
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#34C759' }}>+฿{bet.win_amount.toLocaleString()}</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Result section */}
+              {bill.bets[0]?.lottery_round?.result_top3 && (
+                <div style={{ padding: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#888', marginBottom: 12 }}>ผลรางวัล</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                    {[
+                      { label: '3 ตัวบน', value: bill.bets[0].lottery_round.result_top3, color: '#d4820a' },
+                      { label: '2 ตัวบน', value: bill.bets[0].lottery_round.result_top2 || '-', color: '#1a8a40' },
+                      { label: '2 ตัวล่าง', value: bill.bets[0].lottery_round.result_bottom2 || '-', color: '#0055cc' },
+                    ].map(r => (
+                      <div key={r.label} style={{ background: '#f8f8f8', borderRadius: 10, padding: '10px 4px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>{r.label}</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: r.color }}>{r.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: '12px 16px', borderTop: '1px solid #eee', flexShrink: 0, paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
+              <button onClick={() => setSelectedBill(null)} style={{
+                display: 'block', width: '100%', padding: '14px', borderRadius: 14,
+                fontSize: 16, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer', background: '#0d6e6e',
+              }}>
+                ปิด
+              </button>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

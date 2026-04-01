@@ -53,7 +53,8 @@ const createApiClient = (): AxiosInstance => {
     (error) => {
       if (error.response?.status === 401) {
         // Token expired → ลบ token + redirect ไป login
-        if (typeof window !== 'undefined') {
+        // ⭐ ป้องกัน infinite redirect loop: ถ้าอยู่ที่ /login อยู่แล้ว ไม่ต้อง redirect ซ้ำ
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
           localStorage.removeItem('access_token')
           localStorage.removeItem('refresh_token')
           window.location.href = '/login'
@@ -112,17 +113,17 @@ export const memberApi = {
 
 // === Lottery ===
 export const lotteryApi = {
-  /** ดึงประเภทหวยที่เปิดอยู่ (หน้า lobby) */
+  /** ดึงประเภทหวยที่เปิดอยู่ (หน้า lobby) — public endpoint */
   getTypes: () =>
-    api.get<{ success: boolean; data: LotteryTypeInfo[] }>('/lottery/types'),
+    api.get<{ success: boolean; data: LotteryTypeInfo[] }>('/lotteries'),
 
   /** ดึงรอบที่เปิดรับแทงของหวยประเภทนั้น */
   getOpenRounds: (lotteryTypeId: number) =>
-    api.get<{ success: boolean; data: LotteryRound[] }>(`/lottery/${lotteryTypeId}/rounds`),
+    api.get<{ success: boolean; data: LotteryRound[] }>(`/lotteries/${lotteryTypeId}/rounds`),
 
   /** ดึงประเภทการแทง + rate สำหรับหวยประเภทนั้น */
   getBetTypes: (lotteryTypeId: number) =>
-    api.get<{ success: boolean; data: BetTypeInfo[] }>(`/lottery/${lotteryTypeId}/bet-types`),
+    api.get<{ success: boolean; data: BetTypeInfo[] }>(`/lotteries/${lotteryTypeId}/bet-types`),
 }
 
 // === Betting ===
@@ -163,4 +164,39 @@ export const yeekeeApi = {
   /** ดูเลขที่ยิงในรอบ */
   getShoots: (roundId: number) =>
     api.get<{ success: boolean; data: { shoots: import('@/types').YeekeeShoot[]; total_sum: number } }>(`/yeekee/${roundId}/shoots`),
+}
+
+// === Referral / Affiliate ===
+export const referralApi = {
+  /** ดึงข้อมูลครบสำหรับหน้า referral */
+  getInfo: () =>
+    api.get<{ success: boolean; data: ReferralInfo }>('/referral/info'),
+
+  /** ดูรายการค่าคอม */
+  getCommissions: (params?: { page?: number; per_page?: number; status?: string }) =>
+    api.get<PaginatedResponse<ReferralCommission>>('/referral/commissions', { params }),
+
+  /** ถอนค่าคอมเข้า wallet */
+  withdraw: (amount: number) =>
+    api.post<{ success: boolean; message: string }>('/referral/withdraw', { amount }),
+}
+
+// Types สำหรับ referral
+export interface ReferralInfo {
+  link: {
+    id: number; code: string; link: string
+    clicks: number; registrations: number; status: string; created_at: string
+  }
+  stats: {
+    total_referred: number; active_referred: number
+    total_comm: number; pending_comm: number; paid_comm: number
+  }
+  commission_rates: Array<{ lottery_type?: string; lottery_type_id?: number; rate: number }>
+  withdrawal: { min: number; note: string }
+}
+
+export interface ReferralCommission {
+  id: number; referred_username: string
+  bet_amount: number; commission_rate: number; commission_amount: number
+  status: string; paid_at?: string; created_at: string
 }

@@ -1,8 +1,5 @@
 /**
- * หน้าตรวจผลรางวัล (แบบเจริญดี88 — teal theme)
- *
- * แสดงผลรางวัลล่าสุด filter ตามประเภทหวย + result cards + pagination
- * เรียก API: resultApi.getResults() → standalone-member-api (#3)
+ * หน้าตรวจผลรางวัล — iOS 17 HIG Design
  */
 
 'use client'
@@ -11,10 +8,24 @@ import { useEffect, useState } from 'react'
 import { resultApi, lotteryApi } from '@/lib/api'
 import type { LotteryRound, LotteryTypeInfo } from '@/types'
 
-// Icon mapping
 const lotteryIcons: Record<string, string> = {
   THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
 }
+
+const filterBtnStyle = (active: boolean) => ({
+  padding: '7px 14px',
+  borderRadius: 9999,
+  fontSize: 13,
+  fontWeight: active ? 600 : 400,
+  whiteSpace: 'nowrap' as const,
+  border: 'none',
+  cursor: 'pointer',
+  background: active ? 'var(--ios-green)' : 'var(--ios-card)',
+  color: active ? 'white' : 'var(--ios-label)',
+  boxShadow: active ? '0 2px 10px rgba(52,199,89,0.3)' : 'var(--shadow-card)',
+  transition: 'all 0.15s',
+  flexShrink: 0,
+})
 
 export default function ResultsPage() {
   const [results, setResults] = useState<LotteryRound[]>([])
@@ -35,95 +46,74 @@ export default function ResultsPage() {
         setResults(res.data.data?.items || [])
         setTotal(res.data.data?.total || 0)
       })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [selectedType, page])
 
   return (
     <div>
-      {/* Page Title */}
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>ผลรางวัล</h1>
+      <div style={{ padding: '16px 16px 8px' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--ios-label)', margin: 0 }}>ผลรางวัล</h1>
       </div>
 
-      {/* Filter ประเภทหวย */}
-      <div className="flex gap-2 px-4 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-        <button
-          onClick={() => { setSelectedType(undefined); setPage(1) }}
-          className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-            !selectedType ? 'text-white' : 'text-secondary'
-          }`}
-          style={{
-            background: !selectedType ? 'var(--color-primary)' : 'var(--color-bg-card)',
-            boxShadow: !selectedType ? 'none' : 'var(--shadow-card)',
-          }}
-        >
+      {/* Filter tabs */}
+      <div style={{ display: 'flex', gap: 8, padding: '4px 16px 12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <button onClick={() => { setSelectedType(undefined); setPage(1) }} style={filterBtnStyle(!selectedType)}>
           ทั้งหมด
         </button>
         {lotteryTypes.map(lt => (
           <button
             key={lt.id}
             onClick={() => { setSelectedType(lt.id); setPage(1) }}
-            className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-              selectedType === lt.id ? 'text-white' : 'text-secondary'
-            }`}
-            style={{
-              background: selectedType === lt.id ? 'var(--color-primary)' : 'var(--color-bg-card)',
-              boxShadow: selectedType === lt.id ? 'none' : 'var(--shadow-card)',
-            }}
+            style={filterBtnStyle(selectedType === lt.id)}
           >
             {lotteryIcons[lt.code] || ''} {lt.name}
           </button>
         ))}
       </div>
 
-      {/* Results */}
-      <div className="px-4 pb-4">
+      <div style={{ padding: '0 16px', paddingBottom: 16 }}>
         {loading ? (
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[1, 2, 3].map(i => (
-              <div key={i} className="card p-4">
-                <div className="skeleton h-4 w-32 mb-3" />
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="skeleton h-16 rounded-lg" />
-                  <div className="skeleton h-16 rounded-lg" />
-                  <div className="skeleton h-16 rounded-lg" />
+              <div key={i} style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
+                <div className="skeleton" style={{ height: 14, width: 120, marginBottom: 12, borderRadius: 4 }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  {[1,2,3].map(j => <div key={j} className="skeleton" style={{ height: 60, borderRadius: 10 }} />)}
                 </div>
               </div>
             ))}
           </div>
         ) : results.length === 0 ? (
-          <div className="card p-8 text-center">
-            <p className="text-3xl mb-2">🏆</p>
-            <p className="text-muted text-sm">ยังไม่มีผลรางวัล</p>
+          <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '48px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
+            <p style={{ fontSize: 32, marginBottom: 8 }}>🏆</p>
+            <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีผลรางวัล</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {results.map(round => (
-              <div key={round.id} className="card p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{lotteryIcons[round.lottery_type?.code] || '🎲'}</span>
-                    <span className="font-semibold text-sm">{round.lottery_type?.name}</span>
-                    <span className="text-muted text-xs">รอบ {round.round_number}</span>
+              <div key={round.id} style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 18 }}>{lotteryIcons[round.lottery_type?.code] || '🎲'}</span>
+                    <span style={{ fontWeight: 600, fontSize: 15 }}>{round.lottery_type?.name}</span>
+                    <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>รอบ {round.round_number}</span>
                   </div>
-                  <span className="text-muted text-xs">
+                  <span style={{ color: 'var(--ios-secondary-label)', fontSize: 13 }}>
                     {new Date(round.round_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}
                   </span>
                 </div>
-                {/* ผลรางวัล */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-amber-50 rounded-lg p-2.5 text-center">
-                    <div className="text-muted text-[10px] mb-0.5">3 ตัวบน</div>
-                    <div className="text-xl font-bold font-mono text-amber-600">{round.result_top3 || '-'}</div>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-2.5 text-center">
-                    <div className="text-muted text-[10px] mb-0.5">2 ตัวบน</div>
-                    <div className="text-xl font-bold font-mono text-green-600">{round.result_top2 || '-'}</div>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-2.5 text-center">
-                    <div className="text-muted text-[10px] mb-0.5">2 ตัวล่าง</div>
-                    <div className="text-xl font-bold font-mono text-blue-600">{round.result_bottom2 || '-'}</div>
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  {[
+                    { label: '3 ตัวบน', value: round.result_top3 || '-', color: 'var(--ios-orange)', bg: 'rgba(255,159,10,0.08)' },
+                    { label: '2 ตัวบน', value: round.result_top2 || '-', color: 'var(--ios-green)', bg: 'rgba(52,199,89,0.08)' },
+                    { label: '2 ตัวล่าง', value: round.result_bottom2 || '-', color: 'var(--ios-blue)', bg: 'rgba(0,122,255,0.08)' },
+                  ].map((item) => (
+                    <div key={item.label} style={{ background: item.bg, borderRadius: 10, padding: '10px 4px', textAlign: 'center' }}>
+                      <div style={{ color: 'var(--ios-secondary-label)', fontSize: 11, marginBottom: 4 }}>{item.label}</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: item.color, fontVariantNumeric: 'tabular-nums' }}>{item.value}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -132,21 +122,29 @@ export default function ResultsPage() {
 
         {/* Pagination */}
         {total > 20 && (
-          <div className="flex items-center justify-center gap-2 mt-4">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 16 }}>
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition"
-              style={{ background: 'var(--color-bg-card)', boxShadow: 'var(--shadow-card)' }}
+              style={{
+                padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500,
+                border: 'none', cursor: 'pointer',
+                background: 'var(--ios-card)', boxShadow: 'var(--shadow-card)',
+                color: 'var(--ios-label)', opacity: page === 1 ? 0.4 : 1,
+              }}
             >
               ← ก่อนหน้า
             </button>
-            <span className="text-sm text-muted px-2">หน้า {page}</span>
+            <span style={{ fontSize: 14, color: 'var(--ios-secondary-label)' }}>หน้า {page}</span>
             <button
               onClick={() => setPage(p => p + 1)}
               disabled={results.length < 20}
-              className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition"
-              style={{ background: 'var(--color-bg-card)', boxShadow: 'var(--shadow-card)' }}
+              style={{
+                padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500,
+                border: 'none', cursor: 'pointer',
+                background: 'var(--ios-card)', boxShadow: 'var(--shadow-card)',
+                color: 'var(--ios-label)', opacity: results.length < 20 ? 0.4 : 1,
+              }}
             >
               ถัดไป →
             </button>

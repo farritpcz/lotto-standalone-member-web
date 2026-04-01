@@ -17,7 +17,10 @@
 export type LotteryType = 'THAI' | 'LAO' | 'STOCK_TH' | 'STOCK_FOREIGN' | 'YEEKEE' | 'CUSTOM'
 
 /** ประเภทการแทง */
-export type BetType = '3TOP' | '3BOTTOM' | '3TOD' | '2TOP' | '2BOTTOM' | 'RUN_TOP' | 'RUN_BOT'
+export type BetType = '3TOP' | '3BOTTOM' | '3TOD' | '3FRONT' | '3TOD_FRONT' | 'PERM3'
+  | '2TOP' | '2BOTTOM' | '2TOP_UNDER' | 'PERM2'
+  | 'RUN_TOP' | 'RUN_BOT' | '19DOOR' | '1TOP'
+  | '4TOP' | '4TOD'
 
 /** สถานะรอบหวย */
 export type RoundStatus = 'upcoming' | 'open' | 'closed' | 'resulted'
@@ -40,6 +43,13 @@ export interface Member {
   email: string
   balance: number
   status: 'active' | 'suspended'
+  // ข้อมูลธนาคาร (กรอกตอนสมัคร)
+  bank_code?: string
+  bank_account_number?: string
+  bank_account_name?: string
+  // Referral
+  referred_by?: number | null
+  referral_code?: string
   created_at: string
 }
 
@@ -83,6 +93,7 @@ export interface BetTypeInfo {
 /** Bet 1 รายการ */
 export interface Bet {
   id: number
+  batch_id?: string        // กลุ่ม bets ที่แทงพร้อมกัน = 1 บิล
   lottery_round: LotteryRound
   bet_type: BetTypeInfo
   number: string
@@ -139,7 +150,10 @@ export interface RegisterRequest {
   username: string
   password: string
   phone: string
-  email: string
+  email?: string
+  bank_code?: string
+  bank_account?: string
+  full_name?: string
 }
 
 /** Auth response (login/register) */

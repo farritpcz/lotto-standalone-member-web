@@ -1,77 +1,118 @@
 @import "tailwindcss";
 
 /* =============================================================================
- * Design System — Teal Theme (แบบเจริญดี88)
+ * Design System — Apple iOS 17 Human Interface Guidelines
  *
- * สีหลัก: Teal (#0d6e6e)
- * พื้นหลัง: Light gray-green (#dce8e8)
- * Mobile-first, card-based layout
+ * Font: -apple-system (SF Pro Display/Text)
+ * Colors: iOS system palette
+ * Spacing: 8pt grid
+ * Mobile-first, 390px (iPhone 15)
  * ============================================================================= */
 
 :root {
-  /* === Primary Teal === */
-  --color-primary: #0d6e6e;
-  --color-primary-dark: #095555;
-  --color-primary-darker: #064242;
-  --color-primary-light: #0f8a8a;
-  --color-primary-lighter: #12a5a5;
+  /* === iOS System Colors === */
+  --ios-green: #34C759;          /* systemGreen */
+  --ios-green-dark: #248A3D;     /* systemGreen dark */
+  --ios-orange: #FF9F0A;         /* systemOrange */
+  --ios-orange-dark: #FF6B00;
+  --ios-red: #FF3B30;            /* systemRed */
+  --ios-blue: #007AFF;           /* systemBlue */
+  --ios-indigo: #5856D6;         /* systemIndigo */
+  --ios-purple: #AF52DE;         /* systemPurple */
+  --ios-teal: #5AC8FA;           /* systemTeal */
+  --ios-yellow: #FFD60A;         /* systemYellow */
 
-  /* === Background === */
-  --color-bg: #dce8e8;
-  --color-bg-card: #ffffff;
-  --color-bg-card-alt: #f0f6f6;
-  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  /* === iOS Background Colors === */
+  --ios-bg: #F2F2F7;             /* systemGroupedBackground */
+  --ios-bg-secondary: #FFFFFF;   /* secondarySystemGroupedBackground */
+  --ios-bg-tertiary: #F2F2F7;    /* tertiarySystemGroupedBackground */
+  --ios-card: #FFFFFF;
 
-  /* === Text === */
-  --color-text: #1a1a1a;
-  --color-text-secondary: #5a6a6a;
-  --color-text-muted: #8a9a9a;
-  --color-text-on-primary: #ffffff;
+  /* === iOS Label Colors === */
+  --ios-label: #1C1C1E;          /* label */
+  --ios-label-2: #3C3C43CC;      /* secondaryLabel */
+  --ios-label-3: #3C3C4399;      /* tertiaryLabel */
+  --ios-label-4: #3C3C432E;      /* quaternaryLabel */
+  --ios-secondary-label: #8E8E93;
+  --ios-tertiary-label: #C7C7CC;
 
-  /* === Accent Colors === */
-  --color-gold: #d4a017;
-  --color-gold-light: #f0c040;
-  --color-red: #e53e3e;
-  --color-red-light: #fc8181;
-  --color-green: #25a55f;
-  --color-green-light: #68d391;
-  --color-blue: #3182ce;
-  --color-orange: #dd6b20;
-  --color-pink: #ed64a6;
+  /* === iOS Separator === */
+  --ios-separator: rgba(60, 60, 67, 0.29);
+  --ios-separator-opaque: #C6C6C8;
 
-  /* === Spacing === */
-  --bottom-nav-height: 64px;
+  /* === Balance Card — Dark Forest Green === */
+  --card-gradient: linear-gradient(145deg, #1a472a 0%, #2d6a4f 100%);
+
+  /* === Spacing (8pt grid) === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* === Layout === */
   --header-height: 56px;
+  --bottom-nav-height: 83px;
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
 
-  /* === Radius === */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  /* === Radius (iOS HIG) === */
+  --radius-xs: 6px;
+  --radius-sm: 10px;             /* buttons */
+  --radius-md: 16px;             /* medium cards */
+  --radius-lg: 20px;             /* hero card */
   --radius-full: 9999px;
 
-  /* === Shadow === */
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-bottom-nav: 0 -2px 12px rgba(0, 0, 0, 0.1);
+  /* === Shadow (iOS-style layered) === */
+  --shadow-icon: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.10);
+
+  /* === Typography (SF Pro scale) === */
+  --text-largeTitle: 34px;       /* Large Title */
+  --text-title1: 28px;           /* Title 1 */
+  --text-title2: 22px;           /* Title 2 */
+  --text-title3: 20px;           /* Title 3 */
+  --text-headline: 17px;         /* Headline (semibold) */
+  --text-body: 17px;             /* Body */
+  --text-callout: 16px;          /* Callout */
+  --text-subhead: 15px;          /* Subheadline */
+  --text-footnote: 13px;         /* Footnote */
+  --text-caption1: 12px;         /* Caption 1 */
+  --text-caption2: 11px;         /* Caption 2 */
+
+  /* === Legacy color aliases (compat with old components) === */
+  --color-primary:         #34C759;
+  --color-primary-dark:    #248A3D;
+  --color-primary-light:   #34C759;
+  --color-bg:              #F2F2F7;
+  --color-bg-card:         #FFFFFF;
+  --color-bg-card-alt:     #F2F2F7;
+  --color-bg-overlay:      rgba(0, 0, 0, 0.4);
+  --color-text:            #1C1C1E;
+  --color-text-secondary:  #8E8E93;
+  --color-text-muted:      #8E8E93;
+  --color-text-on-primary: #ffffff;
+  --color-gold:            #FF9F0A;
+  --color-gold-light:      #FF9F0A;
+  --color-red:             #FF3B30;
+  --color-red-light:       #FF6961;
+  --color-green:           #34C759;
+  --color-green-light:     #30DB5B;
 }
 
-@theme inline {
-  --color-primary: var(--color-primary);
-  --color-primary-dark: var(--color-primary-dark);
-  --color-primary-light: var(--color-primary-light);
-  --color-bg: var(--color-bg);
-  --color-bg-card: var(--color-bg-card);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* === Base === */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
-/* === Base Styles === */
 body {
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--ios-bg);
+  color: var(--ios-label);
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: var(--text-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: contain;
@@ -83,20 +124,26 @@ body {
   margin: 0 auto;
   min-height: 100dvh;
   position: relative;
-  background: var(--color-bg);
+  background: var(--ios-bg);
 }
 
-/* === Header === */
+/* ============================================================
+ * Navigation Bar — iOS HIG
+ * rgba(255,255,255,0.72) + backdrop-filter
+ * 0.5px bottom border, centered title, wallet pill right
+ * ============================================================ */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 40;
   height: var(--header-height);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   display: flex;
   align-items: center;
   padding: 0 16px;
-  color: var(--color-text-on-primary);
+  border-bottom: 0.5px solid var(--ios-separator);
 }
 
 /* === Content Area === */
@@ -105,7 +152,11 @@ body {
   min-height: calc(100dvh - var(--header-height));
 }
 
-/* === Bottom Navigation === */
+/* ============================================================
+ * Tab Bar — iOS HIG
+ * rgba(249,249,249,0.94) + blur, 0.5px top border, 83px
+ * active: systemGreen filled, inactive: #8E8E93 outline
+ * ============================================================ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -115,11 +166,14 @@ body {
   max-width: 480px;
   height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
   padding-bottom: var(--safe-area-bottom);
-  background: #ffffff;
-  box-shadow: var(--shadow-bottom-nav);
+  background: rgba(249, 249, 249, 0.94);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid var(--ios-separator);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-around;
+  padding-top: 10px;
   z-index: 50;
 }
 
@@ -129,76 +183,56 @@ body {
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 6px 0;
-  color: var(--color-text-muted);
+  gap: 3px;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--ios-secondary-label);
   text-decoration: none;
-  transition: color 0.2s;
-  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
 }
 
 .bottom-nav-item.active {
-  color: var(--color-primary);
+  color: var(--ios-green);
 }
 
 .bottom-nav-item svg {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 2px;
+  width: 25px;
+  height: 25px;
 }
 
 .bottom-nav-item span {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
+  letter-spacing: -0.1px;
 }
 
-/* === Card Styles === */
+/* ============================================================
+ * Card Styles
+ * ============================================================ */
 .card {
-  background: var(--color-bg-card);
+  background: var(--ios-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
-  overflow: hidden;
 }
 
-.card-alt {
-  background: var(--color-bg-card-alt);
-  border-radius: var(--radius-md);
-}
-
-/* === Gradient Header Card (User Balance) === */
+/* Balance Card — dark forest green gradient */
 .balance-card {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--card-gradient);
   border-radius: var(--radius-lg);
   color: white;
   padding: 20px;
 }
 
-/* === Ticker Bar (Running Text) === */
-.ticker-bar {
-  background: var(--color-primary-darker);
-  color: var(--color-gold-light);
-  font-size: 12px;
-  padding: 6px 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.ticker-bar .ticker-content {
-  display: inline-block;
-  animation: ticker 20s linear infinite;
-}
-
-@keyframes ticker {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-/* === Menu Grid === */
+/* ============================================================
+ * Menu Grid — iOS icon style
+ * No boxes/borders, 52×52 white circles with shadow
+ * ============================================================ */
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 16px;
+  gap: 0;
+  padding: 8px 12px 16px;
 }
 
 .menu-grid-item {
@@ -206,51 +240,53 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
-  padding: 12px 4px;
+  gap: 7px;
+  padding: 14px 4px;
   border-radius: var(--radius-md);
-  background: var(--color-bg-card);
-  box-shadow: var(--shadow-card);
+  background: transparent;
   text-decoration: none;
-  color: var(--color-text);
-  transition: transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  color: var(--ios-label);
+  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
 }
 
 .menu-grid-item:active {
-  transform: scale(0.95);
+  transform: scale(0.94);
 }
 
 .menu-grid-item .icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-sm);
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-icon);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 28px;
 }
 
 .menu-grid-item .label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ios-label);
   line-height: 1.3;
 }
 
-/* === Game Cards (Lottery Type) === */
+/* ============================================================
+ * Game Cards
+ * ============================================================ */
 .game-card {
-  background: var(--color-bg-card);
+  background: var(--ios-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
-  padding: 12px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  color: var(--color-text);
-  transition: transform 0.15s, box-shadow 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  color: var(--ios-label);
+  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .game-card:active {
@@ -264,124 +300,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 26px;
   flex-shrink: 0;
 }
 
-/* === Buttons === */
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: white;
-  font-weight: 600;
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn-primary:active {
-  opacity: 0.85;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-gold {
-  background: linear-gradient(135deg, var(--color-gold) 0%, #c49000 100%);
-  color: white;
-  font-weight: 700;
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn-gold:active {
-  opacity: 0.85;
-}
-
-/* === Chip / Badge === */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.chip-teal {
-  background: rgba(13, 110, 110, 0.1);
-  color: var(--color-primary);
-}
-
-.chip-gold {
-  background: rgba(212, 160, 23, 0.15);
-  color: var(--color-gold);
-}
-
-.chip-red {
-  background: rgba(229, 62, 62, 0.1);
-  color: var(--color-red);
-}
-
-.chip-green {
-  background: rgba(37, 165, 95, 0.1);
-  color: var(--color-green);
-}
-
-/* === Quick Amount Buttons === */
-.quick-amount {
-  display: flex;
-  gap: 8px;
-}
-
-.quick-amount button {
-  flex: 1;
-  padding: 8px;
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-card-alt);
-  border: 1px solid #e0e8e8;
-  color: var(--color-text);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.quick-amount button:active,
-.quick-amount button.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
-}
-
-/* === Scrollbar === */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-text-muted);
-  border-radius: 4px;
-}
-
-/* === Section Title === */
+/* ============================================================
+ * Section Headers — iOS HIG
+ * 17pt 600 left, 15pt systemGreen right, no background
+ * ============================================================ */
 .section-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: var(--text-headline);
+  font-weight: 600;
+  color: var(--ios-label);
   padding: 0 16px;
   margin-bottom: 8px;
   display: flex;
@@ -390,30 +320,204 @@ body {
 }
 
 .section-title .see-all {
-  font-size: 12px;
+  font-size: var(--text-subhead);
   font-weight: 500;
-  color: var(--color-primary);
+  color: var(--ios-green);
   text-decoration: none;
 }
 
-/* === Loading Skeleton === */
+/* ============================================================
+ * Ticker Bar
+ * ============================================================ */
+.ticker-bar {
+  background: rgba(52, 199, 89, 0.08);
+  border-bottom: 0.5px solid rgba(52, 199, 89, 0.2);
+  color: var(--ios-green-dark);
+  font-size: var(--text-footnote);
+  padding: 6px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-bar .ticker-content {
+  display: inline-block;
+  animation: ticker 20s linear infinite;
+}
+
+@keyframes ticker {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ============================================================
+ * Buttons — iOS HIG
+ * ============================================================ */
+.btn-primary {
+  background: var(--ios-green);
+  color: white;
+  font-size: var(--text-headline);
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  min-height: 50px;
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--ios-green);
+  font-size: var(--text-headline);
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  min-height: 50px;
+}
+
+.btn-secondary:active {
+  opacity: 0.85;
+}
+
+.btn-destructive {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--ios-red);
+  font-size: var(--text-headline);
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  min-height: 50px;
+}
+
+/* ============================================================
+ * Chips / Badges
+ * ============================================================ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-caption2);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.chip-green {
+  background: rgba(52, 199, 89, 0.15);
+  color: var(--ios-green-dark);
+}
+
+.chip-orange {
+  background: rgba(255, 159, 10, 0.15);
+  color: #B25000;
+}
+
+.chip-red {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--ios-red);
+}
+
+.chip-blue {
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--ios-blue);
+}
+
+/* Legacy aliases */
+.chip-teal  { background: rgba(52, 199, 89, 0.15); color: var(--ios-green-dark); }
+.chip-gold  { background: rgba(255, 159, 10, 0.15); color: #B25000; }
+
+/* ============================================================
+ * Quick Amount Buttons
+ * ============================================================ */
+.quick-amount {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-amount button {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--ios-bg);
+  border: none;
+  color: var(--ios-label);
+  font-weight: 600;
+  font-size: var(--text-footnote);
+  cursor: pointer;
+  transition: all 0.1s;
+  min-height: 44px;
+}
+
+.quick-amount button:active,
+.quick-amount button.active {
+  background: var(--ios-green);
+  color: white;
+}
+
+/* ============================================================
+ * Loading Skeleton
+ * ============================================================ */
 .skeleton {
-  background: linear-gradient(90deg, #e8f0f0 25%, #d8e4e4 50%, #e8f0f0 75%);
+  background: linear-gradient(90deg, #E5E5EA 25%, #D1D1D6 50%, #E5E5EA 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
 }
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* === Utilities === */
-.text-primary { color: var(--color-primary); }
-.text-gold { color: var(--color-gold); }
-.text-red { color: var(--color-red); }
-.text-green { color: var(--color-green); }
-.bg-primary { background: var(--color-primary); }
-.text-muted { color: var(--color-text-muted); }
-.text-secondary { color: var(--color-text-secondary); }
+/* ============================================================
+ * Staggered Fade-in Animation (iOS spring)
+ * ============================================================ */
+@keyframes ios-fade-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.ios-animate {
+  animation: ios-fade-in 0.36s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+.ios-animate-1 { animation-delay: 0ms; }
+.ios-animate-2 { animation-delay: 60ms; }
+.ios-animate-3 { animation-delay: 120ms; }
+.ios-animate-4 { animation-delay: 180ms; }
+.ios-animate-5 { animation-delay: 240ms; }
+.ios-animate-6 { animation-delay: 300ms; }
+
+/* ============================================================
+ * Scrollbar
+ * ============================================================ */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ios-tertiary-label); border-radius: 4px; }
+
+/* ============================================================
+ * Utility Aliases (compat)
+ * ============================================================ */
+.text-primary       { color: var(--ios-green); }
+.text-gold          { color: var(--ios-orange); }
+.text-red           { color: var(--ios-red); }
+.text-green         { color: var(--ios-green); }
+.bg-primary         { background: var(--ios-green); }
+.text-muted         { color: var(--ios-secondary-label); }
+.text-secondary     { color: var(--ios-secondary-label); }
+

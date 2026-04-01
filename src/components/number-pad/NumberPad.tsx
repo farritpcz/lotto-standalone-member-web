@@ -12,7 +12,7 @@
 
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 
 interface NumberPadProps {
   digitCount: number
@@ -23,9 +23,12 @@ interface NumberPadProps {
 
 export default function NumberPad({ digitCount, onComplete, onChange, resetTrigger }: NumberPadProps) {
   const [value, setValue] = useState('')
+  // ⭐ ป้องกัน double-fire จาก React Strict Mode
+  const completedRef = useRef(false)
 
   useEffect(() => {
     setValue('')
+    completedRef.current = false
   }, [resetTrigger, digitCount])
 
   const handleDigit = useCallback((digit: string) => {
@@ -33,8 +36,13 @@ export default function NumberPad({ digitCount, onComplete, onChange, resetTrigg
       if (prev.length >= digitCount) return prev
       const newVal = prev + digit
       onChange?.(newVal)
-      if (newVal.length === digitCount) {
-        setTimeout(() => onComplete(newVal), 100)
+      if (newVal.length === digitCount && !completedRef.current) {
+        completedRef.current = true
+        setTimeout(() => {
+          onComplete(newVal)
+          // reset หลัง complete เพื่อให้กดเลขต่อได้
+          setTimeout(() => { completedRef.current = false }, 50)
+        }, 100)
       }
       return newVal
     })

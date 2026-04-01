@@ -47,7 +47,9 @@ export default function LuckyNumbers({ digitCount, onSelect }: LuckyNumbersProps
   const [selectedGroup, setSelectedGroup] = useState(0)
 
   const group = luckyGroups[selectedGroup]
-  const numbers = digitCount === 2 ? group.numbers2 : group.numbers3
+  const numbers = digitCount === 1
+    ? ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    : digitCount === 2 ? group.numbers2 : group.numbers3
 
   return (
     <div>
