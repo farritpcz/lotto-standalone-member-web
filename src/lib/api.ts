@@ -132,6 +132,10 @@ export const betApi = {
   placeBets: (bets: PlaceBetItem[]) =>
     api.post<PlaceBetResponse>('/bets', { bets }),
 
+  /** เช็คเลขก่อนแทง — ดูว่าโดนอั้น/ลดเรท/จำกัดยอดไหม */
+  checkNumbers: (data: { lottery_round_id: number; items: { bet_type_code: string; number: string }[] }) =>
+    api.post('/bets/check', data),
+
   /** ดู bets ของฉัน */
   getMyBets: (params?: { status?: string; round_id?: number; page?: number; per_page?: number }) =>
     api.get<PaginatedResponse<Bet>>('/bets', { params }),

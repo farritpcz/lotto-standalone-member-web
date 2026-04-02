@@ -10,9 +10,10 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useBetStore, BetSlipItem } from '@/store/bet-store'
 import { useAuthStore } from '@/store/auth-store'
+import { betApi } from '@/lib/api'
 
 interface BetSlipProps {
   /** return true if success, string with error message if failed, false for generic error */
@@ -25,6 +26,35 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
   const { member } = useAuthStore()
   const [showFull, setShowFull] = useState(false)
   const [resultAlert, setResultAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // ⭐ เช็คเลขอั้น/ลดเรท/จำกัดยอด — แสดง warning ก่อนแทง
+  const [numberWarnings, setNumberWarnings] = useState<Record<string, { status: string; message: string; reduced_rate?: number }>>({})
+
+  const currentRound = useBetStore(s => s.currentRound)
+
+  const checkNumbers = useCallback(async () => {
+    if (!currentRound || betSlip.length === 0) { setNumberWarnings({}); return }
+    try {
+      const items = betSlip.map(b => ({ bet_type_code: b.betType, number: b.number }))
+      // deduplicate
+      const unique = items.filter((v, i, a) => a.findIndex(t => t.bet_type_code === v.bet_type_code && t.number === v.number) === i)
+      const res = await betApi.checkNumbers({ lottery_round_id: currentRound.id, items: unique })
+      const results = res.data?.data || []
+      const warnings: typeof numberWarnings = {}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      results.forEach((r: any) => {
+        if (r.status !== 'ok') {
+          warnings[`${r.bet_type}-${r.number}`] = { status: r.status, message: r.message, reduced_rate: r.reduced_rate }
+        }
+      })
+      setNumberWarnings(warnings)
+    } catch { /* ignore */ }
+  }, [currentRound, betSlip])
+
+  useEffect(() => {
+    const timer = setTimeout(checkNumbers, 300) // debounce
+    return () => clearTimeout(timer)
+  }, [checkNumbers])
 
   // ถ้า betSlip ว่าง แต่มี resultAlert → แสดง alert ก่อน
   if (betSlip.length === 0 && resultAlert) {
@@ -93,17 +123,28 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
 
         {/* สรุปย่อ: แสดง 3 รายการแรก */}
         <div className="px-4 py-2">
-          {betSlip.slice(0, 3).map((item: BetSlipItem) => (
-            <div key={item.id} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-card-alt)' }}>
-                  {item.betTypeName}
-                </span>
-                <span className="font-mono font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{item.number}</span>
+          {betSlip.slice(0, 3).map((item: BetSlipItem) => {
+            const warn = numberWarnings[`${item.betType}-${item.number}`]
+            return (
+              <div key={item.id} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-card-alt)' }}>
+                    {item.betTypeName}
+                  </span>
+                  <span className="font-mono font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{item.number}</span>
+                  {warn && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{
+                      background: warn.status === 'full_ban' || warn.status === 'banned' ? '#FEE2E2' : '#FEF3C7',
+                      color: warn.status === 'full_ban' || warn.status === 'banned' ? '#DC2626' : '#D97706',
+                    }}>
+                      {warn.message}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-semibold">฿{item.amount}</span>
               </div>
-              <span className="text-xs font-semibold">฿{item.amount}</span>
-            </div>
-          ))}
+            )
+          })}
           {betSlip.length > 3 && (
             <p className="text-center text-xs text-muted py-1">+{betSlip.length - 3} รายการเพิ่มเติม</p>
           )}
@@ -211,10 +252,20 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                       }}>
                         {item.betTypeName}
                       </span>
-                      {/* เลข */}
+                      {/* เลข + warning */}
                       <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: '#1a3d35', minWidth: 40, textAlign: 'center' }}>
                         {item.number}
                       </span>
+                      {numberWarnings[`${item.betType}-${item.number}`] && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 10,
+                          background: numberWarnings[`${item.betType}-${item.number}`].status === 'full_ban' || numberWarnings[`${item.betType}-${item.number}`].status === 'banned' ? '#FEE2E2' : '#FEF3C7',
+                          color: numberWarnings[`${item.betType}-${item.number}`].status === 'full_ban' || numberWarnings[`${item.betType}-${item.number}`].status === 'banned' ? '#DC2626' : '#D97706',
+                          flexShrink: 0,
+                        }}>
+                          {numberWarnings[`${item.betType}-${item.number}`].message}
+                        </span>
+                      )}
                       {/* ราคา */}
                       <input
                         type="number"
