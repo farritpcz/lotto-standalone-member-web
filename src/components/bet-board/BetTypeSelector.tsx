@@ -1,12 +1,7 @@
 /**
  * BetTypeSelector — เลือกประเภทการแทง (Multi-select)
  *
- * ⭐ Multi-select rules:
- *   - กลุ่ม 3 หลัก: 3ตัวบน + 3ตัวโต๊ด (+ 3ตัวล่าง, 3ตัวหน้า) เลือกพร้อมกันได้
- *   - กลุ่ม 2 หลัก: 2ตัวบน + 2ตัวล่าง เลือกพร้อมกันได้
- *   - กลุ่ม 1 หลัก: วิ่งบน + วิ่งล่าง เลือกพร้อมกันได้
- *   - ข้ามกลุ่ม → reset แล้วเลือกใหม่
- *   เมื่อกดเลข → สร้าง bet ให้ทุก type ที่เลือก
+ * ⭐ แบ่งกลุ่มตามจำนวนหลัก + แสดง rate จ่าย + สีแยกกลุ่ม
  */
 
 'use client'
@@ -34,30 +29,78 @@ const betTypeLabels: Record<string, string> = {
   '4TOD': '4 ตัวโต๊ด',
 }
 
+// กลุ่มหลัก + สี
+const digitGroupConfig: Record<number, { label: string; color: string; bg: string }> = {
+  3: { label: '3 หลัก', color: '#0d6e6e', bg: 'rgba(13,110,110,0.06)' },
+  4: { label: '4 หลัก', color: '#5856D6', bg: 'rgba(88,86,214,0.06)' },
+  2: { label: '2 หลัก', color: '#FF9F0A', bg: 'rgba(255,159,10,0.06)' },
+  1: { label: '1 หลัก', color: '#FF3B30', bg: 'rgba(255,59,48,0.06)' },
+}
+
+function getDigitCount(code: string): number {
+  if (['3TOP', '3BOTTOM', '3TOD', '3FRONT', '3TOD_FRONT', 'PERM3'].includes(code)) return 3
+  if (['4TOP', '4TOD'].includes(code)) return 4
+  if (['2TOP', '2BOTTOM', '2TOP_UNDER', 'PERM2'].includes(code)) return 2
+  if (['RUN_TOP', 'RUN_BOT', '19DOOR', '1TOP'].includes(code)) return 1
+  return 0
+}
+
 export default function BetTypeSelector() {
   const { betTypes, selectedBetTypes, toggleBetType } = useBetStore()
 
+  // จัดกลุ่มตามจำนวนหลัก
+  const groups: Record<number, typeof betTypes> = {}
+  betTypes.forEach(bt => {
+    const d = getDigitCount(bt.code) || bt.digit_count
+    if (!groups[d]) groups[d] = []
+    groups[d].push(bt)
+  })
+
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {betTypes.map((bt) => {
-        // ⭐ เช็คว่า type นี้ถูกเลือกอยู่หรือไม่ (multi-select)
-        const isSelected = selectedBetTypes.includes(bt.code as BetType)
+    <div className="space-y-2">
+      {Object.entries(groups).map(([digitStr, types]) => {
+        const digit = Number(digitStr)
+        const cfg = digitGroupConfig[digit] || { label: `${digit} หลัก`, color: '#666', bg: '#f5f5f5' }
+
         return (
-          <button
-            key={bt.code}
-            onClick={() => toggleBetType(bt.code as BetType)}
-            className="rounded-xl py-2.5 px-2 text-center transition-all border-2"
-            style={{
-              background: isSelected ? 'var(--color-primary)' : 'var(--color-bg-card)',
-              borderColor: isSelected ? 'var(--color-primary)' : 'transparent',
-              boxShadow: isSelected ? 'none' : 'var(--shadow-card)',
-              color: isSelected ? 'white' : 'var(--color-text)',
-            }}
-          >
-            <div className="font-bold text-sm">
-              {betTypeLabels[bt.code] || bt.name}
+          <div key={digit}>
+            {/* Group label */}
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: cfg.color, color: 'white' }}>
+                {cfg.label}
+              </span>
+              <div className="flex-1 h-px" style={{ background: `${cfg.color}20` }} />
             </div>
-          </button>
+
+            {/* Buttons */}
+            <div className="grid grid-cols-2 gap-1.5">
+              {types.map((bt) => {
+                const isSelected = selectedBetTypes.includes(bt.code as BetType)
+                return (
+                  <button
+                    key={bt.code}
+                    onClick={() => toggleBetType(bt.code as BetType)}
+                    className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-all active:scale-[0.97]"
+                    style={{
+                      background: isSelected ? cfg.color : cfg.bg,
+                      border: `2px solid ${isSelected ? cfg.color : `${cfg.color}30`}`,
+                      color: isSelected ? 'white' : 'var(--ios-label)',
+                    }}
+                  >
+                    <span className="font-bold text-sm">
+                      {betTypeLabels[bt.code] || bt.name}
+                    </span>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md" style={{
+                      background: isSelected ? 'rgba(255,255,255,0.2)' : `${cfg.color}15`,
+                      color: isSelected ? 'white' : cfg.color,
+                    }}>
+                      x{bt.rate}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         )
       })}
     </div>

@@ -22,7 +22,7 @@ interface BetSlipProps {
 }
 
 export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
-  const { betSlip, removeFromBetSlip, updateAmount, clearBetSlip, getTotalAmount } = useBetStore()
+  const { betSlip, removeFromBetSlip, updateAmount, clearBetSlip, getTotalAmount, removeDuplicates } = useBetStore()
   const { member } = useAuthStore()
   const [showFull, setShowFull] = useState(false)
   const [resultAlert, setResultAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
@@ -188,9 +188,14 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
             <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>
               รายการแทง ({betSlip.length})
             </span>
-            <button onClick={clearBetSlip} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF6B6B', fontSize: 13, fontWeight: 600 }}>
-              ล้างทั้งหมด
-            </button>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => { const n = removeDuplicates(); if (n > 0) alert(`ลบเลขซ้ำ ${n} รายการ`) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: 13, fontWeight: 600 }}>
+                เคลียซ้ำ
+              </button>
+              <button onClick={clearBetSlip} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF6B6B', fontSize: 13, fontWeight: 600 }}>
+                ล้างทั้งหมด
+              </button>
+            </div>
           </div>
 
           {/* Scrollable bet list — จัดกลุ่มตามจำนวนหลัก */}
