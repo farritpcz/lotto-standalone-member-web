@@ -324,7 +324,7 @@ export default function HistoryPage() {
                             fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
                             background: 'rgba(245,158,11,0.12)', color: '#b45309',
                           }}>
-                            {bet.rate_note || 'ลดเรท'}
+                            เลขอั้น
                           </span>
                         )}
                       </div>
