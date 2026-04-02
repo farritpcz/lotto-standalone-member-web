@@ -200,6 +200,12 @@ export const useBetStore = create<BetState>()(
     {
       name: 'lotto-bet-slip', // ⭐ localStorage key
       partialize: (state) => ({ betSlip: state.betSlip }), // เก็บแค่ betSlip
+      skipHydration: true, // ⭐ ป้องกัน SSR hydration mismatch — hydrate ฝั่ง client
     }
   )
 )
+
+// ⭐ Hydrate on client — เรียกใน useEffect ของ component หลัก
+if (typeof window !== 'undefined') {
+  useBetStore.persist.rehydrate()
+}
