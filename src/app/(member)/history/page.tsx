@@ -166,7 +166,7 @@ export default function HistoryPage() {
                   {/* Numbers preview — เลขอั้นเปลี่ยนสี amber */}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
                     {bill.bets.slice(0, 6).map((b, i) => {
-                      const isBanned = b.original_rate && b.original_rate > 0 && b.original_rate > b.rate
+                      const isBanned = (b.original_rate ?? 0) > 0 && b.original_rate! > b.rate
                       return (
                         <span key={i} style={{
                           fontFamily: 'monospace', fontWeight: 700, fontSize: 14,
@@ -278,7 +278,7 @@ export default function HistoryPage() {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {bill.bets.map((bet, idx) => {
                 const betCfg = statusConfig[bet.status] || statusConfig.pending
-                const isRateReduced = bet.original_rate && bet.original_rate > 0 && bet.original_rate > bet.rate
+                const isRateReduced = (bet.original_rate ?? 0) > 0 && bet.original_rate! > bet.rate
                 return (
                   <div key={bet.id} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
