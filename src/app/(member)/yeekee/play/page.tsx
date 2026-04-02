@@ -201,12 +201,7 @@ function YeekeePlayContent() {
     const success = shoot(shootNumber)
     if (success) {
       setShootMessage(`ยิงเลข ${shootNumber} แล้ว!`)
-      // เพิ่มเลขที่ยิงลง live feed ทันที (ไม่ต้องรอ broadcast กลับ)
-      setShoots(prev => [{
-        member_username: member?.username || 'คุณ',
-        number: shootNumber,
-        shot_at: new Date().toISOString(),
-      }, ...prev])
+      // ไม่เพิ่ม local — รอ broadcast จาก server กลับมา (ป้องกันซ้ำ)
       setShootNumber('')
       setShootResetKey(prev => prev + 1)
       setTimeout(() => setShootMessage(''), 2000)
