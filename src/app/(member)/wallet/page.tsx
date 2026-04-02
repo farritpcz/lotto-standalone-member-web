@@ -6,6 +6,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { walletApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth-store'
@@ -40,10 +41,13 @@ export default function WalletPage() {
   const { toast } = useToast()
   const [amount, setAmount] = useState('')
 
+  const searchParams = useSearchParams()
+  const [action, setAction] = useState<'deposit' | 'withdraw'>('deposit')
+
   // อ่าน ?tab=withdraw จาก URL → set active tab
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-  const initialTab = searchParams?.get('tab') === 'withdraw' ? 'withdraw' : 'deposit'
-  const [action, setAction] = useState<'deposit' | 'withdraw'>(initialTab as 'deposit' | 'withdraw')
+  useEffect(() => {
+    if (searchParams.get('tab') === 'withdraw') setAction('withdraw')
+  }, [searchParams])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
