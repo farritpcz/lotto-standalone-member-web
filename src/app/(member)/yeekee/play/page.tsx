@@ -52,8 +52,8 @@ function YeekeePlayContent() {
   const searchParams = useSearchParams()
   const roundId = Number(searchParams.get('round'))
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<TabKey>('shoot')
+  // Tab state — เริ่มที่แทงหวยก่อน (เป็น action หลักที่ผู้เล่นต้องการ)
+  const [activeTab, setActiveTab] = useState<TabKey>('bet')
 
   // === Shooting state ===
   const [shoots, setShoots] = useState<ShootItem[]>([])
