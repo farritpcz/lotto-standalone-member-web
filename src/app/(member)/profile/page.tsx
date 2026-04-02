@@ -229,6 +229,46 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* ── ข้อมูลบัญชีธนาคาร ──────────────────────────── */}
+      <div style={{ padding: '0 16px', marginBottom: 8 }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 0' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)' }}>บัญชีธนาคาร</span>
+          </div>
+
+          <div style={{ padding: '0 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+              ธนาคาร
+            </label>
+            <div style={{ fontSize: 16, color: 'var(--ios-label)', paddingBottom: 12 }}>
+              {member?.bank_code || '-'}
+            </div>
+          </div>
+
+          <div style={{ padding: '0 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+              เลขบัญชี
+            </label>
+            <div style={{ fontSize: 16, color: 'var(--ios-label)', paddingBottom: 12, fontFamily: 'monospace', letterSpacing: 1 }}>
+              {member?.bank_account_number || '-'}
+            </div>
+          </div>
+
+          <div style={{ padding: '0 16px' }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
+              ชื่อบัญชี
+            </label>
+            <div style={{ fontSize: 16, color: 'var(--ios-label)', paddingBottom: 14 }}>
+              {member?.bank_account_name || '-'}
+            </div>
+          </div>
+
+          <div style={{ padding: '8px 16px 14px', fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+            * หากต้องการเปลี่ยนบัญชีธนาคาร กรุณาติดต่อแอดมิน
+          </div>
+        </div>
+      </div>
+
       {/* Change Password */}
       <div style={{ padding: '8px 16px' }}>
         <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
