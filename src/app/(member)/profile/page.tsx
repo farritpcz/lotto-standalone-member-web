@@ -158,21 +158,14 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Phone */}
+          {/* Phone (read-only — แก้ได้เฉพาะแอดมินจากหลังบ้าน) */}
           <div style={{ padding: '0 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
             <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
               เบอร์โทร
             </label>
-            {editing ? (
-              <input
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                style={inputStyle}
-              />
-            ) : (
-              <div style={{ fontSize: 16, paddingBottom: 12, color: 'var(--ios-label)' }}>{member?.phone || '-'}</div>
-            )}
+            <div style={{ fontSize: 16, color: 'var(--ios-label)', paddingBottom: 12, opacity: 0.6 }}>
+              {member?.phone || '-'}
+            </div>
           </div>
 
           {/* Email */}
