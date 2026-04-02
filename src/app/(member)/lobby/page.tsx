@@ -1,35 +1,28 @@
 /**
- * หน้า Lobby — iOS 17 HIG Design
- * เลือกประเภทหวย, category filter tabs, game cards list
+ * หน้า Lobby — เลือกประเภทหวย
+ * Design: Cards แยก + gradient icon + รองรับรูปจาก API
  */
-
 'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Clock, Zap } from 'lucide-react'
 import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo } from '@/types'
 
-const lotteryIcons: Record<string, string> = {
-  THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
-  HANOI: '🇻🇳', MALAY: '🇲🇾',
+// Gradient + สีแต่ละประเภท
+const lotteryStyles: Record<string, { gradient: string; accent: string; emoji: string }> = {
+  THAI:          { gradient: 'linear-gradient(135deg, #f5a623 0%, #d4820a 100%)', accent: '#d4820a', emoji: '🇹🇭' },
+  LAO:           { gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', accent: '#dc2626', emoji: '🇱🇦' },
+  STOCK_TH:      { gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', accent: '#2563eb', emoji: '📈' },
+  STOCK_FOREIGN: { gradient: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)', accent: '#7c3aed', emoji: '🌍' },
+  YEEKEE:        { gradient: 'linear-gradient(135deg, #0d6e6e 0%, #34d399 100%)', accent: '#0d6e6e', emoji: '🎯' },
+  HANOI:         { gradient: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', accent: '#be185d', emoji: '🇻🇳' },
+  MALAY:         { gradient: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', accent: '#0d9488', emoji: '🇲🇾' },
 }
 
-const lotteryBgColors: Record<string, string> = {
-  THAI: '#EFF6FF', LAO: '#FFF1F0', STOCK_TH: '#F0FFF4',
-  STOCK_FOREIGN: '#F5F0FF', YEEKEE: '#FFF8F0', CUSTOM: '#F5F5F5',
-  HANOI: '#FFF0F5', MALAY: '#F0FFF0',
-}
-
-// ⭐ รูปประเภทหวยจาก CMS (public/images/lottery/)
-const lotteryImageUrls: Record<string, string> = {
-  THAI: '/images/lottery/THAI.svg', LAO: '/images/lottery/LAO.svg',
-  STOCK_TH: '/images/lottery/STOCK_TH.svg', STOCK_FOREIGN: '/images/lottery/STOCK_FOREIGN.svg',
-  YEEKEE: '/images/lottery/YEEKEE.svg', HANOI: '/images/lottery/HANOI.svg',
-  MALAY: '/images/lottery/MALAY.svg',
-}
+const defaultStyle = { gradient: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)', accent: '#6b7280', emoji: '🎲' }
 
 const categories = [
   { key: 'all', label: 'ทั้งหมด' },
@@ -52,119 +45,119 @@ export default function LobbyPage() {
   }, [])
 
   const filtered = selectedCat === 'all' ? lotteries : lotteries.filter(l => {
-    if (selectedCat === 'government') return ['THAI', 'LAO'].includes(l.code)
+    if (selectedCat === 'government') return ['THAI'].includes(l.code)
     if (selectedCat === 'stock') return l.code.startsWith('STOCK')
     if (selectedCat === 'yeekee') return l.code === 'YEEKEE'
-    if (selectedCat === 'foreign') return ['LAO'].includes(l.code)
+    if (selectedCat === 'foreign') return ['LAO', 'HANOI', 'MALAY'].includes(l.code)
     return true
   })
 
   return (
     <div>
-      {/* Page header */}
-      <div style={{ padding: '16px 16px 8px' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--ios-label)', margin: 0 }}>
-          แทงหวย
-        </h1>
-        <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginTop: 4 }}>
-          เลือกประเภทหวยที่ต้องการ
-        </p>
+      {/* Header */}
+      <div style={{ padding: '16px 16px 6px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--ios-label)', margin: 0 }}>แทงหวย</h1>
+        <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginTop: 4 }}>เลือกประเภทหวยที่ต้องการ</p>
       </div>
 
-      {/* Category Tabs — iOS segmented style */}
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        padding: '4px 16px 12px',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-      }}>
+      {/* Category Tabs */}
+      <div style={{ display: 'flex', gap: 8, padding: '8px 16px 14px', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {categories.map(cat => (
-          <button
-            key={cat.key}
-            onClick={() => setSelectedCat(cat.key)}
-            style={{
-              padding: '7px 14px',
-              borderRadius: 9999,
-              fontSize: 13,
-              fontWeight: selectedCat === cat.key ? 600 : 400,
-              whiteSpace: 'nowrap',
-              border: 'none',
-              cursor: 'pointer',
-              background: selectedCat === cat.key ? 'var(--ios-green)' : 'var(--ios-card)',
-              color: selectedCat === cat.key ? 'white' : 'var(--ios-label)',
-              boxShadow: selectedCat === cat.key ? '0 2px 10px rgba(52,199,89,0.3)' : 'var(--shadow-card)',
-              transition: 'all 0.15s',
-              flexShrink: 0,
-            }}
-          >
+          <button key={cat.key} onClick={() => setSelectedCat(cat.key)} style={{
+            padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: selectedCat === cat.key ? 600 : 400,
+            whiteSpace: 'nowrap', border: 'none', cursor: 'pointer', flexShrink: 0,
+            background: selectedCat === cat.key ? 'var(--ios-green)' : 'var(--ios-card)',
+            color: selectedCat === cat.key ? 'white' : 'var(--ios-label)',
+            boxShadow: selectedCat === cat.key ? '0 2px 10px rgba(52,199,89,0.3)' : 'var(--shadow-card)',
+          }}>
             {cat.label}
           </button>
         ))}
       </div>
 
-      {/* Loading */}
       {loading && <Loading />}
 
-      {/* Game list */}
+      {/* Lottery Cards */}
       {!loading && (
-        <div style={{ padding: '0 16px', paddingBottom: 16 }}>
+        <div style={{ padding: '0 16px', paddingBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {filtered.length === 0 ? (
-            <div style={{
-              background: 'var(--ios-card)',
-              borderRadius: 16,
-              padding: '48px 16px',
-              textAlign: 'center',
-              boxShadow: 'var(--shadow-card)',
-            }}>
-              <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ไม่มีหวยในหมวดนี้</p>
+            <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '48px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
+              <p style={{ color: 'var(--ios-secondary-label)' }}>ไม่มีหวยในหมวดนี้</p>
             </div>
-          ) : (
-            <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-              {filtered.map((lottery, idx) => (
-                <Link
-                  key={lottery.id}
-                  href={lottery.code === 'YEEKEE' ? '/yeekee/room' : `/lottery/${lottery.code}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '14px 16px',
-                    textDecoration: 'none',
-                    color: 'var(--ios-label)',
-                    borderBottom: idx < filtered.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
-                  }}
-                >
-                  {/* ⭐ รูปประเภทหวยจาก CMS — agent อัพรูปใหม่ทับได้ */}
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 12, overflow: 'hidden',
-                    background: lotteryBgColors[lottery.code] || '#F5F5F5',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 26, flexShrink: 0,
-                  }}>
-                    {lotteryImageUrls[lottery.code] ? (
-                      <img src={lotteryImageUrls[lottery.code]} alt={lottery.name}
-                        style={{ width: 48, height: 48, objectFit: 'cover' }} />
-                    ) : (
-                      lotteryIcons[lottery.code] || '🎲'
-                    )}
+          ) : filtered.map(lottery => {
+            const style = lotteryStyles[lottery.code] || defaultStyle
+            const isYeekee = lottery.code === 'YEEKEE'
+            const href = isYeekee ? '/yeekee/room' : `/lottery/${lottery.code}`
+            // รองรับรูปจาก API (image_url field) หรือ fallback เป็น emoji
+            const imageUrl = (lottery as LotteryTypeInfo & { image_url?: string }).image_url
+
+            return (
+              <Link key={lottery.id} href={href} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{
+                  background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  transition: 'transform 0.15s',
+                }}>
+                  {/* Top gradient bar */}
+                  <div style={{ height: 4, background: style.gradient }} />
+
+                  <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    {/* Lottery image/icon */}
+                    <div style={{
+                      width: 56, height: 56, borderRadius: 14,
+                      background: style.gradient,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, overflow: 'hidden',
+                      boxShadow: `0 4px 12px ${style.accent}30`,
+                    }}>
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={lottery.name}
+                          style={{ width: 56, height: 56, objectFit: 'cover' }}
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
+                      ) : (
+                        <span style={{ fontSize: 28, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' }}>
+                          {style.emoji}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4, color: 'var(--ios-label)' }}>
+                        {lottery.name}
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', lineHeight: 1.4 }}>
+                        {lottery.description}
+                      </div>
+                    </div>
+
+                    {/* Status + arrow */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                      {isYeekee ? (
+                        <span style={{
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                          background: 'rgba(239,68,68,0.1)', color: '#ef4444',
+                        }}>
+                          <Zap size={12} fill="#ef4444" /> Live
+                        </span>
+                      ) : (
+                        <span style={{
+                          display: 'flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
+                          background: 'rgba(52,199,89,0.1)', color: '#34C759',
+                        }}>
+                          <Clock size={12} /> เปิดรับ
+                        </span>
+                      )}
+                      <ChevronRight size={16} color="var(--ios-tertiary-label)" />
+                    </div>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, marginBottom: 3 }}>{lottery.name}</h3>
-                    <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', margin: 0 }}>{lottery.description}</p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                    {lottery.code === 'YEEKEE' ? (
-                      <span className="chip chip-green">Live 24 ชม.</span>
-                    ) : (
-                      <span className="chip chip-green">เปิดรับ</span>
-                    )}
-                  </div>
-                  <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--ios-tertiary-label)', flexShrink: 0 }} />
-                </Link>
-              ))}
-            </div>
-          )}
+                </div>
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>
