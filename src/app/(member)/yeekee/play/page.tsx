@@ -108,14 +108,38 @@ function YeekeePlayContent() {
     }
   }, [])
 
-  const { isConnected, shoot } = useWebSocket({ roundId, onMessage: handleMessage })
+  const { isConnected, shoot, cooldownRemaining } = useWebSocket({ roundId, onMessage: handleMessage })
 
-  // Countdown timer
+  // ⭐ Countdown — คำนวณจาก end_time ของรอบจริง (ไม่ต้องพึ่ง WebSocket อย่างเดียว)
+  const [roundEndTime, setRoundEndTime] = useState<string | null>(null)
+
+  // ดึง end_time จาก yeekee round
   useEffect(() => {
-    if (countdown <= 0) return
-    const timer = setInterval(() => setCountdown(prev => Math.max(0, prev - 1)), 1000)
+    if (!roundId) return
+    yeekeeApi.getRounds()
+      .then(res => {
+        const rounds = res.data.data || []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thisRound = rounds.find((r: any) => r.id === roundId)
+        if (thisRound) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setRoundEndTime((thisRound as any).end_time)
+        }
+      })
+      .catch(() => {})
+  }, [roundId])
+
+  // Countdown timer — อัพเดททุกวินาทีจาก end_time จริง
+  useEffect(() => {
+    if (!roundEndTime) return
+    const calc = () => {
+      const remaining = Math.max(0, Math.floor((new Date(roundEndTime).getTime() - Date.now()) / 1000))
+      setCountdown(remaining)
+    }
+    calc()
+    const timer = setInterval(calc, 1000)
     return () => clearInterval(timer)
-  }, [countdown])
+  }, [roundEndTime])
 
   // โหลด bet types + lottery_round_id สำหรับ tab แทงหวย
   useEffect(() => {
@@ -151,10 +175,16 @@ function YeekeePlayContent() {
 
   // === Handlers ===
   const handleShoot = useCallback((number: string) => {
-    shoot(number)
-    setShootMessage(`ยิงเลข ${number} แล้ว!`)
-    setResetKey(prev => prev + 1)
-    setTimeout(() => setShootMessage(''), 2000)
+    const success = shoot(number)
+    if (success) {
+      setShootMessage(`ยิงเลข ${number} แล้ว!`)
+      setResetKey(prev => prev + 1)
+      setTimeout(() => setShootMessage(''), 2000)
+    } else {
+      // ⭐ Rate limited — แจ้งผู้เล่น
+      setShootMessage('กรุณารอสักครู่ก่อนยิงใหม่')
+      setTimeout(() => setShootMessage(''), 1500)
+    }
   }, [shoot])
 
   const handleBetNumberComplete = useCallback((number: string) => {
@@ -227,10 +257,13 @@ function YeekeePlayContent() {
         </Link>
         <h1 className="text-lg font-bold">ยี่กี</h1>
         <div className="flex-1" />
-        <div className={`flex items-center gap-1.5 text-xs font-semibold ${isConnected ? 'text-green-600' : 'text-red-500'}`}>
-          <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-          {isConnected ? 'เชื่อมต่อแล้ว' : 'กำลังเชื่อมต่อ...'}
-        </div>
+        {/* สถานะ connection — ซ่อนเมื่อเชื่อมต่อแล้ว (ไม่ต้องรบกวนผู้เล่น) */}
+        {!isConnected && (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-500">
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            เชื่อมต่อ...
+          </div>
+        )}
       </div>
 
       {/* ผลยี่กี (ถ้าออกแล้ว) */}
@@ -308,6 +341,12 @@ function YeekeePlayContent() {
           )}
           <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider text-center">กดเลข 5 หลักเพื่อยิง (ฟรี)</h2>
           <NumberPad digitCount={5} onComplete={handleShoot} resetTrigger={resetKey} />
+          {/* ⭐ Cooldown indicator — แสดงว่าต้องรออีกกี่วินาที */}
+          {cooldownRemaining > 0 && (
+            <div className="text-center mt-2 text-sm font-semibold text-orange-500">
+              รอ {cooldownRemaining} วินาที ก่อนยิงใหม่
+            </div>
+          )}
         </div>
       )}
 
