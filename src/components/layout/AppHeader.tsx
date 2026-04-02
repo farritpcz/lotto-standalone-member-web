@@ -1,5 +1,6 @@
 /**
  * AppHeader — Unified Navbar (Lucide icons)
+ * - Balance shimmer animation ขณะ refresh
  */
 
 'use client'
@@ -15,15 +16,19 @@ const HEADER_BG = '#1a3d35'
 export default function AppHeader() {
   const { member, isAuthenticated, updateBalance } = useAuthStore()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [balanceRefreshing, setBalanceRefreshing] = useState(false)
 
   const handleRefreshBalance = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    setBalanceRefreshing(true)
     try {
       const { walletApi } = await import('@/lib/api')
       const res = await walletApi.getBalance()
       updateBalance(res.data.data?.balance || 0)
     } catch { /* ignore */ }
+    // แสดง shimmer 0.5s แล้วค่อยแสดงเลขใหม่
+    setTimeout(() => setBalanceRefreshing(false), 500)
   }
 
   return (
@@ -43,13 +48,44 @@ export default function AppHeader() {
             borderRadius: 20, padding: '5px 12px', textDecoration: 'none', minHeight: 32,
           }}>
             <Wallet size={14} stroke="#34C759" strokeWidth={2} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#34C759' }}>
-              ฿{member?.balance?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'}
+            {/* ---- Balance display with shimmer ---- */}
+            <span style={{
+              fontSize: 13, fontWeight: 700, color: '#34C759',
+              position: 'relative', overflow: 'hidden', display: 'inline-block',
+              minWidth: 40,
+            }}>
+              {balanceRefreshing ? (
+                /* Shimmer placeholder */
+                <span
+                  aria-label="กำลังโหลดยอดเงิน"
+                  style={{
+                    display: 'inline-block',
+                    width: '100%',
+                    minWidth: 50,
+                    height: 14,
+                    borderRadius: 4,
+                    background: 'linear-gradient(90deg, rgba(52,199,89,0.15) 25%, rgba(52,199,89,0.35) 50%, rgba(52,199,89,0.15) 75%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'balance-shimmer 0.8s ease-in-out infinite',
+                    verticalAlign: 'middle',
+                  }}
+                />
+              ) : (
+                <>฿{member?.balance?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'}</>
+              )}
             </span>
             <button onClick={handleRefreshBalance} style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', marginLeft: 2,
             }} aria-label="รีเฟรชเครดิต">
-              <RefreshCw size={13} stroke="#34C759" strokeWidth={2.5} />
+              <RefreshCw
+                size={13}
+                stroke="#34C759"
+                strokeWidth={2.5}
+                style={{
+                  animation: balanceRefreshing ? 'header-spin 0.6s linear infinite' : 'none',
+                  transition: 'transform 0.2s',
+                }}
+              />
             </button>
           </Link>
         ) : (
@@ -101,6 +137,17 @@ export default function AppHeader() {
       </header>
 
       <SideMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      {/* ---- Shimmer + spin keyframes ---- */}
+      <style>{`
+        @keyframes balance-shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        @keyframes header-spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   )
 }
