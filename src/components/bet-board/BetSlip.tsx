@@ -237,11 +237,15 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                     </span>
                   </div>
                   {/* Items */}
-                  {group.items.map((item: BetSlipItem) => (
+                  {group.items.map((item: BetSlipItem) => {
+                    const isBanned = (() => { const w = numberWarnings[`${item.betType}-${item.number}`]; return w && (w.status === 'full_ban' || w.status === 'banned') })()
+                    return (
                     <div key={item.id} style={{
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '10px 16px',
                       borderBottom: '0.5px solid #f0f0f0',
+                      opacity: isBanned ? 0.4 : 1,
+                      background: isBanned ? 'rgba(255,59,48,0.04)' : undefined,
                     }}>
                       {/* Badge ประเภท */}
                       <span style={{
@@ -298,7 +302,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                         ×
                       </button>
                     </div>
-                  ))}
+                  )})}
                 </div>
               ))
             })()}
@@ -370,6 +374,24 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
               </span>
             </div>
 
+            {/* ⭐ เตือนถ้ามีเลขอั้น — ต้องลบออกก่อนแทง */}
+            {(() => {
+              const bannedItems = betSlip.filter(b => {
+                const w = numberWarnings[`${b.betType}-${b.number}`]
+                return w && (w.status === 'full_ban' || w.status === 'banned')
+              })
+              if (bannedItems.length > 0) return (
+                <div style={{
+                  background: 'rgba(255,59,48,0.08)', borderRadius: 10,
+                  padding: '10px 12px', marginBottom: 12, fontSize: 13,
+                  color: '#FF3B30', textAlign: 'center', fontWeight: 600,
+                }}>
+                  🚫 มีเลขอั้น {bannedItems.length} รายการ — กรุณาลบออกก่อนแทง
+                </div>
+              )
+              return null
+            })()}
+
             {/* เตือนถ้าเครดิตไม่พอ */}
             {(member?.balance || 0) < totalAmount && (
               <div style={{
@@ -400,14 +422,14 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   })
                 }
               }}
-              disabled={loading || betSlip.length === 0 || (member?.balance || 0) < totalAmount}
+              disabled={loading || betSlip.length === 0 || (member?.balance || 0) < totalAmount || betSlip.some(b => { const w = numberWarnings[`${b.betType}-${b.number}`]; return w && (w.status === 'full_ban' || w.status === 'banned') })}
               style={{
                 display: 'block', width: '100%', padding: '16px',
                 borderRadius: 14, fontSize: 17, fontWeight: 700,
                 color: 'white', border: 'none',
                 cursor: (loading || (member?.balance || 0) < totalAmount) ? 'not-allowed' : 'pointer',
                 background: '#0d6e6e',
-                opacity: (loading || (member?.balance || 0) < totalAmount) ? 0.5 : 1,
+                opacity: (loading || (member?.balance || 0) < totalAmount || betSlip.some(b => { const w = numberWarnings[`${b.betType}-${b.number}`]; return w && (w.status === 'full_ban' || w.status === 'banned') })) ? 0.5 : 1,
                 boxShadow: '0 4px 20px rgba(13,110,110,0.35)',
                 minHeight: 56,
               }}
