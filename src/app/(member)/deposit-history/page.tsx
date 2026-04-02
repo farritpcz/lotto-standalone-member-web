@@ -111,15 +111,9 @@ export default function DepositHistoryPage() {
                     </div>
                   </div>
 
-                  {/* ปุ่มยกเลิก — เฉพาะ pending */}
+                  {/* pending แสดงข้อความรอ — ไม่ให้ยกเลิกเอง (auto-expire 30 นาที) */}
                   {item.status === 'pending' && (
-                    <button onClick={() => handleCancel(item.id)} style={{
-                      padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                      border: '1px solid rgba(255,59,48,0.3)', background: 'rgba(255,59,48,0.08)',
-                      color: '#ef4444', cursor: 'pointer',
-                    }}>
-                      ยกเลิก
-                    </button>
+                    <span style={{ fontSize: 11, color: '#B25000' }}>รอตรวจสอบ</span>
                   )}
                 </div>
               )

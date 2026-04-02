@@ -505,7 +505,7 @@ export default function WalletPage() {
                       </div>
                     </div>
 
-                    {/* Amount + cancel button */}
+                    {/* Amount */}
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <span style={{
                         fontSize: 16, fontWeight: 700,
@@ -513,22 +513,6 @@ export default function WalletPage() {
                       }}>
                         {isDeposit ? '+' : '-'}฿{item.amount.toLocaleString()}
                       </span>
-                      {item.status === 'pending' && isDeposit && (
-                        <button onClick={async () => {
-                          try {
-                            const { api: apiClient } = await import('@/lib/api')
-                            await apiClient.delete(`/wallet/deposit/${item.id}`)
-                            toast.success('ยกเลิกรายการแล้ว')
-                            loadHistory()
-                          } catch { toast.error('ยกเลิกไม่สำเร็จ') }
-                        }} style={{
-                          display: 'block', fontSize: 11, color: '#ef4444', background: 'none',
-                          border: 'none', cursor: 'pointer', marginTop: 2, padding: 0,
-                          textDecoration: 'underline',
-                        }}>
-                          ยกเลิก
-                        </button>
-                      )}
                     </div>
                   </div>
                 )
