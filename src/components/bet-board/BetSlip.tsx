@@ -302,7 +302,8 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                         ×
                       </button>
                     </div>
-                  )})}
+                  )
+                  })}
                 </div>
               ))
             })()}
@@ -374,7 +375,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
               </span>
             </div>
 
-            {/* ⭐ เตือนถ้ามีเลขอั้น — ต้องลบออกก่อนแทง */}
+            {/* ⭐ เตือนถ้ามีเลขอั้น — ต้องลบออกก่อนแทง + ปุ่มลบเลขอั้น */}
             {(() => {
               const bannedItems = betSlip.filter(b => {
                 const w = numberWarnings[`${b.betType}-${b.number}`]
@@ -386,7 +387,17 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   padding: '10px 12px', marginBottom: 12, fontSize: 13,
                   color: '#FF3B30', textAlign: 'center', fontWeight: 600,
                 }}>
-                  🚫 มีเลขอั้น {bannedItems.length} รายการ — กรุณาลบออกก่อนแทง
+                  <div>🚫 มีเลขอั้น {bannedItems.length} รายการ</div>
+                  <button
+                    onClick={() => bannedItems.forEach(b => removeFromBetSlip(b.id))}
+                    style={{
+                      marginTop: 8, padding: '8px 20px', borderRadius: 10,
+                      background: '#FF3B30', color: 'white', border: 'none',
+                      fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                    }}
+                  >
+                    ลบเลขอั้นทั้งหมด ({bannedItems.length})
+                  </button>
                 </div>
               )
               return null
