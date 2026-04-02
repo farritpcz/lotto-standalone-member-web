@@ -56,8 +56,8 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
     return () => clearTimeout(timer)
   }, [checkNumbers])
 
-  // ถ้า betSlip ว่าง แต่มี resultAlert → แสดง alert ก่อน
-  if (betSlip.length === 0 && resultAlert) {
+  // ถ้า betSlip ว่าง แต่มี resultAlert ที่ต้องปิด fullscreen → แสดง alert ก่อน
+  if (betSlip.length === 0 && resultAlert && resultAlert.closeFull) {
     return (
       <div style={{
         position: 'fixed', inset: 0, zIndex: 300,
@@ -400,7 +400,12 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 }}>
                   <div>🚫 มีเลขอั้น {bannedItems.length} รายการ</div>
                   <button
-                    onClick={() => bannedItems.forEach(b => removeFromBetSlip(b.id))}
+                    onClick={() => {
+                      bannedItems.forEach(b => removeFromBetSlip(b.id))
+                      // ถ้าลบแล้ว betSlip ว่างหมด → ปิด fullscreen
+                      const remaining = betSlip.length - bannedItems.length
+                      if (remaining <= 0) setShowFull(false)
+                    }}
                     style={{
                       marginTop: 8, padding: '8px 20px', borderRadius: 10,
                       background: '#FF3B30', color: 'white', border: 'none',
