@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
+import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo, BetTypeInfo } from '@/types'
 
@@ -73,9 +74,7 @@ export default function RatesPage() {
       {/* ตาราง Rate */}
       <div className="px-4 pb-4">
         {loading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map(i => <div key={i} className="skeleton h-16 rounded-xl" />)}
-          </div>
+          <Loading />
         ) : betTypes.length === 0 ? (
           <div className="card p-8 text-center">
             <p className="text-muted text-sm">ยังไม่มีข้อมูลอัตราจ่าย</p>

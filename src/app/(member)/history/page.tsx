@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
+import Loading from '@/components/Loading'
 import { betApi } from '@/lib/api'
 import type { Bet } from '@/types'
 
@@ -116,14 +117,7 @@ export default function HistoryPage() {
       {/* Bills List */}
       <div style={{ padding: '0 16px', paddingBottom: 16 }}>
         {loading ? (
-          <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-            {[1,2,3].map(i => (
-              <div key={i} style={{ padding: '16px', borderBottom: i < 3 ? '0.5px solid var(--ios-separator)' : 'none' }}>
-                <div className="skeleton" style={{ height: 16, width: 120, marginBottom: 8, borderRadius: 4 }} />
-                <div className="skeleton" style={{ height: 12, width: 200, borderRadius: 4 }} />
-              </div>
-            ))}
-          </div>
+          <Loading />
         ) : bills.length === 0 ? (
           <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '48px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
             <p style={{ fontSize: 32, marginBottom: 8 }}>📋</p>

@@ -15,6 +15,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
+import Loading from '@/components/Loading'
 import NumberPad from '@/components/number-pad/NumberPad'
 import BetTypeSelector from '@/components/bet-board/BetTypeSelector'
 import BetSlip from '@/components/bet-board/BetSlip'
@@ -155,15 +156,7 @@ export default function LotteryBetPage() {
   }, [selectedRound, betSlip, updateBalance, clearBetSlip])
 
   if (loading) {
-    return (
-      <div className="p-4 space-y-3">
-        <div className="skeleton h-8 w-48" />
-        <div className="skeleton h-12 w-full rounded-lg" />
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="skeleton h-16 rounded-lg" />)}
-        </div>
-      </div>
-    )
+    return <Loading />
   }
 
   // ⭐ Multi-select: digit count จาก bet types ที่เลือก (ใช้กำหนด number pad)

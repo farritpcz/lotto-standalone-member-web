@@ -485,6 +485,18 @@ body {
 }
 
 /* ============================================================
+ * Loading Spinner + Shimmer — for Loading component
+ * ============================================================ */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================================
  * Staggered Fade-in Animation (iOS spring)
  * ============================================================ */
 @keyframes ios-fade-in {

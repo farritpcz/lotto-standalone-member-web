@@ -19,6 +19,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Clock } from 'lucide-react'
+import Loading from '@/components/Loading'
 import { yeekeeApi } from '@/lib/api'
 import type { YeekeeRound } from '@/types'
 
@@ -209,14 +210,7 @@ export default function YeekeeRoomPage() {
   }, [load])
 
   if (loading) {
-    return (
-      <div className="p-4 space-y-3">
-        <div className="skeleton h-8 w-48 mb-4" />
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => <div key={i} className="skeleton h-44 rounded-2xl" />)}
-        </div>
-      </div>
-    )
+    return <Loading />
   }
 
   return (

@@ -19,6 +19,7 @@ import { useState, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
+import Loading from '@/components/Loading'
 import NumberPad from '@/components/number-pad/NumberPad'
 import BetTypeSelector from '@/components/bet-board/BetTypeSelector'
 import BetSlip from '@/components/bet-board/BetSlip'
@@ -575,13 +576,7 @@ function YeekeePlayContent() {
 
 export default function YeekeePlayPage() {
   return (
-    <Suspense fallback={
-      <div className="p-4">
-        <div className="skeleton h-8 w-48 mb-4" />
-        <div className="skeleton h-24 rounded-xl mb-4" />
-        <div className="skeleton h-64 rounded-xl" />
-      </div>
-    }>
+    <Suspense fallback={<Loading />}>
       <YeekeePlayContent />
     </Suspense>
   )

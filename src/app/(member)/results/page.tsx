@@ -5,6 +5,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Loading from '@/components/Loading'
 import { resultApi, lotteryApi } from '@/lib/api'
 import type { LotteryRound, LotteryTypeInfo } from '@/types'
 
@@ -74,16 +75,7 @@ export default function ResultsPage() {
 
       <div style={{ padding: '0 16px', paddingBottom: 16 }}>
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
-                <div className="skeleton" style={{ height: 14, width: 120, marginBottom: 12, borderRadius: 4 }} />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                  {[1,2,3].map(j => <div key={j} className="skeleton" style={{ height: 60, borderRadius: 10 }} />)}
-                </div>
-              </div>
-            ))}
-          </div>
+          <Loading />
         ) : results.length === 0 ? (
           <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '48px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
             <p style={{ fontSize: 32, marginBottom: 8 }}>🏆</p>

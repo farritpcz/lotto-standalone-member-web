@@ -15,6 +15,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { RefreshCw, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import Loading from '@/components/Loading'
 import { useAuthStore } from '@/store/auth-store'
 import { lotteryApi, resultApi, walletApi } from '@/lib/api'
 import type { LotteryTypeInfo, LotteryRound } from '@/types'
@@ -256,21 +257,7 @@ export default function DashboardPage() {
       <div style={{ padding: '0 16px', marginBottom: 24 }} className="ios-animate ios-animate-4">
         <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
           {lotteries.length === 0 ? (
-            [1, 2, 3].map(i => (
-              <div key={i} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 16px',
-                borderBottom: i < 3 ? '0.5px solid var(--ios-separator)' : 'none',
-              }}>
-                <div className="skeleton" style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div className="skeleton" style={{ height: 14, width: 100, marginBottom: 6, borderRadius: 4 }} />
-                  <div className="skeleton" style={{ height: 12, width: 140, borderRadius: 4 }} />
-                </div>
-              </div>
-            ))
+            <Loading />
           ) : (
             lotteries.slice(0, 5).map((lottery, idx) => (
               <Link

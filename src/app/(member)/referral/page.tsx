@@ -18,6 +18,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Copy, Wallet } from 'lucide-react'
+import Loading from '@/components/Loading'
 import { referralApi, type ReferralInfo, type ReferralCommission } from '@/lib/api'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -162,7 +163,7 @@ export default function ReferralPage() {
           <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
             <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 10 }}>อัตราค่าคอมมิชชั่น</p>
             {loading ? (
-              <div className="skeleton" style={{ height: 20, borderRadius: 6, width: '60%' }} />
+              <Loading inline />
             ) : info?.commission_rates.length ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {info.commission_rates.map((r, i) => (

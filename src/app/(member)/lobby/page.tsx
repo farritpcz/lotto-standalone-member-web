@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo } from '@/types'
 
@@ -102,28 +103,8 @@ export default function LobbyPage() {
         ))}
       </div>
 
-      {/* Loading skeletons */}
-      {loading && (
-        <div style={{ padding: '0 16px' }}>
-          <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 16px',
-                borderBottom: i < 4 ? '0.5px solid var(--ios-separator)' : 'none',
-              }}>
-                <div className="skeleton" style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div className="skeleton" style={{ height: 14, width: 100, marginBottom: 6, borderRadius: 4 }} />
-                  <div className="skeleton" style={{ height: 12, width: 140, borderRadius: 4 }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Loading */}
+      {loading && <Loading />}
 
       {/* Game list */}
       {!loading && (
