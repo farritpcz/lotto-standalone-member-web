@@ -104,7 +104,8 @@ export default function LotteryBetPage() {
   }, [betAmount, addToBetSlip])
 
   // ยืนยันแทง — return true ถ้าสำเร็จ, false ถ้าไม่
-  const handleConfirm = useCallback(async (): Promise<boolean> => {
+  // ⭐ return true = สำเร็จ, string = error message ส่งให้ BetSlip แสดง
+  const handleConfirm = useCallback(async (): Promise<boolean | string> => {
     if (!selectedRound || betSlip.length === 0) return false
     setSubmitting(true)
     setMessage('')
@@ -130,23 +131,25 @@ export default function LotteryBetPage() {
       if (data.errors && data.errors.length > 0) {
         // แปลง error เป็นภาษาไทย
         const translateReason = (r: string) => {
-          if (r.includes('banned')) return 'เลขอั้น'
-          if (r.includes('insufficient')) return 'เครดิตไม่พอ'
-          if (r.includes('closed')) return 'ปิดรับแล้ว'
-          if (r.includes('limit')) return 'เกินวงเงิน'
+          if (r.includes('auto-ban') || r.includes('อั้นอัตโนมัติ')) return 'เลขอั้น (ยอดรวมเกินที่กำหนด)'
+          if (r.includes('banned') || r.includes('อั้น')) return 'เลขอั้น'
+          if (r.includes('insufficient') || r.includes('เครดิต')) return 'เครดิตไม่พอ'
+          if (r.includes('closed') || r.includes('ปิดรับ')) return 'ปิดรับแล้ว'
+          if (r.includes('limit') || r.includes('เกินวงเงิน') || r.includes('จำกัดยอด')) return 'เกินวงเงิน'
           return r
         }
         const errMsgs = data.errors.map((e: { number: string; BetType: string; Reason: string }) =>
-          `เลข ${e.number} (${e.BetType}): ${translateReason(e.Reason)}`
+          `เลข ${e.number}: ${translateReason(e.Reason)}`
         ).join('\n')
         setMessage(errMsgs)
+        setSubmitting(false)
+        return errMsgs // ⭐ ส่ง error message กลับให้ BetSlip แสดง
       }
       setSubmitting(false)
       return false
     } catch {
-      setMessage('เกิดข้อผิดพลาด กรุณาลองใหม่')
       setSubmitting(false)
-      return false
+      return 'เกิดข้อผิดพลาด กรุณาลองใหม่'
     }
   }, [selectedRound, betSlip, updateBalance, clearBetSlip])
 

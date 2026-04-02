@@ -15,8 +15,8 @@ import { useBetStore, BetSlipItem } from '@/store/bet-store'
 import { useAuthStore } from '@/store/auth-store'
 
 interface BetSlipProps {
-  /** return true if success, false if failed */
-  onConfirm: () => Promise<boolean>
+  /** return true if success, string with error message if failed, false for generic error */
+  onConfirm: () => Promise<boolean | string>
   loading?: boolean
 }
 
@@ -335,16 +335,17 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 setResultAlert(null)
                 const count = betSlip.length
                 const amt = totalAmount
-                const success = await onConfirm()
-                if (success) {
+                const result = await onConfirm()
+                if (result === true) {
                   setResultAlert({
                     type: 'success',
                     message: `ส่งโพย ${count} รายการ รวม ฿${amt.toLocaleString()} สำเร็จ\nเครดิตคงเหลือ ฿${((member?.balance || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
                   })
                 } else {
+                  // result = false (generic error) หรือ string (error message จาก backend)
                   setResultAlert({
                     type: 'error',
-                    message: 'ไม่สามารถส่งโพยได้ กรุณาตรวจสอบเลขอั้นหรือเครดิตคงเหลือ',
+                    message: typeof result === 'string' ? result : 'ไม่สามารถส่งโพยได้ กรุณาตรวจสอบเลขอั้นหรือเครดิตคงเหลือ',
                   })
                 }
               }}
