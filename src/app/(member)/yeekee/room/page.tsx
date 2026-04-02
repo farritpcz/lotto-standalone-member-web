@@ -55,9 +55,15 @@ function useCountdown(targetTime: string) {
         seconds: Math.floor((diff / 1000) % 60),
         total: diff,
       })
+      return diff
     }
-    calc()
-    const timer = setInterval(calc, 1000)
+    const diff = calc()
+    // ⭐ ถ้าหมดเวลาแล้ว → ไม่ต้องสร้าง interval (ประหยัด resource)
+    if (diff <= 0) return
+    const timer = setInterval(() => {
+      const remaining = calc()
+      if (remaining <= 0) clearInterval(timer)
+    }, 1000)
     return () => clearInterval(timer)
   }, [targetTime])
 
@@ -237,11 +243,11 @@ export default function YeekeeRoomPage() {
         </div>
       ) : (
         <div className="px-4 pb-24">
-          {/* แยกรอบ active (shooting/waiting ที่ยังไม่หมดเวลา) vs หมดเวลา */}
+          {/* ⭐ แสดงแค่รอบใกล้ๆ — ไม่โหลดทั้ง 70+ รอบ */}
           {(() => {
             const now = Date.now()
-            const active = rounds.filter(r => new Date(r.end_time).getTime() > now)
-            const expired = rounds.filter(r => new Date(r.end_time).getTime() <= now)
+            const active = rounds.filter(r => new Date(r.end_time).getTime() > now).slice(0, 10) // แค่ 10 รอบถัดไป
+            const expired = rounds.filter(r => new Date(r.end_time).getTime() <= now).slice(-5)   // 5 รอบล่าสุดที่หมดเวลา
             return (
               <>
                 {active.length > 0 && (
@@ -254,7 +260,7 @@ export default function YeekeeRoomPage() {
                 {expired.length > 0 && (
                   <>
                     <div className="mt-4 mb-2 px-1 text-xs font-semibold text-muted">
-                      หมดเวลาแล้ว ({expired.length} รอบ)
+                      หมดเวลาแล้ว ({expired.length} รอบล่าสุด)
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       {expired.map(round => (
