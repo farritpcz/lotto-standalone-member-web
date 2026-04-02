@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { walletApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth-store'
+import { useToast } from '@/components/Toast'
 import type { Transaction } from '@/types'
 
 const txTypeLabels: Record<string, string> = {
@@ -36,6 +37,7 @@ interface AgentBank { bank_code: string; bank_name: string; account_number: stri
 
 export default function WalletPage() {
   const { member, updateBalance } = useAuthStore()
+  const { toast } = useToast()
   const [amount, setAmount] = useState('')
   const [action, setAction] = useState<'deposit' | 'withdraw'>('deposit')
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -74,7 +76,7 @@ export default function WalletPage() {
 
   const handleSubmit = async () => {
     const amt = parseFloat(amount)
-    if (!amt || amt <= 0) { setMessage('กรุณากรอกจำนวนเงิน'); return }
+    if (!amt || amt <= 0) { toast.warning('กรุณากรอกจำนวนเงิน'); return }
     setMessage('')
 
     if (action === 'deposit') {
@@ -85,15 +87,15 @@ export default function WalletPage() {
     }
 
     // ── ถอนเงิน: สร้างคำขอถอน (ไม่หักเงินทันที รอแอดมินอนุมัติ) ──
-    if (amt > (member?.balance || 0)) { setMessage('ยอดเงินไม่เพียงพอ'); return }
+    if (amt > (member?.balance || 0)) { toast.error('ยอดเงินไม่เพียงพอ'); return }
     setLoading(true)
     try {
       await (await import('@/lib/api')).api.post('/wallet/withdraw', { amount: amt })
       setAmount('')
-      setMessage('แจ้งถอนเงินสำเร็จ รอแอดมินอนุมัติ')
+      toast.success('แจ้งถอนเงินสำเร็จ รอแอดมินอนุมัติ')
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: string } } }
-      setMessage(axiosErr.response?.data?.error || 'เกิดข้อผิดพลาด')
+      toast.error(axiosErr.response?.data?.error || 'เกิดข้อผิดพลาด')
     } finally {
       setLoading(false)
     }
@@ -110,7 +112,7 @@ export default function WalletPage() {
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: string } } }
       const errMsg = axiosErr.response?.data?.error || 'เกิดข้อผิดพลาด'
-      setMessage(errMsg)
+      toast.error(errMsg)
       setShowTransferModal(false)
     } finally {
       setLoading(false)
