@@ -128,65 +128,79 @@ export default function HistoryPage() {
             {bills.map(bill => {
               const cfg = statusConfig[bill.status] || statusConfig.pending
               const numbers = bill.bets.map(b => b.number).join(', ')
+              const statusColors: Record<string, string> = {
+                pending: '#FF9500', won: '#34C759', lost: '#8E8E93',
+              }
+              const borderColor = statusColors[bill.status] || '#8E8E93'
+              const dateStr = bill.createdAt ? new Date(bill.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''
+
               return (
                 <div
                   key={bill.batchId}
                   onClick={() => setSelectedBill(bill)}
                   style={{
-                    background: 'var(--ios-card)', borderRadius: 16,
-                    padding: '14px 16px', cursor: 'pointer',
-                    boxShadow: 'var(--shadow-card)',
-                    transition: 'transform 0.1s',
+                    background: 'var(--ios-card)', borderRadius: 14, cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden',
                   }}
                 >
-                  {/* Top row: lottery name + status + amount */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ios-label)' }}>
-                        {bill.lotteryName}
-                      </span>
-                      <span style={{
-                        fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6,
-                        background: cfg.bg, color: cfg.color,
-                      }}>
-                        {cfg.label}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)' }}>
-                      ฿{bill.totalAmount.toLocaleString()}
-                    </span>
-                  </div>
+                  {/* Top gradient bar */}
+                  <div style={{ height: 3, background: `linear-gradient(90deg, ${borderColor}, ${borderColor}80)` }} />
 
-                  {/* Numbers preview — เลขอั้นเปลี่ยนสี amber */}
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-                    {bill.bets.slice(0, 6).map((b, i) => {
-                      const isBanned = (b.original_rate ?? 0) > 0 && b.original_rate! > b.rate
-                      return (
-                        <span key={i} style={{
-                          fontFamily: 'monospace', fontWeight: 700, fontSize: 14,
-                          background: isBanned ? 'rgba(217,119,6,0.10)' : 'rgba(13,110,110,0.08)',
-                          color: isBanned ? '#b45309' : '#0d6e6e',
-                          padding: '2px 8px', borderRadius: 6,
-                        }}>
-                          {b.number}
+                  <div style={{ padding: '12px 14px' }}>
+                    {/* Row 1: lottery name + status + amount */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>
+                          {bill.lotteryName}
                         </span>
-                      )
-                    })}
-                    {bill.bets.length > 6 && (
-                      <span style={{ fontSize: 12, color: '#888', alignSelf: 'center' }}>+{bill.bets.length - 6}</span>
-                    )}
-                  </div>
+                        <span style={{
+                          fontSize: 10, fontWeight: 600, padding: '2px 10px', borderRadius: 10,
+                          background: cfg.bg, color: cfg.color,
+                        }}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--ios-label)' }}>
+                          ฿{bill.totalAmount.toLocaleString()}
+                        </div>
+                        {bill.totalWin > 0 && (
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#34C759' }}>
+                            +฿{bill.totalWin.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                  {/* Bottom: date + bill id + bet count + win */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
-                      บิล #{bill.batchId.substring(0, 8).toUpperCase()} · {bill.bets.length} รายการ
-                    </span>
-                    {bill.totalWin > 0 && (
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#34C759' }}>
-                        +฿{bill.totalWin.toLocaleString()}
+                    {/* Row 2: Numbers preview */}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                      {bill.bets.slice(0, 8).map((b, i) => {
+                        const isBanned = (b.original_rate ?? 0) > 0 && b.original_rate! > b.rate
+                        const isWon = b.status === 'won'
+                        return (
+                          <span key={i} style={{
+                            fontFamily: 'monospace', fontWeight: 700, fontSize: 15, minWidth: 36, textAlign: 'center',
+                            background: isWon ? 'rgba(52,199,89,0.12)' : isBanned ? 'rgba(217,119,6,0.10)' : 'rgba(13,110,110,0.06)',
+                            color: isWon ? '#1a8a40' : isBanned ? '#b45309' : '#0d6e6e',
+                            padding: '4px 10px', borderRadius: 8,
+                            border: isWon ? '1px solid rgba(52,199,89,0.3)' : 'none',
+                          }}>
+                            {b.number}
+                          </span>
+                        )
+                      })}
+                      {bill.bets.length > 8 && (
+                        <span style={{ fontSize: 12, color: '#888', alignSelf: 'center' }}>+{bill.bets.length - 8}</span>
+                      )}
+                    </div>
+
+                    {/* Row 3: date + bet count */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+                        {dateStr} · {bill.bets.length} รายการ
                       </span>
-                    )}
+                      <ChevronLeft size={16} color="var(--ios-tertiary-label)" style={{ transform: 'rotate(180deg)' }} />
+                    </div>
                   </div>
                 </div>
               )
