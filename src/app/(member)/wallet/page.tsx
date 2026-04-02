@@ -445,74 +445,87 @@ export default function WalletPage() {
       </div>
       <div style={{ padding: '0 16px', paddingBottom: 16 }}>
         {(() => {
-          // รวม deposit + withdraw → เรียงตามวันที่
+          // รวม deposit + withdraw → ซ่อน expired/cancelled → เรียงวันที่
           const allItems = [
             ...depositHistory.map(d => ({ ...d, type: 'deposit' as const })),
             ...withdrawHistory.map(w => ({ ...w, type: 'withdraw' as const })),
-          ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10)
-
-          const statusCfg: Record<string, { bg: string; color: string; label: string }> = {
-            pending:   { bg: 'rgba(255,159,10,0.12)', color: '#B25000', label: 'รอดำเนินการ' },
-            approved:  { bg: 'rgba(52,199,89,0.12)',  color: '#1a8a40', label: 'สำเร็จ' },
-            completed: { bg: 'rgba(52,199,89,0.12)',  color: '#1a8a40', label: 'สำเร็จ' },
-            rejected:  { bg: 'rgba(255,59,48,0.10)',  color: '#CC2020', label: 'ปฏิเสธ' },
-            expired:   { bg: 'rgba(142,142,147,0.10)',color: '#888',    label: 'หมดอายุ' },
-            cancelled: { bg: 'rgba(142,142,147,0.10)',color: '#888',    label: 'ยกเลิก' },
-          }
+          ]
+            .filter(i => !['expired', 'cancelled'].includes(i.status))
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 10)
 
           if (allItems.length === 0) {
             return (
               <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '40px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
-                <p style={{ fontSize: 32, marginBottom: 8 }}>💰</p>
                 <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีรายการ</p>
               </div>
             )
           }
 
           return (
-            <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-              {allItems.map((item, idx) => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {allItems.map((item) => {
                 const isDeposit = item.type === 'deposit'
-                const cfg = statusCfg[item.status] || statusCfg.pending
+                const isPending = item.status === 'pending'
+                const isSuccess = item.status === 'approved' || item.status === 'completed'
+                const isRejected = item.status === 'rejected'
+
                 return (
                   <div key={`${item.type}-${item.id}`} style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-                    borderBottom: idx < allItems.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
+                    background: 'var(--ios-card)', borderRadius: 14,
+                    padding: '14px 16px',
+                    boxShadow: 'var(--shadow-card)',
+                    borderLeft: `3px solid ${isPending ? '#FF9500' : isSuccess ? (isDeposit ? '#34C759' : '#3b82f6') : isRejected ? '#ef4444' : '#ccc'}`,
+                    opacity: isRejected ? 0.6 : 1,
                   }}>
-                    {/* Icon */}
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      background: isDeposit ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.1)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 18, flexShrink: 0,
-                    }}>
-                      {isDeposit ? '💰' : '🏧'}
-                    </div>
-
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontSize: 15, fontWeight: 500 }}>{isDeposit ? 'ฝากเงิน' : 'ถอนเงิน'}</span>
-                        <span style={{
-                          fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
-                          background: cfg.bg, color: cfg.color,
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      {/* Left: type + status */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {/* Icon circle */}
+                        <div style={{
+                          width: 36, height: 36, borderRadius: 10,
+                          background: isDeposit
+                            ? (isPending ? 'rgba(255,149,0,0.12)' : 'rgba(52,199,89,0.12)')
+                            : 'rgba(59,130,246,0.12)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
                         }}>
-                          {cfg.label}
+                          {isDeposit ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isPending ? '#FF9500' : '#34C759'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 5v14M5 12l7 7 7-7"/>
+                            </svg>
+                          ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 19V5M5 12l7-7 7 7"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 2 }}>
+                            {isDeposit ? 'ฝากเงิน' : 'ถอนเงิน'}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+                            {new Date(item.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: amount + status */}
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{
+                          fontSize: 18, fontWeight: 700, marginBottom: 2,
+                          color: isDeposit ? '#34C759' : '#3b82f6',
+                        }}>
+                          {isDeposit ? '+' : '-'}฿{item.amount.toLocaleString()}
+                        </div>
+                        <span style={{
+                          fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
+                          background: isPending ? 'rgba(255,149,0,0.12)' : isSuccess ? 'rgba(52,199,89,0.12)' : isRejected ? 'rgba(239,68,68,0.1)' : 'rgba(142,142,147,0.1)',
+                          color: isPending ? '#FF9500' : isSuccess ? '#34C759' : isRejected ? '#ef4444' : '#888',
+                        }}>
+                          {isPending ? 'รอตรวจสอบ' : isSuccess ? 'สำเร็จ' : isRejected ? 'ปฏิเสธ' : item.status}
                         </span>
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
-                        {new Date(item.created_at).toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-
-                    {/* Amount */}
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <span style={{
-                        fontSize: 16, fontWeight: 700,
-                        color: isDeposit ? 'var(--ios-green)' : 'var(--ios-red)',
-                      }}>
-                        {isDeposit ? '+' : '-'}฿{item.amount.toLocaleString()}
-                      </span>
                     </div>
                   </div>
                 )
