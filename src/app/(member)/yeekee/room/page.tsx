@@ -246,8 +246,8 @@ export default function YeekeeRoomPage() {
           {/* ⭐ แสดงแค่รอบใกล้ๆ — ไม่โหลดทั้ง 70+ รอบ */}
           {(() => {
             const now = Date.now()
-            const active = rounds.filter(r => new Date(r.end_time).getTime() > now).slice(0, 10) // แค่ 10 รอบถัดไป
-            const expired = rounds.filter(r => new Date(r.end_time).getTime() <= now).slice(-5)   // 5 รอบล่าสุดที่หมดเวลา
+            const active = rounds.filter(r => new Date(r.end_time).getTime() > now)
+            const expired = rounds.filter(r => new Date(r.end_time).getTime() <= now).slice(-10) // 10 รอบล่าสุดที่หมดเวลา
             return (
               <>
                 {active.length > 0 && (
