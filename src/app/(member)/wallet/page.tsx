@@ -50,6 +50,25 @@ export default function WalletPage() {
   const [agentBanks, setAgentBanks] = useState<AgentBank[]>([])      // บัญชี agent
   const [memberBanks, setMemberBanks] = useState<{ id: number; bank_code: string; bank_name: string; account_number: string; account_name: string; account_type: string; is_default: boolean }[]>([]) // บัญชีสมาชิก
 
+  // ดึงประวัติฝาก/ถอน (deposit_requests + withdraw ล่าสุด)
+  const [depositHistory, setDepositHistory] = useState<{ id: number; amount: number; status: string; auto_matched: boolean; created_at: string }[]>([])
+  const [withdrawHistory, setWithdrawHistory] = useState<{ id: number; amount: number; status: string; created_at: string }[]>([])
+
+  const loadHistory = () => {
+    import('@/lib/api').then(({ api }) => {
+      api.get('/wallet/deposits?per_page=10').then(res => setDepositHistory(res.data.data?.items || [])).catch(() => {})
+      api.get('/wallet/transactions?type=withdraw&per_page=10').then(res => {
+        // fallback: ดึงจาก transactions ถ้า deposits endpoint ยังไม่มี
+        setWithdrawHistory((res.data.data?.items || []).map((t: Record<string, unknown>) => ({
+          id: t.id as number, amount: Math.abs(t.amount as number), status: 'completed', created_at: t.created_at as string,
+        })))
+      }).catch(() => {})
+    })
+  }
+
+  useEffect(() => { loadHistory() }, [message, depositAlert])
+
+  // ยังคงดึง transactions สำหรับ backward compat
   useEffect(() => {
     walletApi.getTransactions({ per_page: 30 })
       .then(res => setTransactions(res.data.data?.items || []))
@@ -420,66 +439,103 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Transaction History */}
+      {/* ── ประวัติฝาก/ถอน ─────────────────────────────────────── */}
       <div className="section-title">
-        <span>ประวัติธุรกรรม</span>
+        <span>รายการฝาก/ถอน</span>
       </div>
       <div style={{ padding: '0 16px', paddingBottom: 16 }}>
-        {transactions.length === 0 ? (
-          <div style={{
-            background: 'var(--ios-card)',
-            borderRadius: 16,
-            padding: '40px 16px',
-            textAlign: 'center',
-            boxShadow: 'var(--shadow-card)',
-          }}>
-            <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีธุรกรรม</p>
-          </div>
-        ) : (
-          <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-            {transactions.map((tx, idx) => (
-              <div key={tx.id} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 16px',
-                borderBottom: idx < transactions.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
-              }}>
-                <div style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: 'var(--ios-bg)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 20,
-                  flexShrink: 0,
-                }}>
-                  {txTypeIcons[tx.type] || '💳'}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 2 }}>{txTypeLabels[tx.type] || tx.type}</div>
-                  <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
-                    {new Date(tx.created_at).toLocaleString('th-TH')}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <span style={{
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: tx.amount >= 0 ? 'var(--ios-green)' : 'var(--ios-red)',
-                  }}>
-                    {tx.amount >= 0 ? '+' : ''}฿{Math.abs(tx.amount).toLocaleString()}
-                  </span>
-                  <div style={{ fontSize: 11, color: 'var(--ios-secondary-label)', marginTop: 2 }}>
-                    คงเหลือ ฿{tx.balance_after.toLocaleString()}
-                  </div>
-                </div>
+        {(() => {
+          // รวม deposit + withdraw → เรียงตามวันที่
+          const allItems = [
+            ...depositHistory.map(d => ({ ...d, type: 'deposit' as const })),
+            ...withdrawHistory.map(w => ({ ...w, type: 'withdraw' as const })),
+          ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10)
+
+          const statusCfg: Record<string, { bg: string; color: string; label: string }> = {
+            pending:   { bg: 'rgba(255,159,10,0.12)', color: '#B25000', label: 'รอดำเนินการ' },
+            approved:  { bg: 'rgba(52,199,89,0.12)',  color: '#1a8a40', label: 'สำเร็จ' },
+            completed: { bg: 'rgba(52,199,89,0.12)',  color: '#1a8a40', label: 'สำเร็จ' },
+            rejected:  { bg: 'rgba(255,59,48,0.10)',  color: '#CC2020', label: 'ปฏิเสธ' },
+            expired:   { bg: 'rgba(142,142,147,0.10)',color: '#888',    label: 'หมดอายุ' },
+            cancelled: { bg: 'rgba(142,142,147,0.10)',color: '#888',    label: 'ยกเลิก' },
+          }
+
+          if (allItems.length === 0) {
+            return (
+              <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '40px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
+                <p style={{ fontSize: 32, marginBottom: 8 }}>💰</p>
+                <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีรายการ</p>
               </div>
-            ))}
-          </div>
-        )}
+            )
+          }
+
+          return (
+            <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+              {allItems.map((item, idx) => {
+                const isDeposit = item.type === 'deposit'
+                const cfg = statusCfg[item.status] || statusCfg.pending
+                return (
+                  <div key={`${item.type}-${item.id}`} style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                    borderBottom: idx < allItems.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
+                  }}>
+                    {/* Icon */}
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: isDeposit ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18, flexShrink: 0,
+                    }}>
+                      {isDeposit ? '💰' : '🏧'}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                        <span style={{ fontSize: 15, fontWeight: 500 }}>{isDeposit ? 'ฝากเงิน' : 'ถอนเงิน'}</span>
+                        <span style={{
+                          fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
+                          background: cfg.bg, color: cfg.color,
+                        }}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+                        {new Date(item.created_at).toLocaleString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+
+                    {/* Amount + cancel button */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <span style={{
+                        fontSize: 16, fontWeight: 700,
+                        color: isDeposit ? 'var(--ios-green)' : 'var(--ios-red)',
+                      }}>
+                        {isDeposit ? '+' : '-'}฿{item.amount.toLocaleString()}
+                      </span>
+                      {item.status === 'pending' && isDeposit && (
+                        <button onClick={async () => {
+                          try {
+                            const { api: apiClient } = await import('@/lib/api')
+                            await apiClient.delete(`/wallet/deposit/${item.id}`)
+                            toast.success('ยกเลิกรายการแล้ว')
+                            loadHistory()
+                          } catch { toast.error('ยกเลิกไม่สำเร็จ') }
+                        }} style={{
+                          display: 'block', fontSize: 11, color: '#ef4444', background: 'none',
+                          border: 'none', cursor: 'pointer', marginTop: 2, padding: 0,
+                          textDecoration: 'underline',
+                        }}>
+                          ยกเลิก
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })()}
       </div>
 
       {/* ── Transfer Modal: แสดงบัญชี agent ให้โอน ──────────────────────── */}
