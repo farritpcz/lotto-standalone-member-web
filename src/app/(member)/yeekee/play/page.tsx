@@ -19,6 +19,7 @@ import { useState, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import NumberPad from '@/components/number-pad/NumberPad'
+import BetTypeSelector from '@/components/bet-board/BetTypeSelector'
 import BetSlip from '@/components/bet-board/BetSlip'
 import NumberGrid from '@/components/bet-board/NumberGrid'
 import LuckyNumbers from '@/components/bet-board/LuckyNumbers'
@@ -26,6 +27,7 @@ import { useBetStore } from '@/store/bet-store'
 import { useAuthStore } from '@/store/auth-store'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { lotteryApi, betApi, yeekeeApi } from '@/lib/api'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { WSMessage, PlaceBetItem } from '@/types'
 
 // =============================================================================
@@ -94,15 +96,28 @@ function YeekeePlayContent() {
 
   // === Betting state ===
   const { member, updateBalance } = useAuthStore()
-  const { betSlip, addToBetSlip, clearBetSlip, toggleBetType, selectedBetTypes, setBetTypes, setCurrentRound } = useBetStore()
-  // ⭐ ยี่กีใช้ selectedYeekeeBetType แทน multi-select
-  const [selectedYeekeeBetType, setSelectedYeekeeBetType] = useState<YeekeeBetType | null>(null)
+  const { betSlip, addToBetSlip, clearBetSlip, selectedBetTypes, setBetTypes, setCurrentRound, getSelectedDigitCount } = useBetStore()
   const [lotteryRoundId, setLotteryRoundId] = useState<number | null>(null)
   const [betAmount, setBetAmount] = useState(10)
   const [betResetKey, setBetResetKey] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [betMessage, setBetMessage] = useState('')
   const [betTypesLoaded, setBetTypesLoaded] = useState(false)
+
+  // ⭐ ตั้ง bet types ยี่กี เข้า store ทันที (ไม่ต้อง fetch จาก API)
+  useEffect(() => {
+    if (!betTypesLoaded) {
+      setBetTypes(YEEKEE_BET_TYPES.map(bt => ({
+        id: 0,
+        name: bt.label,
+        code: bt.code,
+        digit_count: bt.digitCount,
+        rate: bt.rate,
+        max_bet_per_number: 0,
+      })))
+      setBetTypesLoaded(true)
+    }
+  }, [betTypesLoaded, setBetTypes])
 
   // === WebSocket ===
   const handleMessage = useCallback((msg: WSMessage) => {
@@ -152,21 +167,12 @@ function YeekeePlayContent() {
           setRoundEndTime(tr.end_time)
           setLotteryRoundId(tr.lottery_round_id)
 
-          // ดึง bet types ด้วย lottery type ID
+          // ตั้ง current round สำหรับ BetSlip
           const ltId = tr.lottery_round?.lottery_type_id
-          if (ltId && !betTypesLoaded) {
-            lotteryApi.getBetTypes(ltId)
-              .then(btRes => {
-                setBetTypes(btRes.data.data || [])
-                setBetTypesLoaded(true)
-              })
-              .catch(() => {})
-
-            // ตั้ง current round สำหรับ BetSlip
+          if (ltId) {
             lotteryApi.getOpenRounds(ltId)
               .then(rRes => {
                 const openRounds = rRes.data.data || []
-                // หา lottery round ที่ตรงกับ yeekee round นี้
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const lr = openRounds.find((r: any) => r.id === tr.lottery_round_id)
                 if (lr) setCurrentRound(lr)
@@ -211,27 +217,9 @@ function YeekeePlayContent() {
     }
   }, [shootNumber, shoot, member])
 
-  // เลือกประเภทแทงยี่กี → sync กับ store
-  const handleSelectYeekeeBetType = useCallback((bt: YeekeeBetType) => {
-    setSelectedYeekeeBetType(bt)
-    // ตั้ง betTypes ใน store ให้ตรงกับที่เลือก (เพื่อให้ addToBetSlip ทำงานถูก)
-    setBetTypes([{
-      id: 0,
-      name: bt.label,
-      code: bt.code,
-      digit_count: bt.digitCount,
-      rate: bt.rate,
-      max_bet_per_number: 0,
-    }])
-    // Toggle ให้ store เลือก bet type นี้
-    // Clear แล้วเลือกใหม่
-    selectedBetTypes.forEach(t => toggleBetType(t))
-    setTimeout(() => toggleBetType(bt.code as import('@/types').BetType), 0)
-  }, [setBetTypes, selectedBetTypes, toggleBetType])
-
   // === Betting handlers ===
   const handleAddNumber = useCallback((number: string) => {
-    if (!selectedYeekeeBetType) {
+    if (selectedBetTypes.length === 0) {
       setBetMessage('กรุณาเลือกประเภทการแทงก่อน')
       setTimeout(() => setBetMessage(''), 2000)
       return
@@ -239,7 +227,7 @@ function YeekeePlayContent() {
     // เพิ่มลง bet slip ด้วย bet type ที่เลือก
     addToBetSlip(number, betAmount)
     setBetResetKey(prev => prev + 1)
-  }, [selectedYeekeeBetType, betAmount, addToBetSlip])
+  }, [selectedBetTypes, betAmount, addToBetSlip])
 
   // กลับตัวเลข (permutation) — เช่น 123 → 132, 213, 231, 312, 321
   const handleReverse = useCallback((number: string) => {
@@ -323,7 +311,7 @@ function YeekeePlayContent() {
 
   const minutes = Math.floor(countdown / 60)
   const seconds = countdown % 60
-  const digitCount = selectedYeekeeBetType?.digitCount || 3
+  const digitCount = getSelectedDigitCount() || 3
 
   return (
     <div>
@@ -428,33 +416,10 @@ function YeekeePlayContent() {
             </div>
           )}
 
-          {/* ⭐ ประเภทการแทงยี่กี — 6 ประเภท แบบเจริญดี88 */}
+          {/* ⭐ ประเภทการแทง — ใช้ BetTypeSelector component เดียวกับทุกหวย */}
           <div className="px-4 mb-3">
             <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">ประเภทการแทง</h2>
-            <div className="grid grid-cols-2 gap-2">
-              {YEEKEE_BET_TYPES.map(bt => {
-                const isSelected = selectedYeekeeBetType?.code === bt.code
-                return (
-                  <button
-                    key={bt.code}
-                    onClick={() => handleSelectYeekeeBetType(bt)}
-                    className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.97]"
-                    style={{
-                      background: isSelected ? 'var(--color-primary)' : 'var(--ios-bg-secondary)',
-                      color: isSelected ? 'white' : 'var(--ios-label)',
-                      border: isSelected ? '2px solid var(--color-primary)' : '2px solid var(--ios-separator-opaque)',
-                    }}
-                  >
-                    <span>{bt.label}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                      isSelected ? 'bg-white/20 text-white' : 'bg-teal-50 text-teal-700'
-                    }`}>
-                      {bt.rate}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
+            <BetTypeSelector />
           </div>
 
           {/* จำนวนเงิน + กลับตัวเลข */}
@@ -513,7 +478,7 @@ function YeekeePlayContent() {
             </div>
 
             {/* Tab Content — ต้องเลือกประเภทแทงก่อน */}
-            {!selectedYeekeeBetType ? (
+            {selectedBetTypes.length === 0 ? (
               <div className="card p-6 text-center">
                 <p className="text-muted text-sm">กรุณาเลือกประเภทการแทงก่อน</p>
               </div>
