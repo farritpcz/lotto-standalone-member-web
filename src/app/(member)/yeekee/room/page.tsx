@@ -235,10 +235,36 @@ export default function YeekeeRoomPage() {
           </div>
         </div>
       ) : (
-        <div className="px-4 pb-24 grid grid-cols-2 gap-3">
-          {rounds.map(round => (
-            <YeekeeRoundCard key={round.id} round={round} />
-          ))}
+        <div className="px-4 pb-24">
+          {/* แยกรอบ active (shooting/waiting ที่ยังไม่หมดเวลา) vs หมดเวลา */}
+          {(() => {
+            const now = Date.now()
+            const active = rounds.filter(r => new Date(r.end_time).getTime() > now)
+            const expired = rounds.filter(r => new Date(r.end_time).getTime() <= now)
+            return (
+              <>
+                {active.length > 0 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {active.map(round => (
+                      <YeekeeRoundCard key={round.id} round={round} />
+                    ))}
+                  </div>
+                )}
+                {expired.length > 0 && (
+                  <>
+                    <div className="mt-4 mb-2 px-1 text-xs font-semibold text-muted">
+                      หมดเวลาแล้ว ({expired.length} รอบ)
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {expired.map(round => (
+                        <YeekeeRoundCard key={round.id} round={round} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )
+          })()}
         </div>
       )}
     </div>
