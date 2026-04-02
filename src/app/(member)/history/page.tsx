@@ -163,17 +163,21 @@ export default function HistoryPage() {
                     </span>
                   </div>
 
-                  {/* Numbers preview */}
+                  {/* Numbers preview — เลขอั้นเปลี่ยนสี amber */}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-                    {bill.bets.slice(0, 6).map((b, i) => (
-                      <span key={i} style={{
-                        fontFamily: 'monospace', fontWeight: 700, fontSize: 14,
-                        background: 'rgba(13,110,110,0.08)', color: '#0d6e6e',
-                        padding: '2px 8px', borderRadius: 6,
-                      }}>
-                        {b.number}
-                      </span>
-                    ))}
+                    {bill.bets.slice(0, 6).map((b, i) => {
+                      const isBanned = b.original_rate && b.original_rate > 0 && b.original_rate > b.rate
+                      return (
+                        <span key={i} style={{
+                          fontFamily: 'monospace', fontWeight: 700, fontSize: 14,
+                          background: isBanned ? 'rgba(217,119,6,0.10)' : 'rgba(13,110,110,0.08)',
+                          color: isBanned ? '#b45309' : '#0d6e6e',
+                          padding: '2px 8px', borderRadius: 6,
+                        }}>
+                          {b.number}
+                        </span>
+                      )
+                    })}
                     {bill.bets.length > 6 && (
                       <span style={{ fontSize: 12, color: '#888', alignSelf: 'center' }}>+{bill.bets.length - 6}</span>
                     )}
@@ -274,6 +278,7 @@ export default function HistoryPage() {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {bill.bets.map((bet, idx) => {
                 const betCfg = statusConfig[bet.status] || statusConfig.pending
+                const isRateReduced = bet.original_rate && bet.original_rate > 0 && bet.original_rate > bet.rate
                 return (
                   <div key={bet.id} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
@@ -283,25 +288,57 @@ export default function HistoryPage() {
                     {/* Number */}
                     <div style={{
                       width: 50, height: 50, borderRadius: 12,
-                      background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
+                      background: isRateReduced
+                        ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'  // amber = เลขอั้น
+                        : 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)', // teal = ปกติ
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: 'white', fontWeight: 700, fontSize: 17, fontFamily: 'monospace', flexShrink: 0,
+                      position: 'relative',
                     }}>
                       {bet.number}
+                      {/* badge เลขอั้น มุมขวาบน */}
+                      {isRateReduced && (
+                        <span style={{
+                          position: 'absolute', top: -4, right: -4,
+                          fontSize: 8, fontWeight: 700, color: 'white',
+                          background: '#ef4444', borderRadius: 6,
+                          padding: '1px 4px', lineHeight: 1.2,
+                        }}>
+                          อั้น
+                        </span>
+                      )}
                     </div>
 
                     {/* Info */}
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', gap: 6, marginBottom: 3 }}>
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 12, fontWeight: 500, padding: '1px 6px', borderRadius: 4, background: '#f0f0f0', color: '#666' }}>
                           {bet.bet_type?.name}
                         </span>
                         <span style={{ fontSize: 11, fontWeight: 600, padding: '1px 6px', borderRadius: 4, background: betCfg.bg, color: betCfg.color }}>
                           {betCfg.label}
                         </span>
+                        {/* badge ลดเรท */}
+                        {isRateReduced && (
+                          <span style={{
+                            fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
+                            background: 'rgba(245,158,11,0.12)', color: '#b45309',
+                          }}>
+                            {bet.rate_note || 'ลดเรท'}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: 12, color: '#aaa' }}>
-                        x{bet.rate} · ถูกได้ <span style={{ color: '#0d6e6e', fontWeight: 600 }}>฿{(bet.amount * bet.rate).toLocaleString()}</span>
+                        {/* แสดงเรท: ถ้าถูกลด → ขีดฆ่าเรทเดิม + เรทใหม่ */}
+                        {isRateReduced ? (
+                          <>
+                            <span style={{ textDecoration: 'line-through', color: '#ccc', marginRight: 4 }}>x{bet.original_rate}</span>
+                            <span style={{ color: '#b45309', fontWeight: 600 }}>x{bet.rate}</span>
+                          </>
+                        ) : (
+                          <span>x{bet.rate}</span>
+                        )}
+                        {' · '}ถูกได้ <span style={{ color: '#0d6e6e', fontWeight: 600 }}>฿{(bet.amount * bet.rate).toLocaleString()}</span>
                       </div>
                     </div>
 

@@ -98,7 +98,9 @@ export interface Bet {
   bet_type: BetTypeInfo
   number: string
   amount: number
-  rate: number
+  rate: number             // เรทที่ได้จริง (อาจลดจากอั้น)
+  original_rate?: number   // เรทเดิมก่อนลด (0 หรือ undefined = ไม่ถูกลด)
+  rate_note?: string       // หมายเหตุ เช่น "เลขอั้น ลดเรท", "อั้นขั้นบันได"
   status: BetStatus
   win_amount: number
   created_at: string
