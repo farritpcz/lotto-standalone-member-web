@@ -25,7 +25,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
   const { betSlip, removeFromBetSlip, updateAmount, clearBetSlip, getTotalAmount, removeDuplicates } = useBetStore()
   const { member } = useAuthStore()
   const [showFull, setShowFull] = useState(false)
-  const [resultAlert, setResultAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [resultAlert, setResultAlert] = useState<{ type: 'success' | 'error'; message: string; closeFull?: boolean } | null>(null)
 
   // ⭐ เช็คเลขอั้น/ลดเรท/จำกัดยอด — แสดง warning ก่อนแทง
   const [numberWarnings, setNumberWarnings] = useState<Record<string, { status: string; message: string; reduced_rate?: number }>>({})
@@ -346,7 +346,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   {resultAlert.message}
                 </div>
                 <button
-                  onClick={() => { setResultAlert(null); if (resultAlert.type === 'success') setShowFull(false) }}
+                  onClick={() => { setResultAlert(null); if (resultAlert.closeFull) setShowFull(false) }}
                   style={{
                     width: '100%', padding: '14px',
                     borderRadius: 12, fontSize: 16, fontWeight: 700,
@@ -435,6 +435,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   setResultAlert({
                     type: 'success',
                     message: `ส่งโพย ${count} รายการ รวม ฿${amt.toLocaleString()} สำเร็จ\nเครดิตคงเหลือ ฿${((member?.balance || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
+                    closeFull: true, // ⭐ ปิด fullscreen หลังแทงสำเร็จ
                   })
                 } else {
                   // result = false (generic error) หรือ string (error message จาก backend)
