@@ -18,6 +18,7 @@
 
 import AppHeader from '@/components/layout/AppHeader'
 import BottomNav from '@/components/layout/BottomNav'
+import ContactFloat from '@/components/ContactFloat'
 
 export default function MemberLayout({
   children,
@@ -30,6 +31,7 @@ export default function MemberLayout({
       <main className="app-content">
         {children}
       </main>
+      <ContactFloat />
       <BottomNav />
     </div>
   )
