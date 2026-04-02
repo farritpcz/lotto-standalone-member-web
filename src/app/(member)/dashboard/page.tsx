@@ -13,6 +13,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { RefreshCw, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/auth-store'
 import { lotteryApi, resultApi, walletApi } from '@/lib/api'
@@ -136,10 +137,7 @@ export default function DashboardPage() {
               }}
               aria-label="รีเฟรชเครดิต"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round" style={{ width: 16, height: 16 }}>
-                <polyline points="23 4 23 10 17 10" />
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-              </svg>
+              <RefreshCw size={16} strokeWidth={2.5} color="white" />
             </button>
           </div>
 
@@ -309,9 +307,7 @@ export default function DashboardPage() {
                 {lottery.code === 'YEEKEE' && (
                   <span className="chip chip-green" style={{ fontSize: 11, marginRight: 4 }}>Live</span>
                 )}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 16, height: 16, color: 'var(--ios-tertiary-label)', flexShrink: 0 }}>
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
+                <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--ios-tertiary-label)', flexShrink: 0 }} />
               </Link>
             ))
           )}

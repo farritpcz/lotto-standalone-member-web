@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo, BetTypeInfo } from '@/types'
 
@@ -45,9 +46,7 @@ export default function RatesPage() {
     <div>
       <div className="px-4 pt-4 pb-2 flex items-center gap-2">
         <Link href="/dashboard" className="text-muted">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+          <ChevronLeft size={20} strokeWidth={2} />
         </Link>
         <h1 className="text-lg font-bold">อัตราจ่าย</h1>
       </div>

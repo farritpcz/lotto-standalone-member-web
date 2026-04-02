@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/store/auth-store'
 import { memberApi } from '@/lib/api'
 
@@ -255,15 +256,12 @@ export default function ProfilePage() {
             }}
           >
             <span>เปลี่ยนรหัสผ่าน</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+            <ChevronDown size={18} strokeWidth={2}
               style={{
-                width: 18, height: 18,
                 color: 'var(--ios-secondary-label)',
                 transition: 'transform 0.2s',
                 transform: showPwForm ? 'rotate(180deg)' : 'none',
-              }}>
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
+              }} />
           </button>
 
           {showPwForm && (
@@ -342,9 +340,7 @@ export default function ProfilePage() {
             >
               <span style={{ fontSize: 20, width: 24, textAlign: 'center' }}>{item.emoji}</span>
               <span style={{ flex: 1 }}>{item.label}</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14, color: 'var(--ios-tertiary-label)' }}>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--ios-tertiary-label)' }} />
             </a>
           ))}
         </div>

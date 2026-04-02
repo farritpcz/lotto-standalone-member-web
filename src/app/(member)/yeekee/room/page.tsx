@@ -18,6 +18,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { ChevronLeft, Clock } from 'lucide-react'
 import { yeekeeApi } from '@/lib/api'
 import type { YeekeeRound } from '@/types'
 
@@ -175,11 +176,7 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
         {/* ไอคอนนาฬิกา */}
         <div className="w-5 h-5 rounded-full flex items-center justify-center"
           style={{ backgroundColor: countdown.total > 0 ? '#E8F5E9' : '#FFF3E0' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke={countdown.total > 0 ? '#34C759' : '#FF9F0A'}
-            strokeWidth={2} className="w-3 h-3">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
+          <Clock size={12} strokeWidth={2} color={countdown.total > 0 ? '#34C759' : '#FF9F0A'} />
         </div>
         <span className="text-xs font-semibold"
           style={{ color: countdown.total > 0 ? '#34C759' : '#FF9F0A' }}>
@@ -227,9 +224,7 @@ export default function YeekeeRoomPage() {
       {/* Header */}
       <div className="px-4 pt-4 pb-2 flex items-center gap-2">
         <Link href="/lobby" className="text-muted">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+          <ChevronLeft size={20} strokeWidth={2} />
         </Link>
         <h1 className="text-lg font-bold">ยี่กี — เลือกรอบ</h1>
       </div>

@@ -18,6 +18,7 @@ import Link from 'next/link'
 import { authApi, lotteryApi, resultApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth-store'
 import type { LotteryTypeInfo, LotteryRound } from '@/types'
+import { Phone, Lock, Eye, EyeOff, LogIn, UserPlus, Monitor, FileText, Users, ChevronRight } from 'lucide-react'
 
 const CARD_BG = '#ffffff'
 const BTN_GREEN = '#1e5c48'
@@ -149,9 +150,7 @@ export default function LoginPage() {
           <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>เบอร์โทรศัพท์</label>
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#aaa', display: 'flex' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 18, height: 18 }}>
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-              </svg>
+              <Phone size={18} strokeWidth={2} />
             </span>
             <input
               type="tel"
@@ -169,9 +168,7 @@ export default function LoginPage() {
           <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>รหัสผ่าน</label>
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#aaa', display: 'flex' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 18, height: 18 }}>
-                <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+              <Lock size={18} strokeWidth={2} />
             </span>
             <input
               type={showPw ? 'text' : 'password'}
@@ -186,8 +183,8 @@ export default function LoginPage() {
               style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', display: 'flex', padding: 2 }}
             >
               {showPw
-                ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 18, height: 18 }}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
-                : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 18, height: 18 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                ? <EyeOff size={18} strokeWidth={2} />
+                : <Eye size={18} strokeWidth={2} />
               }
             </button>
           </div>
@@ -214,9 +211,7 @@ export default function LoginPage() {
             marginBottom: 10, minHeight: 50,
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ width: 18, height: 18 }}>
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" />
-          </svg>
+          <LogIn size={18} strokeWidth={2.5} />
           {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
 
@@ -232,9 +227,7 @@ export default function LoginPage() {
             boxSizing: 'border-box',
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ width: 18, height: 18 }}>
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-          </svg>
+          <UserPlus size={18} strokeWidth={2.5} />
           สมัครสมาชิก
         </Link>
 
@@ -294,9 +287,7 @@ export default function LoginPage() {
             marginBottom: 8,
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ width: 20, height: 20, color: '#666' }}>
-            <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-          </svg>
+          <Monitor size={20} strokeWidth={1.8} style={{ color: '#666' }} />
           อัตราจ่าย
         </Link>
 
@@ -310,9 +301,7 @@ export default function LoginPage() {
               textDecoration: 'none', color: '#444', fontSize: 14, fontWeight: 500,
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ width: 18, height: 18, color: '#666' }}>
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
+            <FileText size={18} strokeWidth={1.8} style={{ color: '#666' }} />
             กฎและกติกา
           </Link>
           <Link
@@ -323,9 +312,7 @@ export default function LoginPage() {
               textDecoration: 'none', color: '#444', fontSize: 14, fontWeight: 500,
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ width: 18, height: 18, color: '#666' }}>
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+            <Users size={18} strokeWidth={1.8} style={{ color: '#666' }} />
             เชิญเพื่อน
           </Link>
         </div>
@@ -403,9 +390,7 @@ export default function LoginPage() {
                   <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{lottery.name}</div>
                   <div style={{ fontSize: 12, color: '#888' }}>{lottery.description}</div>
                 </div>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14, color: '#ccc', flexShrink: 0 }}>
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
+                <ChevronRight size={14} strokeWidth={2} style={{ color: '#ccc', flexShrink: 0 }} />
               </div>
             ))}
           </div>

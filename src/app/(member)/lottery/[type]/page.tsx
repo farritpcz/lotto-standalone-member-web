@@ -14,6 +14,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import NumberPad from '@/components/number-pad/NumberPad'
 import BetTypeSelector from '@/components/bet-board/BetTypeSelector'
 import BetSlip from '@/components/bet-board/BetSlip'
@@ -173,9 +174,7 @@ export default function LotteryBetPage() {
       {/* Breadcrumb Header */}
       <div className="px-4 pt-3 pb-2 flex items-center gap-2">
         <Link href="/lobby" className="text-muted hover:text-primary transition">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+          <ChevronLeft size={20} strokeWidth={2} />
         </Link>
         <h1 className="text-lg font-bold">แทงหวย {lotteryCode}</h1>
         <div className="flex-1" />

@@ -7,16 +7,27 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo } from '@/types'
 
 const lotteryIcons: Record<string, string> = {
   THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
+  HANOI: '🇻🇳', MALAY: '🇲🇾',
 }
 
 const lotteryBgColors: Record<string, string> = {
   THAI: '#EFF6FF', LAO: '#FFF1F0', STOCK_TH: '#F0FFF4',
   STOCK_FOREIGN: '#F5F0FF', YEEKEE: '#FFF8F0', CUSTOM: '#F5F5F5',
+  HANOI: '#FFF0F5', MALAY: '#F0FFF0',
+}
+
+// ⭐ รูปประเภทหวยจาก CMS (public/images/lottery/)
+const lotteryImageUrls: Record<string, string> = {
+  THAI: '/images/lottery/THAI.svg', LAO: '/images/lottery/LAO.svg',
+  STOCK_TH: '/images/lottery/STOCK_TH.svg', STOCK_FOREIGN: '/images/lottery/STOCK_FOREIGN.svg',
+  YEEKEE: '/images/lottery/YEEKEE.svg', HANOI: '/images/lottery/HANOI.svg',
+  MALAY: '/images/lottery/MALAY.svg',
 }
 
 const categories = [
@@ -143,18 +154,19 @@ export default function LobbyPage() {
                     borderBottom: idx < filtered.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
                   }}
                 >
+                  {/* ⭐ รูปประเภทหวยจาก CMS — agent อัพรูปใหม่ทับได้ */}
                   <div style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
+                    width: 48, height: 48, borderRadius: 12, overflow: 'hidden',
                     background: lotteryBgColors[lottery.code] || '#F5F5F5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 26,
-                    flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 26, flexShrink: 0,
                   }}>
-                    {lotteryIcons[lottery.code] || '🎲'}
+                    {lotteryImageUrls[lottery.code] ? (
+                      <img src={lotteryImageUrls[lottery.code]} alt={lottery.name}
+                        style={{ width: 48, height: 48, objectFit: 'cover' }} />
+                    ) : (
+                      lotteryIcons[lottery.code] || '🎲'
+                    )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, marginBottom: 3 }}>{lottery.name}</h3>
@@ -167,9 +179,7 @@ export default function LobbyPage() {
                       <span className="chip chip-green">เปิดรับ</span>
                     )}
                   </div>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 16, height: 16, color: 'var(--ios-tertiary-label)', flexShrink: 0 }}>
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
+                  <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--ios-tertiary-label)', flexShrink: 0 }} />
                 </Link>
               ))}
             </div>

@@ -8,6 +8,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ChevronLeft } from 'lucide-react'
 import { betApi } from '@/lib/api'
 import type { Bet } from '@/types'
 
@@ -219,9 +220,7 @@ export default function HistoryPage() {
             {/* Header */}
             <div style={{ background: '#1a3d35', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <button onClick={() => setSelectedBill(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} style={{ width: 22, height: 22 }}>
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
+                <ChevronLeft size={22} strokeWidth={2.5} color="white" />
               </button>
               <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>รายละเอียดบิล</span>
               <div style={{ width: 30 }} />
