@@ -64,9 +64,12 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   // Referrer policy
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   // CSP — ป้องกัน inline script injection
+  // CSP: อนุญาต unsafe-eval + unsafe-inline สำหรับ Next.js (Turbopack dev)
+  // ws:/wss: สำหรับ HMR + WebSocket (ยี่กี)
+  // production ควรใช้ nonce-based CSP แทน unsafe-inline
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http: https:; font-src 'self' data:; connect-src 'self' ws: wss: http://localhost:* https:; frame-ancestors 'none'"
+    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http: https:; font-src 'self' data:; connect-src 'self' ws://localhost:* wss://localhost:* http://localhost:* https:; frame-ancestors 'none'"
   )
   return response
 }
