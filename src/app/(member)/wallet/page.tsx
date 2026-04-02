@@ -550,68 +550,95 @@ export default function WalletPage() {
 
       {/* ── Transfer Modal: แสดงบัญชี agent ให้โอน ──────────────────────── */}
       {showTransferModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'white', display: 'flex', flexDirection: 'column' }}>
-          {/* Header */}
-          <div style={{ background: '#1a3d35', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#f5f5f5', display: 'flex', flexDirection: 'column' }}>
+          {/* Header — gradient */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
+            padding: '16px', paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
+          }}>
             <button onClick={() => setShowTransferModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <ChevronLeft size={22} strokeWidth={2.5} color="white" />
             </button>
-            <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>โอนเงินเข้าบัญชี</span>
+            <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>ฝากเงิน</span>
             <div style={{ width: 30 }} />
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
-            {/* จำนวนเงินที่ต้องโอน */}
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>จำนวนเงินที่ต้องโอน</div>
-              <div style={{ fontSize: 36, fontWeight: 800, color: '#1a3d35' }}>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {/* ── จำนวนเงิน — card gradient ── */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
+              padding: '24px 16px 32px', textAlign: 'center',
+              borderRadius: '0 0 24px 24px',
+              marginBottom: -16, // overlap
+            }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>จำนวนเงินที่ต้องโอน</div>
+              <div style={{ fontSize: 42, fontWeight: 800, color: 'white', letterSpacing: -1 }}>
                 ฿{depositAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
               </div>
             </div>
 
-            {/* บัญชี agent ที่ต้องโอนเข้า */}
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#888', marginBottom: 12 }}>โอนเข้าบัญชีนี้</div>
-            {agentBanks.map((bank, i) => (
-              <div key={i} style={{
-                background: '#f8f8f8', borderRadius: 16, padding: 16, marginBottom: 12,
-                display: 'flex', alignItems: 'center', gap: 14,
-              }}>
-                <div style={{
-                  width: 50, height: 50, borderRadius: 12,
-                  background: BANK_COLORS[bank.bank_code] || '#666',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontWeight: 800, fontSize: 13, flexShrink: 0,
+            <div style={{ padding: '28px 16px 16px' }}>
+              {/* ── บัญชีปลายทาง ── */}
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#888', marginBottom: 10 }}>โอนเข้าบัญชี</div>
+              {agentBanks.map((bank, i) => (
+                <div key={i} style={{
+                  background: 'white', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  borderLeft: '4px solid ' + (BANK_COLORS[bank.bank_code] || '#0d6e6e'),
                 }}>
-                  {bank.bank_code}
-                </div>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#333', marginBottom: 2 }}>
-                    {BANK_NAMES[bank.bank_code] || bank.bank_name}
+                  <div style={{
+                    width: 46, height: 46, borderRadius: 12,
+                    background: BANK_COLORS[bank.bank_code] || '#0d6e6e',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontWeight: 800, fontSize: 11, flexShrink: 0,
+                  }}>
+                    {bank.bank_code}
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#1a3d35', letterSpacing: 1, marginBottom: 2 }}>
-                    {bank.account_number}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 2 }}>
+                      {BANK_NAMES[bank.bank_code] || bank.bank_name}
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: '#1a3d35', letterSpacing: 1.5, marginBottom: 2 }}>
+                      {bank.account_number}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#999' }}>{bank.account_name}</div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#888' }}>{bank.account_name}</div>
+                  {/* Copy button */}
+                  <button onClick={() => { navigator.clipboard.writeText(bank.account_number); toast.success('คัดลอกเลขบัญชีแล้ว') }}
+                    style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid #ddd', background: 'white', color: '#0d6e6e', cursor: 'pointer' }}>
+                    คัดลอก
+                  </button>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {/* คำแนะนำ */}
-            <div style={{
-              background: 'rgba(255,159,10,0.08)', border: '1px solid rgba(255,159,10,0.2)',
-              borderRadius: 12, padding: '12px 16px', marginTop: 8,
-            }}>
-              <div style={{ fontSize: 13, color: '#c87800', lineHeight: 1.6 }}>
-                <strong>คำแนะนำ:</strong><br />
-                • โอนเงินจำนวน ฿{depositAmount.toLocaleString()} เข้าบัญชีด้านบน<br />
-                • หลังโอนเสร็จ กดปุ่ม "โอนเรียบร้อยแล้ว" ด้านล่าง<br />
-                • เงินจะเข้าบัญชีภายใน 1-3 นาที
+              {/* ── Steps ── */}
+              <div style={{
+                background: 'white', borderRadius: 14, padding: '16px 18px', marginTop: 8,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 12 }}>ขั้นตอน</div>
+                {[
+                  { num: '1', text: `โอนเงิน ฿${depositAmount.toLocaleString()} เข้าบัญชีด้านบน`, color: '#3b82f6' },
+                  { num: '2', text: 'กดปุ่ม "โอนแล้ว" ด้านล่าง', color: '#f5a623' },
+                  { num: '3', text: 'รอระบบตรวจสอบ (1-3 นาที)', color: '#34C759' },
+                ].map((step, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: i < 2 ? 10 : 0 }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: '50%', background: step.color,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0,
+                    }}>{step.num}</div>
+                    <span style={{ fontSize: 13, color: '#555' }}>{step.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div style={{ padding: '12px 16px 16px', borderTop: '1px solid #eee', flexShrink: 0, paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
+          <div style={{ padding: '12px 16px', flexShrink: 0, paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', background: 'white', boxShadow: '0 -2px 12px rgba(0,0,0,0.05)' }}>
             <button
               onClick={handleConfirmTransfer}
               disabled={loading}
@@ -619,22 +646,23 @@ export default function WalletPage() {
                 display: 'block', width: '100%', padding: '16px',
                 borderRadius: 14, fontSize: 17, fontWeight: 700,
                 color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                background: '#34C759', opacity: loading ? 0.6 : 1,
+                background: 'linear-gradient(135deg, #34C759 0%, #30B350 100%)',
+                opacity: loading ? 0.6 : 1,
                 boxShadow: '0 4px 20px rgba(52,199,89,0.35)',
-                minHeight: 56, marginBottom: 10,
+                minHeight: 56, marginBottom: 8,
               }}
             >
-              {loading ? 'กำลังตรวจสอบ...' : '✓ โอนเรียบร้อยแล้ว'}
+              {loading ? 'กำลังตรวจสอบ...' : 'โอนแล้ว ยืนยัน'}
             </button>
             <button
               onClick={() => setShowTransferModal(false)}
               style={{
-                display: 'block', width: '100%', padding: '14px',
-                borderRadius: 14, fontSize: 15, fontWeight: 600,
-                color: '#888', background: '#f5f5f5', border: 'none', cursor: 'pointer',
+                display: 'block', width: '100%', padding: '12px',
+                borderRadius: 14, fontSize: 14, fontWeight: 500,
+                color: '#999', background: 'transparent', border: 'none', cursor: 'pointer',
               }}
             >
-              ยกเลิก
+              ย้อนกลับ
             </button>
           </div>
         </div>
