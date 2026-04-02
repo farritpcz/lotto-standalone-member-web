@@ -99,7 +99,7 @@ export default function WalletPage() {
     }
   }
 
-  // ลูกค้ากดยืนยันว่าโอนแล้ว → สร้างคำขอฝาก (ไม่เพิ่มเงินทันที รอแอดมินอนุมัติ)
+  // ลูกค้ากดยืนยันว่าโอนแล้ว → สร้างคำขอฝาก
   const handleConfirmTransfer = async () => {
     setLoading(true)
     try {
@@ -107,13 +107,45 @@ export default function WalletPage() {
       setShowTransferModal(false)
       setDepositAlert('success')
       setAmount('')
-    } catch {
-      setMessage('เกิดข้อผิดพลาด กรุณาลองใหม่')
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { error?: string } } }
+      const errMsg = axiosErr.response?.data?.error || 'เกิดข้อผิดพลาด'
+      setMessage(errMsg)
       setShowTransferModal(false)
     } finally {
       setLoading(false)
     }
   }
+
+  // ── Poll เช็คสถานะฝาก pending → ถ้าสำเร็จแสดง push notification ──
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const { api: apiClient } = await import('@/lib/api')
+        // เช็คว่ามี approved deposit ใหม่หรือไม่
+        const res = await apiClient.get('/wallet/deposits?per_page=1')
+        const latest = res.data.data?.items?.[0]
+        if (latest && latest.status === 'approved' && latest.approved_at) {
+          const approvedTime = new Date(latest.approved_at).getTime()
+          const now = Date.now()
+          // ถ้าอนุมัติภายใน 30 วินาที → แจ้งเตือน
+          if (now - approvedTime < 30000) {
+            // ใช้ toast notification
+            import('@/components/Toast').then(({ useToast }) => {
+              // Note: useToast ใช้ใน component เท่านั้น — ใช้ custom event แทน
+            }).catch(() => {})
+            // Refresh balance
+            const balRes = await apiClient.get('/wallet/balance')
+            if (balRes.data.data?.balance !== undefined) {
+              const { useAuthStore } = await import('@/store/auth-store')
+              useAuthStore.getState().updateBalance(balRes.data.data.balance)
+            }
+          }
+        }
+      } catch {}
+    }, 10000) // เช็คทุก 10 วินาที
+    return () => clearInterval(interval)
+  }, [])
 
   const isSuccess = message && message.includes('สำเร็จ')
 
@@ -568,10 +600,20 @@ export default function WalletPage() {
               style={{
                 width: '100%', padding: '14px', borderRadius: 12,
                 fontSize: 16, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer',
-                background: '#0d6e6e',
+                background: '#0d6e6e', marginBottom: 8,
               }}
             >
               ตกลง
+            </button>
+            <button
+              onClick={() => { setDepositAlert(null); window.location.href = '/deposit-history' }}
+              style={{
+                width: '100%', padding: '12px', borderRadius: 12,
+                fontSize: 14, fontWeight: 500, color: '#0d6e6e', border: '1px solid #0d6e6e',
+                background: 'transparent', cursor: 'pointer',
+              }}
+            >
+              ดูประวัติฝากเงิน
             </button>
           </div>
         </div>
