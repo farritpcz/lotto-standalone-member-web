@@ -231,112 +231,81 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* ── บัญชีของคุณ (ฝาก) ─────────────────────────────── */}
-      {action === 'deposit' && member?.bank_code && (
-        <div style={{ padding: '0 16px 12px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
-            borderRadius: 16, padding: '16px 18px',
-            boxShadow: '0 4px 20px rgba(13,110,110,0.2)',
-            color: 'white',
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.8, marginBottom: 8, letterSpacing: 0.5 }}>
-              บัญชีที่ใช้โอนเงินเข้าระบบ
+      {/* ── บัญชี (ฝาก/ถอน — layout เดียวกัน) ─────────────────── */}
+      {(() => {
+        const isDeposit = action === 'deposit'
+        const gradient = isDeposit
+          ? 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)'
+          : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+        const shadow = isDeposit
+          ? '0 4px 16px rgba(13,110,110,0.2)'
+          : '0 4px 16px rgba(239,68,68,0.2)'
+        const label = isDeposit ? 'บัญชีที่ใช้โอนเงินเข้าระบบ' : 'บัญชีรับเงินถอน'
+
+        // หาข้อมูลบัญชีที่จะแสดง
+        let bankCode = member?.bank_code || ''
+        let bankName = BANK_NAMES[bankCode] || bankCode
+        let bankNumber = member?.bank_account_number || ''
+        let bankAccountName = member?.bank_account_name || ''
+
+        if (!isDeposit) {
+          const mba = memberBanks.find(b => b.account_type === 'withdraw' && b.is_default) || memberBanks[0]
+          if (mba) {
+            bankCode = mba.bank_code
+            bankName = mba.bank_name || BANK_NAMES[mba.bank_code] || mba.bank_code
+            bankNumber = mba.account_number
+            bankAccountName = mba.account_name
+          }
+        }
+
+        if (!bankCode) {
+          return (
+            <div style={{ padding: '0 16px 12px' }}>
+              <div style={{
+                background: isDeposit ? 'rgba(255,159,10,0.08)' : 'rgba(239,68,68,0.08)',
+                border: `1px solid ${isDeposit ? 'rgba(255,159,10,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                borderRadius: 12, padding: '12px 16px', fontSize: 14, textAlign: 'center',
+                color: isDeposit ? '#c87800' : '#ef4444',
+              }}>
+                {isDeposit ? 'คุณยังไม่ได้เพิ่มบัญชีธนาคาร กรุณาเพิ่มที่หน้าบัญชีผู้ใช้' : 'คุณยังไม่มีบัญชีรับเงินถอน กรุณาเพิ่มที่หน้าบัญชีผู้ใช้'}
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          )
+        }
+
+        return (
+          <div style={{ padding: '0 16px 12px' }}>
             <div style={{
-              width: 44, height: 44, borderRadius: 12,
-              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 800, fontSize: 12, flexShrink: 0,
+              background: gradient, borderRadius: 16, padding: '16px 18px',
+              boxShadow: shadow, color: 'white',
             }}>
-              {member.bank_code}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>
-                {BANK_NAMES[member.bank_code] || member.bank_code}
+              <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.8, marginBottom: 8, letterSpacing: 0.5 }}>
+                {label}
               </div>
-              <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, marginBottom: 2 }}>
-                {member.bank_account_number || '—'}
-              </div>
-              {member.bank_account_name && (
-                <div style={{ fontSize: 12, opacity: 0.8 }}>
-                  {member.bank_account_name}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: 'rgba(255,255,255,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 800, fontSize: 11, flexShrink: 0,
+                }}>
+                  {bankCode}
                 </div>
-              )}
-            </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{bankName}</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, marginBottom: 2 }}>{bankNumber}</div>
+                  {bankAccountName && <div style={{ fontSize: 12, opacity: 0.8 }}>{bankAccountName}</div>}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
-      {/* บัญชีถอนเงิน — แสดงเฉพาะตอนถอน */}
-      {action === 'withdraw' && (
+      {/* แจ้งเตือนถ้ายังไม่มีบัญชีธนาคาร — ซ่อนเพราะจัดการข้างบนแล้ว */}
+      {false && action === 'deposit' && !member?.bank_code && (
         <div style={{ padding: '0 16px 12px' }}>
-          {memberBanks.filter(b => b.account_type === 'withdraw' && b.is_default).length > 0 ? (
-            <div style={{
-              background: 'var(--ios-card)', borderRadius: 16, padding: 16,
-              boxShadow: 'var(--shadow-card)', display: 'flex', alignItems: 'center', gap: 14,
-            }}>
-              {(() => {
-                const bank = memberBanks.find(b => b.account_type === 'withdraw' && b.is_default) || memberBanks[0]
-                return bank ? (<>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 12,
-                    background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontWeight: 800, fontSize: 12, flexShrink: 0,
-                  }}>
-                    {bank.bank_code}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 3 }}>
-                      บัญชีรับเงินถอน
-                    </div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)' }}>
-                      {bank.bank_name || bank.bank_code}
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: 1 }}>
-                      {bank.account_number}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{bank.account_name}</div>
-                  </div>
-                </>) : null
-              })()}
-            </div>
-          ) : member?.bank_code ? (
-            <div style={{
-              background: 'var(--ios-card)', borderRadius: 16, padding: 16,
-              boxShadow: 'var(--shadow-card)', display: 'flex', alignItems: 'center', gap: 14,
-            }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: 12,
-                background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontWeight: 800, fontSize: 12, flexShrink: 0,
-              }}>
-                {member.bank_code}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 3 }}>บัญชีรับเงินถอน (จากโปรไฟล์)</div>
-                <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: 1 }}>{member.bank_account_number}</div>
-                <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{member.bank_account_name}</div>
-              </div>
-            </div>
-          ) : (
-            <div style={{
-              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-              borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#ef4444', textAlign: 'center',
-            }}>
-              คุณยังไม่มีบัญชีรับเงินถอน กรุณาเพิ่มที่หน้าบัญชีผู้ใช้
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* แจ้งเตือนถ้ายังไม่มีบัญชีธนาคาร */}
-      {action === 'deposit' && !member?.bank_code && (
-        <div style={{ padding: '0 16px 12px' }}>
-          <div style={{
-            background: 'rgba(255,159,10,0.08)',
+          <div style={{            background: 'rgba(255,159,10,0.08)',
             border: '1px solid rgba(255,159,10,0.2)',
             borderRadius: 12,
             padding: '12px 16px',
