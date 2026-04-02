@@ -29,6 +29,14 @@ const lotteryBgColors: Record<string, string> = {
   STOCK_FOREIGN: '#F5F0FF', YEEKEE: '#FFF8F0', CUSTOM: '#F5F5F5',
 }
 
+const lotteryGradients: Record<string, string> = {
+  THAI: 'linear-gradient(135deg, #f5a623, #d4820a)',
+  LAO: 'linear-gradient(135deg, #ef4444, #dc2626)',
+  STOCK_TH: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+  STOCK_FOREIGN: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+  YEEKEE: 'linear-gradient(135deg, #0d6e6e, #34d399)',
+}
+
 // ⭐ Default banners — ใช้รูป SVG จาก public/images/banners/
 // agent สามารถอัพรูปใหม่ทับได้ผ่าน CMS admin
 const defaultBanners = [
@@ -254,51 +262,57 @@ export default function DashboardPage() {
         <span>หวยที่เปิดอยู่</span>
         <Link href="/lobby" className="see-all">ดูทั้งหมด</Link>
       </div>
-      <div style={{ padding: '0 16px', marginBottom: 24 }} className="ios-animate ios-animate-4">
-        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-          {lotteries.length === 0 ? (
-            <Loading />
-          ) : (
-            lotteries.slice(0, 5).map((lottery, idx) => (
+      <div style={{ padding: '0 16px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 10 }} className="ios-animate ios-animate-4">
+        {lotteries.length === 0 ? (
+          <Loading />
+        ) : (
+          lotteries.slice(0, 5).map((lottery) => {
+            const gradient = lotteryGradients[lottery.code] || 'linear-gradient(135deg, #6b7280, #4b5563)'
+            const imageUrl = (lottery as LotteryTypeInfo & { image_url?: string }).image_url
+            const isYeekee = lottery.code === 'YEEKEE'
+            return (
               <Link
                 key={lottery.id}
-                href={lottery.code === 'YEEKEE' ? '/yeekee/room' : `/lottery/${lottery.code}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '12px 16px',
-                  textDecoration: 'none',
-                  color: 'var(--ios-label)',
-                  borderBottom: idx < lotteries.slice(0,5).length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
-                  transition: 'opacity 0.1s',
-                }}
+                href={isYeekee ? '/yeekee/room' : `/lottery/${lottery.code}`}
+                style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  background: lotteryBgColors[lottery.code] || '#F5F5F5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 24,
-                  flexShrink: 0,
+                  background: 'var(--ios-card)', borderRadius: 14, overflow: 'hidden',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
                 }}>
-                  {lotteryIcons[lottery.code] || '🎲'}
+                  <div style={{ height: 3, background: gradient }} />
+                  <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Icon */}
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 12, background: gradient,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, overflow: 'hidden',
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
+                    }}>
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={lottery.name} style={{ width: 48, height: 48, objectFit: 'cover' }}
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      ) : (
+                        <span style={{ fontSize: 24 }}>{lotteryIcons[lottery.code] || '🎲'}</span>
+                      )}
+                    </div>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{lottery.name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{lottery.description}</div>
+                    </div>
+                    {/* Badge */}
+                    {isYeekee ? (
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 10, background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>Live</span>
+                    ) : (
+                      <ChevronRight size={16} color="var(--ios-tertiary-label)" />
+                    )}
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0, marginBottom: 2 }}>{lottery.name}</h3>
-                  <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', margin: 0 }}>{lottery.description}</p>
-                </div>
-                {lottery.code === 'YEEKEE' && (
-                  <span className="chip chip-green" style={{ fontSize: 11, marginRight: 4 }}>Live</span>
-                )}
-                <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--ios-tertiary-label)', flexShrink: 0 }} />
               </Link>
-            ))
-          )}
-        </div>
+            )
+          })
+        )}
       </div>
 
       {/* ===== 6. ผลรางวัลล่าสุด ===== */}
