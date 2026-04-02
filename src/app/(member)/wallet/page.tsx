@@ -46,6 +46,7 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState(0)              // จำนวนที่จะฝาก
   const [depositAlert, setDepositAlert] = useState<'success' | null>(null)
   const [agentBanks, setAgentBanks] = useState<AgentBank[]>([])      // บัญชี agent
+  const [memberBanks, setMemberBanks] = useState<{ id: number; bank_code: string; bank_name: string; account_number: string; account_name: string; account_type: string; is_default: boolean }[]>([]) // บัญชีสมาชิก
 
   useEffect(() => {
     walletApi.getTransactions({ per_page: 30 })
@@ -53,18 +54,21 @@ export default function WalletPage() {
       .catch(() => {})
   }, [message, depositAlert])
 
-  // ดึงบัญชี agent (ใช้แสดงให้ลูกค้าโอน)
+  // ดึงบัญชี agent (ฝาก) + บัญชีสมาชิก (ถอน)
   useEffect(() => {
     import('@/lib/api').then(({ api }) => {
       api.get('/agent/bank-accounts').then(res => {
         setAgentBanks(res.data.data || [])
       }).catch(() => {
-        // fallback: ใช้ข้อมูล default ถ้า API ยังไม่มี
         setAgentBanks([{
           bank_code: 'KBANK', bank_name: 'ธนาคารกสิกรไทย',
           account_number: '0001234567', account_name: 'บริษัท LOTTO จำกัด',
         }])
       })
+      // ดึงบัญชีสมาชิก (สำหรับเลือกถอน)
+      api.get('/bank-accounts').then(res => {
+        setMemberBanks(res.data.data || [])
+      }).catch(() => {})
     })
   }, [])
 
@@ -211,6 +215,68 @@ export default function WalletPage() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* บัญชีถอนเงิน — แสดงเฉพาะตอนถอน */}
+      {action === 'withdraw' && (
+        <div style={{ padding: '0 16px 12px' }}>
+          {memberBanks.filter(b => b.account_type === 'withdraw' && b.is_default).length > 0 ? (
+            <div style={{
+              background: 'var(--ios-card)', borderRadius: 16, padding: 16,
+              boxShadow: 'var(--shadow-card)', display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              {(() => {
+                const bank = memberBanks.find(b => b.account_type === 'withdraw' && b.is_default) || memberBanks[0]
+                return bank ? (<>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 12,
+                    background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontWeight: 800, fontSize: 12, flexShrink: 0,
+                  }}>
+                    {bank.bank_code}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 3 }}>
+                      บัญชีรับเงินถอน
+                    </div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)' }}>
+                      {bank.bank_name || bank.bank_code}
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: 1 }}>
+                      {bank.account_number}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{bank.account_name}</div>
+                  </div>
+                </>) : null
+              })()}
+            </div>
+          ) : member?.bank_code ? (
+            <div style={{
+              background: 'var(--ios-card)', borderRadius: 16, padding: 16,
+              boxShadow: 'var(--shadow-card)', display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 12,
+                background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: 800, fontSize: 12, flexShrink: 0,
+              }}>
+                {member.bank_code}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 3 }}>บัญชีรับเงินถอน (จากโปรไฟล์)</div>
+                <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: 1 }}>{member.bank_account_number}</div>
+                <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{member.bank_account_name}</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+              borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#ef4444', textAlign: 'center',
+            }}>
+              คุณยังไม่มีบัญชีรับเงินถอน กรุณาเพิ่มที่หน้าบัญชีผู้ใช้
+            </div>
+          )}
         </div>
       )}
 
