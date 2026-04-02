@@ -89,16 +89,17 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
   const pad = (n: number) => String(n).padStart(2, '0')
   const countdownStr = `${countdown.days} วัน ${pad(countdown.hours)}:${pad(countdown.minutes)}:${pad(countdown.seconds)}`
 
-  // ลิงก์ — ถ้ากำลังยิง → ไปเล่น, ถ้ารอเริ่ม → ไม่ได้กด
-  const href = isShooting ? `/yeekee/play?round=${round.id}` : '#'
+  // ลิงก์ — กดได้ทุกรอบที่ยังไม่หมดเวลา (active = shooting หรือ waiting)
+  const href = `/yeekee/play?round=${round.id}`
+  const isExpired = countdown.total <= 0
 
   return (
     <Link
       href={href}
       className="block rounded-2xl overflow-hidden shadow-lg transition-transform active:scale-[0.97]"
       style={{
-        pointerEvents: isActive ? 'auto' : 'none',
-        opacity: isActive ? 1 : 0.5,
+        pointerEvents: isExpired ? 'none' : 'auto',
+        opacity: isExpired ? 0.5 : 1,
       }}
     >
       {/* ⭐ พื้นหลัง — default gradient สี teal/green
