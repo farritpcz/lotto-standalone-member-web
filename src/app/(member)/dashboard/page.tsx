@@ -205,8 +205,8 @@ export default function DashboardPage() {
           { href: '/results',      emoji: '🏆', label: 'ผลรางวัล' },
           { href: '/history',      emoji: '📋', label: 'โพยหวย' },
           { href: '/yeekee/room',  emoji: '🎯', label: 'ยี่กี' },
-          { href: '/wallet',       emoji: '💰', label: 'เติมเงิน' },
-          { href: '/wallet',       emoji: '🏧', label: 'ถอนเงิน' },
+          { href: '/wallet',              emoji: '💰', label: 'เติมเงิน' },
+          { href: '/wallet?tab=withdraw', emoji: '🏧', label: 'ถอนเงิน' },
           { href: '/referral',     emoji: '🎁', label: 'แนะนำเพื่อน' },
           { href: '/profile',      emoji: '👤', label: 'บัญชี' },
         ].map((item, i) => (
