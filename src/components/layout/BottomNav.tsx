@@ -71,7 +71,8 @@ export default function BottomNav({ badges }: BottomNavProps) {
 
   return (
     <nav ref={navRef} className="bottom-nav" style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+      position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: 480, zIndex: 100,
       background: 'var(--ios-card, #fff)', borderTop: '0.5px solid var(--ios-separator, #e5e5e5)',
       paddingBottom: 'env(safe-area-inset-bottom, 0px)',
     }}>
