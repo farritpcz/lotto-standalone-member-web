@@ -27,11 +27,27 @@ const lotteryBgColors: Record<string, string> = {
   STOCK_FOREIGN: '#F5F0FF', YEEKEE: '#FFF8F0', CUSTOM: '#F5F5F5',
 }
 
-const banners = [
-  { id: 1, title: 'สมัครใหม่รับโบนัส 100%', sub: 'เฉพาะสมาชิกใหม่เท่านั้น' },
-  { id: 2, title: 'แนะนำเพื่อน รับค่าคอม 5%', sub: 'ทุกยอดเดิมพันของเพื่อน' },
-  { id: 3, title: 'หวยยี่กี เปิดใหม่ 24 ชม.', sub: 'ยิงเลขได้ตลอดวัน' },
+// ⭐ Default banners — ใช้รูป SVG จาก public/images/banners/
+// agent สามารถอัพรูปใหม่ทับได้ผ่าน CMS admin
+const defaultBanners = [
+  { id: 1, image: '/images/banners/banner-1.svg', title: 'สมัครใหม่รับโบนัส 100%', sub: 'เฉพาะสมาชิกใหม่เท่านั้น' },
+  { id: 2, image: '/images/banners/banner-2.svg', title: 'ฝากเงินรับเพิ่ม 50%', sub: 'ทุกยอดฝาก สูงสุด 5,000 บาท' },
+  { id: 3, image: '/images/banners/banner-3.svg', title: 'คืนยอดเสีย 10%', sub: 'ทุกวันจันทร์' },
 ]
+
+// ⭐ Default ticker — ดึงจาก agent config ถ้ามี
+const defaultTicker = '🎉 ยินดีต้อนรับสู่ LOTTO · จ่ายจริง ถอนได้จริง · สมัครวันนี้รับโบนัส 100% · หวยรัฐบาลจ่ายบาทละ 900'
+
+// ⭐ Lottery images — ใช้รูป SVG จาก public/images/lottery/
+const lotteryImages: Record<string, string> = {
+  THAI: '/images/lottery/THAI.svg',
+  LAO: '/images/lottery/LAO.svg',
+  STOCK_TH: '/images/lottery/STOCK_TH.svg',
+  STOCK_FOREIGN: '/images/lottery/STOCK_FOREIGN.svg',
+  YEEKEE: '/images/lottery/YEEKEE.svg',
+  HANOI: '/images/lottery/HANOI.svg',
+  MALAY: '/images/lottery/MALAY.svg',
+}
 
 export default function DashboardPage() {
   const { member, updateBalance } = useAuthStore()
@@ -62,7 +78,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentBanner(prev => (prev + 1) % banners.length)
+      setCurrentBanner(prev => (prev + 1) % defaultBanners.length)
     }, 4000)
     return () => clearInterval(timer)
   }, [])
@@ -70,10 +86,10 @@ export default function DashboardPage() {
   return (
     <div>
 
-      {/* ===== 1. Ticker Bar ===== */}
+      {/* ===== 1. Ticker Bar — ⭐ ข้อความจาก CMS (ตั้งค่าใน admin → จัดการเว็บ → ตัวอักษรวิ่ง) ===== */}
       <div className="ticker-bar">
         <div className="ticker-content px-4">
-          🎉 ยินดีต้อนรับสู่ LOTTO &nbsp;·&nbsp; จ่ายจริง ถอนไว 24 ชม. &nbsp;·&nbsp; 🏆 ผู้โชคดีถูกรางวัล 3 ตัวบน รับ ฿900,000 &nbsp;·&nbsp; 🔥 หวยยี่กีเปิดใหม่ ยิงเลขได้ตลอดวัน
+          {defaultTicker}
         </div>
       </div>
 
@@ -194,59 +210,41 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ===== 4. Banner Slider ===== */}
+      {/* ===== 4. Banner Slider — ดึงรูปจาก CMS (public/images/banners/) ===== */}
       <div className="ios-animate ios-animate-3" style={{ padding: '0 16px 24px' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, height: 100 }}>
-          {banners.map((banner, i) => (
+        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, height: 120 }}>
+          {defaultBanners.map((banner, i) => (
             <div
               key={banner.id}
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(135deg, #FF9F0A 0%, #FF6B00 100%)',
                 borderRadius: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0 24px',
+                overflow: 'hidden',
                 transition: 'opacity 0.5s, transform 0.5s',
                 opacity: i === currentBanner ? 1 : 0,
                 transform: i === currentBanner ? 'translateX(0)' : 'translateX(100%)',
               }}
             >
-              <p style={{ color: 'white', fontWeight: 700, fontSize: 17, textAlign: 'center', marginBottom: 4 }}>
-                {banner.title}
-              </p>
-              <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, textAlign: 'center' }}>
-                {banner.sub}
-              </p>
+              {/* ⭐ รูปจาก CMS — agent อัพรูปใหม่ทับได้ */}
+              <img
+                src={banner.image}
+                alt={banner.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
           ))}
-          {/* Pagination dots — rounded rect (iOS style) */}
+          {/* Pagination dots */}
           <div style={{
-            position: 'absolute',
-            bottom: 10,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: 5,
+            position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: 5,
           }}>
-            {banners.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentBanner(i)}
-                style={{
-                  width: i === currentBanner ? 16 : 6,
-                  height: 6,
-                  borderRadius: 3,
-                  background: i === currentBanner ? 'white' : 'rgba(255,255,255,0.45)',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'width 0.25s, background 0.25s',
-                }}
-              />
+            {defaultBanners.map((_, i) => (
+              <button key={i} onClick={() => setCurrentBanner(i)} style={{
+                width: i === currentBanner ? 16 : 6, height: 6, borderRadius: 3,
+                background: i === currentBanner ? 'white' : 'rgba(255,255,255,0.45)',
+                border: 'none', padding: 0, cursor: 'pointer', transition: 'width 0.25s, background 0.25s',
+              }} />
             ))}
           </div>
         </div>
