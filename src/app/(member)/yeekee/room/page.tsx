@@ -104,48 +104,48 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
       {/* ⭐ พื้นหลัง — default gradient สี teal/green
           ถ้า admin อัพรูปจากหลังบ้าน → จะใช้ background-image แทน */}
       <div
-        className="relative p-4"
+        className="relative p-3"
         style={{
           background: 'linear-gradient(135deg, #0d6e6e 0%, #14956e 50%, #1a472a 100%)',
-          minHeight: '160px',
+          minHeight: '120px',
         }}
       >
         {/* ลายตัวเลข background (decorative) */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ctext x='5' y='30' font-size='20' fill='white' font-family='monospace'%3E8%3C/text%3E%3Ctext x='30' y='15' font-size='16' fill='white' font-family='monospace'%3E3%3C/text%3E%3Ctext x='40' y='45' font-size='18' fill='white' font-family='monospace'%3E7%3C/text%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ctext x='3' y='20' font-size='14' fill='white' font-family='monospace'%3E8%3C/text%3E%3Ctext x='20' y='10' font-size='12' fill='white' font-family='monospace'%3E3%3C/text%3E%3Ctext x='25' y='32' font-size='13' fill='white' font-family='monospace'%3E7%3C/text%3E%3C/svg%3E")`,
+            backgroundSize: '40px 40px',
           }}
         />
 
         {/* Badge สถานะ — มุมขวาบน */}
         {isShooting && (
-          <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
+          <div className="absolute top-2 right-2">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"
               style={{ backgroundColor: 'rgba(52, 199, 89, 0.9)' }}>
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              <span className="w-1 h-1 bg-white rounded-full animate-pulse" />
               LIVE
             </span>
           </div>
         )}
 
         {/* ไอคอน + ชื่อ */}
-        <div className="relative z-10 flex items-start gap-3">
+        <div className="relative z-10">
           {/* ไอคอนยี่กี (วงกลมสีเข้ม + ตัวอักษร) */}
-          <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+          <div className="w-9 h-9 rounded-full flex items-center justify-center mb-2"
             style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
-            <span className="text-white text-lg font-bold">ยี่กี</span>
+            <span className="text-white text-xs font-bold">ยี่กี</span>
           </div>
 
           <div className="text-white">
-            <div className="font-bold text-base leading-tight">
+            <div className="font-bold text-sm leading-tight">
               หวยจับยี่กี รอบที่ {round.round_no}
             </div>
-            <div className="text-sm opacity-90 mt-1">
+            <div className="text-[11px] opacity-90 mt-1">
               ปิดรับ : {closeDateStr}
             </div>
-            <div className="text-sm opacity-90">
+            <div className="text-[11px] opacity-90">
               {closeTimeStr}
             </div>
           </div>
@@ -153,9 +153,9 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
 
         {/* ผลยี่กี (ถ้าออกแล้ว) */}
         {round.result_number && (
-          <div className="relative z-10 mt-3 bg-white/20 rounded-xl px-3 py-2 text-center">
-            <div className="text-white text-xs opacity-80">ผลออก</div>
-            <div className="text-white text-2xl font-mono font-bold tracking-wider">
+          <div className="relative z-10 mt-2 bg-white/20 rounded-lg px-2 py-1.5 text-center">
+            <div className="text-white text-[10px] opacity-80">ผลออก</div>
+            <div className="text-white text-lg font-mono font-bold tracking-wider">
               {round.result_number}
             </div>
           </div>
@@ -163,18 +163,18 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
       </div>
 
       {/* Countdown bar — ด้านล่าง */}
-      <div className="bg-white px-4 py-3 flex items-center justify-center gap-2"
+      <div className="bg-white px-2 py-2 flex items-center justify-center gap-1.5"
         style={{ borderTop: '1px solid #E5E5EA' }}>
         {/* ไอคอนนาฬิกา */}
-        <div className="w-7 h-7 rounded-full flex items-center justify-center"
+        <div className="w-5 h-5 rounded-full flex items-center justify-center"
           style={{ backgroundColor: countdown.total > 0 ? '#E8F5E9' : '#FFF3E0' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={countdown.total > 0 ? '#34C759' : '#FF9F0A'}
-            strokeWidth={2} className="w-4 h-4">
+            strokeWidth={2} className="w-3 h-3">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
         </div>
-        <span className="text-sm font-semibold"
+        <span className="text-xs font-semibold"
           style={{ color: countdown.total > 0 ? '#34C759' : '#FF9F0A' }}>
           {countdown.total > 0 ? countdownStr : 'หมดเวลา'}
         </span>
@@ -235,7 +235,7 @@ export default function YeekeeRoomPage() {
           </div>
         </div>
       ) : (
-        <div className="px-4 pb-24 space-y-4">
+        <div className="px-4 pb-24 grid grid-cols-2 gap-3">
           {rounds.map(round => (
             <YeekeeRoundCard key={round.id} round={round} />
           ))}
