@@ -152,7 +152,7 @@ export default function ResultsPage() {
                     padding: '10px 16px', borderBottom: '1px solid var(--ios-separator)',
                     fontSize: 12, fontWeight: 600, color: 'var(--ios-secondary-label)',
                   }}>
-                    <span>รอบ</span>
+                    <span>งวดวันที่</span>
                     <span style={{ textAlign: 'center' }}>3 ตัวบน</span>
                     <span style={{ textAlign: 'center' }}>2 ตัวบน</span>
                     <span style={{ textAlign: 'center' }}>2 ตัวล่าง</span>
@@ -168,7 +168,17 @@ export default function ResultsPage() {
                         borderBottom: idx < group.rounds.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
                       }}>
                         <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ios-label)' }}>
-                          {round.round_number?.replace(/^\d+-/, 'รอบ ') || `#${round.id}`}
+                          {(() => {
+                            // แปลง round_date เป็น "1 เม.ย. 69" + ถ้ายี่กีแสดงรอบด้วย
+                            const d = round.round_date || round.created_at
+                            const dateStr = d ? new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '-'
+                            const isYeekee = group.code === 'YEEKEE'
+                            if (isYeekee) {
+                              const rn = round.round_number?.match(/\d+$/)?.[0] || ''
+                              return `${dateStr} #${rn}`
+                            }
+                            return dateStr
+                          })()}
                         </span>
                         {hasResult ? (<>
                           <span style={{ textAlign: 'center', fontSize: 20, fontWeight: 800, color: '#d4820a' }}>
