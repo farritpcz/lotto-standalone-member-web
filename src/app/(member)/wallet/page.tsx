@@ -231,41 +231,40 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* บัญชีของสมาชิก — แสดงเฉพาะตอนฝากเงิน เพื่อให้รู้ว่าต้องโอนจากบัญชีไหน */}
+      {/* ── บัญชีของคุณ (ฝาก) ─────────────────────────────── */}
       {action === 'deposit' && member?.bank_code && (
         <div style={{ padding: '0 16px 12px' }}>
           <div style={{
-            background: 'var(--ios-card)',
-            borderRadius: 16,
-            padding: 16,
-            boxShadow: 'var(--shadow-card)',
-            display: 'flex', alignItems: 'center', gap: 14,
+            background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
+            borderRadius: 16, padding: '16px 18px',
+            boxShadow: '0 4px 20px rgba(13,110,110,0.2)',
+            color: 'white',
           }}>
-            {/* Bank logo circle */}
+            <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.8, marginBottom: 8, letterSpacing: 0.5 }}>
+              บัญชีที่ใช้โอนเงินเข้าระบบ
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 48, height: 48, borderRadius: 12,
-              background: BANK_COLORS[member.bank_code] || '#666',
+              width: 44, height: 44, borderRadius: 12,
+              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: 800, fontSize: 14,
-              flexShrink: 0,
+              fontWeight: 800, fontSize: 12, flexShrink: 0,
             }}>
               {member.bank_code}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 3 }}>
-                บัญชีของคุณ (ใช้โอนเงินเข้าระบบ)
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)', marginBottom: 2 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>
                 {BANK_NAMES[member.bank_code] || member.bank_code}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ios-label)', letterSpacing: 1 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, marginBottom: 2 }}>
                 {member.bank_account_number || '—'}
               </div>
               {member.bank_account_name && (
-                <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginTop: 2 }}>
+                <div style={{ fontSize: 12, opacity: 0.8 }}>
                   {member.bank_account_name}
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
@@ -352,49 +351,63 @@ export default function WalletPage() {
 
       {/* Amount Input card */}
       <div style={{ padding: '0 16px 16px' }}>
-        <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: 16, boxShadow: 'var(--shadow-card)' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '20px 16px', boxShadow: 'var(--shadow-card)' }}>
 
-          {/* Quick amounts */}
-          <div className="quick-amount" style={{ marginBottom: 12 }}>
-            {[100, 500, 1000, 5000].map(a => (
-              <button
-                key={a}
-                onClick={() => setAmount(String(a))}
-                className={amount === String(a) ? 'active' : ''}
-              >
-                ฿{a.toLocaleString()}
-              </button>
-            ))}
+          {/* จำนวนเงิน Label */}
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-secondary-label)', marginBottom: 10, textAlign: 'center' }}>
+            จำนวนเงิน{action === 'deposit' ? 'ฝาก' : 'ถอน'}
           </div>
 
-          {/* Number input */}
+          {/* Number input — ใหญ่ตรงกลาง */}
           <div style={{
-            border: '1.5px solid',
-            borderColor: 'var(--ios-separator)',
-            borderRadius: 12,
-            marginBottom: 12,
-            overflow: 'hidden',
+            background: 'var(--ios-bg)',
+            borderRadius: 14,
+            marginBottom: 14,
+            padding: '4px 16px',
+            border: amount ? '2px solid var(--ios-green)' : '2px solid var(--ios-separator)',
+            transition: 'border-color 0.2s',
           }}>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="กรอกจำนวนเงิน"
+              placeholder="0"
               min={1}
               style={{
                 display: 'block',
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: '14px 16px',
+                padding: '12px 0',
                 textAlign: 'center',
-                fontSize: 22,
-                fontWeight: 700,
+                fontSize: 32,
+                fontWeight: 800,
                 color: 'var(--ios-label)',
-                background: 'var(--ios-bg)',
+                background: 'transparent',
                 border: 'none',
                 outline: 'none',
+                fontFamily: 'inherit',
               }}
             />
+          </div>
+
+          {/* Quick amounts — pill style */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14, justifyContent: 'center' }}>
+            {[100, 500, 1000, 5000].map(a => (
+              <button
+                key={a}
+                onClick={() => setAmount(String(a))}
+                style={{
+                  padding: '8px 16px', borderRadius: 20, fontSize: 14, fontWeight: 600,
+                  border: 'none', cursor: 'pointer',
+                  background: amount === String(a) ? 'var(--ios-green)' : 'var(--ios-bg)',
+                  color: amount === String(a) ? 'white' : 'var(--ios-label)',
+                  transition: 'all 0.15s',
+                  boxShadow: amount === String(a) ? '0 2px 8px rgba(52,199,89,0.3)' : 'none',
+                }}
+              >
+                ฿{a.toLocaleString()}
+              </button>
+            ))}
           </div>
 
           {/* Message */}
