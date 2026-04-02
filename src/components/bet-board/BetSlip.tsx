@@ -189,7 +189,13 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
               รายการแทง ({betSlip.length})
             </span>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => { const n = removeDuplicates(); if (n > 0) alert(`ลบเลขซ้ำ ${n} รายการ`) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: 13, fontWeight: 600 }}>
+              <button onClick={() => {
+                const n = removeDuplicates()
+                setResultAlert(n > 0
+                  ? { type: 'success', message: `ลบเลขซ้ำ ${n} รายการ` }
+                  : { type: 'success', message: 'ไม่มีเลขซ้ำ' }
+                )
+              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: 13, fontWeight: 600 }}>
                 เคลียซ้ำ
               </button>
               <button onClick={clearBetSlip} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF6B6B', fontSize: 13, fontWeight: 600 }}>
