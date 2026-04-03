@@ -58,8 +58,14 @@ export default function ProfilePage() {
     }
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    // เรียก API ลบ cookie ก่อน แล้ว redirect (ไม่ง้อ auth store)
+    try {
+      const { api } = await import('@/lib/api')
+      await api.post('/auth/logout')
+    } catch {}
+    // ลบ Zustand persist
+    try { localStorage.removeItem('lotto-auth') } catch {}
     window.location.href = '/login'
   }
 
