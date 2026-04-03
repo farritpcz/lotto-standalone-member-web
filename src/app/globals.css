@@ -230,16 +230,16 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  height: var(--bottom-nav-height);
   padding-bottom: var(--safe-area-bottom);
   background: rgba(249, 249, 249, 0.94);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-top: 0.5px solid var(--ios-separator);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-around;
-  padding-top: 10px;
+  box-sizing: content-box;
   z-index: 50;
 }
 

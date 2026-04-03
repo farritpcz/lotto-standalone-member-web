@@ -53,8 +53,9 @@ export default function ContactFloat() {
         onClick={() => setOpen(true)}
         style={{
           position: 'fixed',
-          bottom: 'calc(var(--bottom-nav-height, 83px) + env(safe-area-inset-bottom, 0px) + 16px)',
+          bottom: 'calc(var(--bottom-nav-height, 83px) + env(safe-area-inset-bottom, 0px) + 20px)',
           right: 16,
+          maxWidth: 480,
           width: 52, height: 52, borderRadius: '50%',
           background: 'linear-gradient(135deg, #0d6e6e, #34d399)',
           border: 'none', cursor: 'pointer',
