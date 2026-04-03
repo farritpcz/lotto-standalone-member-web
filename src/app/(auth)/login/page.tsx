@@ -18,12 +18,11 @@ import Link from 'next/link'
 import { authApi, lotteryApi, resultApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth-store'
 import type { LotteryTypeInfo, LotteryRound } from '@/types'
-import { Phone, Lock, Eye, EyeOff, LogIn, UserPlus, Monitor, FileText, Users, ChevronRight } from 'lucide-react'
+import { Phone, Lock, Eye, EyeOff, LogIn, UserPlus, Monitor, FileText, Users, ChevronRight, Sun, Moon } from 'lucide-react'
+import { useThemeStore, resolveTheme } from '@/store/theme-store'
 
-const CARD_BG = '#ffffff'
 const BTN_GREEN = 'var(--header-bg, #1e5c48)'
 const BTN_NAVY = '#1e3560'
-const INPUT_BG = '#f5f5f5'
 
 const lotteryIcons: Record<string, string> = {
   THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
@@ -103,6 +102,10 @@ export default function LoginPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { mode, setMode } = useThemeStore()
+  const isDark = resolveTheme(mode) === 'dark'
+
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
@@ -116,6 +119,21 @@ export default function LoginPage() {
         position: 'relative',
         overflow: 'hidden',
       }}>
+        {/* ปุ่มเลือกธีม สว่าง/มืด — มุมขวาบนของ banner */}
+        <button
+          onClick={() => setMode(isDark ? 'light' : 'dark')}
+          aria-label={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
+          style={{
+            position: 'absolute', top: 10, right: 10, zIndex: 10,
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white',
+          }}
+        >
+          {isDark ? <Sun size={16} strokeWidth={2} /> : <Moon size={16} strokeWidth={2} />}
+        </button>
         {/* Decorative elements */}
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 50%, rgba(255,200,0,0.08) 0%, transparent 70%)' }} />
         <div style={{ textAlign: 'center', padding: '0 24px', position: 'relative' }}>
@@ -144,7 +162,7 @@ export default function LoginPage() {
       </div>
 
       {/* ===== Form Card ===== */}
-      <div style={{ background: CARD_BG, margin: '0', padding: '20px 16px' }}>
+      <div style={{ background: 'var(--ios-card)', margin: '0', padding: '20px 16px' }}>
 
         {/* Error */}
         {error && (
@@ -155,9 +173,9 @@ export default function LoginPage() {
 
         {/* Phone input */}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>เบอร์โทรศัพท์</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>เบอร์โทรศัพท์</label>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#aaa', display: 'flex' }}>
+            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ios-secondary-label)', display: 'flex' }}>
               <Phone size={18} strokeWidth={2} />
             </span>
             <input
@@ -166,16 +184,16 @@ export default function LoginPage() {
               onChange={e => setPhone(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
               placeholder="099999999"
-              style={{ width: '100%', boxSizing: 'border-box', background: INPUT_BG, border: '1px solid #e8e8e8', borderRadius: 10, padding: '13px 14px 13px 44px', fontSize: 16, color: '#333', outline: 'none' }}
+              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--ios-bg)', border: '1px solid var(--ios-separator)', borderRadius: 10, padding: '13px 14px 13px 44px', fontSize: 16, color: 'var(--ios-label)', outline: 'none' }}
             />
           </div>
         </div>
 
         {/* Password input */}
         <div style={{ marginBottom: 8 }}>
-          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>รหัสผ่าน</label>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>รหัสผ่าน</label>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#aaa', display: 'flex' }}>
+            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ios-secondary-label)', display: 'flex' }}>
               <Lock size={18} strokeWidth={2} />
             </span>
             <input
@@ -184,11 +202,11 @@ export default function LoginPage() {
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
               placeholder="••••••••••"
-              style={{ width: '100%', boxSizing: 'border-box', background: INPUT_BG, border: '1px solid #e8e8e8', borderRadius: 10, padding: '13px 44px 13px 44px', fontSize: 16, color: '#333', outline: 'none' }}
+              style={{ width: '100%', boxSizing: 'border-box', background: 'var(--ios-bg)', border: '1px solid var(--ios-separator)', borderRadius: 10, padding: '13px 44px 13px 44px', fontSize: 16, color: 'var(--ios-label)', outline: 'none' }}
             />
             <button
               onClick={() => setShowPw(!showPw)}
-              style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', display: 'flex', padding: 2 }}
+              style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-secondary-label)', display: 'flex', padding: 2 }}
             >
               {showPw
                 ? <EyeOff size={18} strokeWidth={2} />
@@ -244,9 +262,9 @@ export default function LoginPage() {
           onClick={handleDemo}
           style={{
             display: 'block', width: '100%',
-            background: 'transparent', color: '#888',
+            background: 'transparent', color: 'var(--ios-secondary-label)',
             padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-            border: '1px solid #e0e0e0', cursor: 'pointer',
+            border: '1px solid var(--ios-separator)', cursor: 'pointer',
           }}
         >
           ทดลองเล่น (Demo)
@@ -254,7 +272,7 @@ export default function LoginPage() {
       </div>
 
       {/* ===== Game Providers (horizontal scroll) ===== */}
-      <div style={{ background: CARD_BG, borderTop: '6px solid #f0f0f0', padding: '12px 0' }}>
+      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '12px 0' }}>
         <div style={{ display: 'flex', gap: 8, padding: '0 16px', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {providers.map(p => (
             <div
@@ -284,18 +302,18 @@ export default function LoginPage() {
       </div>
 
       {/* ===== Quick Links ===== */}
-      <div style={{ background: CARD_BG, borderTop: '6px solid #f0f0f0', padding: '12px 16px 16px' }}>
+      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '12px 16px 16px' }}>
         {/* อัตราจ่าย — full width */}
         <Link
           href="/rates"
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
-            background: '#f5f5f5', borderRadius: 10, padding: '13px 16px',
-            textDecoration: 'none', color: '#444', fontSize: 15, fontWeight: 500,
+            background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 16px',
+            textDecoration: 'none', color: 'var(--ios-label)', fontSize: 15, fontWeight: 500,
             marginBottom: 8,
           }}
         >
-          <Monitor size={20} strokeWidth={1.8} style={{ color: '#666' }} />
+          <Monitor size={20} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
           อัตราจ่าย
         </Link>
 
@@ -305,30 +323,30 @@ export default function LoginPage() {
             href="/rules"
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: '#f5f5f5', borderRadius: 10, padding: '13px 14px',
-              textDecoration: 'none', color: '#444', fontSize: 14, fontWeight: 500,
+              background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 14px',
+              textDecoration: 'none', color: 'var(--ios-label)', fontSize: 14, fontWeight: 500,
             }}
           >
-            <FileText size={18} strokeWidth={1.8} style={{ color: '#666' }} />
+            <FileText size={18} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
             กฎและกติกา
           </Link>
           <Link
             href="/register"
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: '#f5f5f5', borderRadius: 10, padding: '13px 14px',
-              textDecoration: 'none', color: '#444', fontSize: 14, fontWeight: 500,
+              background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 14px',
+              textDecoration: 'none', color: 'var(--ios-label)', fontSize: 14, fontWeight: 500,
             }}
           >
-            <Users size={18} strokeWidth={1.8} style={{ color: '#666' }} />
+            <Users size={18} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
             เชิญเพื่อน
           </Link>
         </div>
       </div>
 
       {/* ===== ผลรางวัลล่าสุด ===== */}
-      <div style={{ background: CARD_BG, borderTop: '6px solid #f0f0f0', padding: '16px' }}>
-        <h3 style={{ textAlign: 'center', fontSize: 17, fontWeight: 700, color: '#1a1a1a', margin: '0 0 14px' }}>
+      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '16px' }}>
+        <h3 style={{ textAlign: 'center', fontSize: 17, fontWeight: 700, color: 'var(--ios-label)', margin: '0 0 14px' }}>
           ผลรางวัลหวยล่าสุด
         </h3>
 
@@ -341,8 +359,8 @@ export default function LoginPage() {
                 padding: '7px 14px', borderRadius: 8, fontSize: 13,
                 fontWeight: i === 0 ? 700 : 500, whiteSpace: 'nowrap', flexShrink: 0,
                 border: 'none', cursor: 'pointer',
-                background: i === 0 ? BTN_GREEN : '#f0f0f0',
-                color: i === 0 ? 'white' : '#555',
+                background: i === 0 ? BTN_GREEN : 'var(--ios-bg)',
+                color: i === 0 ? 'white' : 'var(--ios-secondary-label)',
               }}
             >
               {name}
@@ -352,19 +370,19 @@ export default function LoginPage() {
 
         {/* Results */}
         {latestResults.length === 0 ? (
-          <div style={{ background: '#f8f8f8', borderRadius: 10, padding: '24px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>
+          <div style={{ background: 'var(--ios-bg)', borderRadius: 10, padding: '24px', textAlign: 'center', color: 'var(--ios-secondary-label)', fontSize: 14 }}>
             ยังไม่มีผลรางวัล
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {latestResults.map(round => (
-              <div key={round.id} style={{ background: '#f8f8f8', borderRadius: 12, padding: '12px 14px' }}>
+              <div key={round.id} style={{ background: 'var(--ios-bg)', borderRadius: 12, padding: '12px 14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <span>{lotteryIcons[round.lottery_type?.code] || '🎲'}</span>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{round.lottery_type?.name}</span>
                   </div>
-                  <span style={{ color: '#888', fontSize: 12 }}>{new Date(round.round_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
+                  <span style={{ color: 'var(--ios-secondary-label)', fontSize: 12 }}>{new Date(round.round_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
                   {[
@@ -373,7 +391,7 @@ export default function LoginPage() {
                     { label: '2 ตัวล่าง', value: round.result_bottom2 || '-', color: '#0055cc', bg: 'rgba(0,122,255,0.08)' },
                   ].map(item => (
                     <div key={item.label} style={{ background: item.bg, borderRadius: 8, padding: '8px 4px', textAlign: 'center' }}>
-                      <div style={{ color: '#888', fontSize: 11, marginBottom: 4 }}>{item.label}</div>
+                      <div style={{ color: 'var(--ios-secondary-label)', fontSize: 11, marginBottom: 4 }}>{item.label}</div>
                       <div style={{ fontSize: 20, fontWeight: 700, color: item.color }}>{item.value}</div>
                     </div>
                   ))}
@@ -386,17 +404,17 @@ export default function LoginPage() {
 
       {/* Lotteries list */}
       {lotteries.length > 0 && (
-        <div style={{ background: CARD_BG, borderTop: '6px solid #f0f0f0', padding: '16px' }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a', margin: '0 0 12px' }}>หวยที่เปิดอยู่</h3>
-          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f0f0f0' }}>
+        <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '16px' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)', margin: '0 0 12px' }}>หวยที่เปิดอยู่</h3>
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--ios-separator)' }}>
             {lotteries.slice(0, 5).map((lottery, idx) => (
-              <div key={lottery.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderBottom: idx < 4 ? '1px solid #f0f0f0' : 'none', background: 'white' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 8, background: lotteryBgColors[lottery.code] || '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+              <div key={lottery.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderBottom: idx < 4 ? '1px solid var(--ios-separator)' : 'none', background: 'var(--ios-card)' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: lotteryBgColors[lottery.code] || 'var(--ios-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
                   {lotteryIcons[lottery.code] || '🎲'}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{lottery.name}</div>
-                  <div style={{ fontSize: 12, color: '#888' }}>{lottery.description}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{lottery.description}</div>
                 </div>
                 <ChevronRight size={14} strokeWidth={2} style={{ color: '#ccc', flexShrink: 0 }} />
               </div>
@@ -406,7 +424,7 @@ export default function LoginPage() {
       )}
 
       {/* Bottom padding */}
-      <div style={{ height: 32, background: '#f0f0f0' }} />
+      <div style={{ height: 32, background: 'var(--ios-bg)' }} />
     </div>
   )
 }

@@ -44,10 +44,12 @@ export const useAuthStore = create<AuthState>()(
         })
       },
 
-      // Logout → ลบ state + เรียก API ลบ cookie
+      // Logout → ลบ state + เรียก API ลบ cookie + ล้าง cache
       logout: () => {
         // เรียก backend ลบ httpOnly cookie
         api.post('/auth/logout').catch(() => {})
+        // ⭐ ล้าง API cache ตอน logout
+        import('@/lib/api').then(m => m.clearApiCache()).catch(() => {})
 
         set({
           member: null,

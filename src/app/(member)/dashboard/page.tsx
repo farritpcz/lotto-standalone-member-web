@@ -13,7 +13,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, ChevronRight } from 'lucide-react'
+import { RefreshCw, ChevronRight, Ticket, Trophy, ClipboardList, Target, PlusCircle, ArrowDownToLine, Gift, User, Headphones } from 'lucide-react'
 import Link from 'next/link'
 import Loading from '@/components/Loading'
 import { useAuthStore } from '@/store/auth-store'
@@ -150,46 +150,29 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Action buttons */}
+          {/* Action buttons — ใช้สีธีม */}
           <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
             <Link
               href="/wallet"
               style={{
-                flex: 1,
-                textAlign: 'center',
-                background: '#34C759',
-                color: 'white',
-                padding: '11px 8px',
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 700,
-                textDecoration: 'none',
-                minHeight: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(52,199,89,0.4)',
+                flex: 1, textAlign: 'center',
+                background: 'var(--ios-green)', color: 'white',
+                padding: '11px 8px', borderRadius: 12,
+                fontSize: 14, fontWeight: 700, textDecoration: 'none',
+                minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
               ฝากเงิน
             </Link>
             <Link
-              href="/wallet"
+              href="/wallet?tab=withdraw"
               style={{
-                flex: 1,
-                textAlign: 'center',
-                background: '#FF3B30',
-                color: 'white',
-                padding: '11px 8px',
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 700,
-                textDecoration: 'none',
-                minHeight: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(255,59,48,0.4)',
+                flex: 1, textAlign: 'center',
+                background: 'rgba(255,255,255,0.15)', color: 'white',
+                padding: '11px 8px', borderRadius: 12,
+                fontSize: 14, fontWeight: 700, textDecoration: 'none',
+                minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '1px solid rgba(255,255,255,0.2)',
               }}
             >
               ถอนเงิน
@@ -198,21 +181,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ===== 3. Menu Grid (icon circles, no boxes) ===== */}
-      <div className="ios-animate ios-animate-2 menu-grid">
-        {[
-          { href: '/lobby',        emoji: '🎰', label: 'แทงหวย' },
-          { href: '/results',      emoji: '🏆', label: 'ผลรางวัล' },
-          { href: '/history',      emoji: '📋', label: 'โพยหวย' },
-          { href: '/yeekee/room',  emoji: '🎯', label: 'ยี่กี' },
-          { href: '/wallet',              emoji: '💰', label: 'เติมเงิน' },
-          { href: '/wallet?tab=withdraw', emoji: '🏧', label: 'ถอนเงิน' },
-          { href: '/referral',     emoji: '🎁', label: 'แนะนำเพื่อน' },
-          { href: '/profile',      emoji: '👤', label: 'บัญชี' },
-        ].map((item, i) => (
-          <Link key={i} href={item.href} className="menu-grid-item">
-            <div className="icon">{item.emoji}</div>
-            <span className="label">{item.label}</span>
+      {/* ===== 3. Menu Grid — Lucide icons + gradient bg (ไม่ใช้ emoji) ===== */}
+      <div className="ios-animate ios-animate-2" style={{ padding: '12px 16px 8px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        {([
+          { href: '/lobby',        icon: <Ticket size={24} strokeWidth={1.8} />, label: 'แทงหวย',   gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+          { href: '/results',      icon: <Trophy size={24} strokeWidth={1.8} />, label: 'ผลรางวัล', gradient: 'linear-gradient(135deg, #ef4444, #dc2626)' },
+          { href: '/history',      icon: <ClipboardList size={24} strokeWidth={1.8} />, label: 'โพยหวย',   gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+          { href: '/yeekee/room',  icon: <Target size={24} strokeWidth={1.8} />, label: 'ยี่กี',     gradient: 'linear-gradient(135deg, #ec4899, #db2777)' },
+          { href: '/wallet',              icon: <PlusCircle size={24} strokeWidth={1.8} />, label: 'เติมเงิน', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
+          { href: '/wallet?tab=withdraw', icon: <ArrowDownToLine size={24} strokeWidth={1.8} />, label: 'ถอนเงิน', gradient: 'linear-gradient(135deg, #a855f7, #7c3aed)' },
+          { href: '/referral',     icon: <Gift size={24} strokeWidth={1.8} />, label: 'แนะนำเพื่อน', gradient: 'linear-gradient(135deg, #f97316, #ea580c)' },
+          { href: '/profile',      icon: <User size={24} strokeWidth={1.8} />, label: 'บัญชี',     gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)' },
+        ] as const).map((item, i) => (
+          <Link key={i} href={item.href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: 16,
+              background: item.gradient,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white',
+              boxShadow: '0 3px 12px rgba(0,0,0,0.15)',
+              transition: 'transform 0.15s',
+            }}>
+              {item.icon}
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--ios-secondary-label)', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
           </Link>
         ))}
       </div>

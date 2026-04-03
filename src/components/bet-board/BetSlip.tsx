@@ -5,7 +5,7 @@
  *   1. Mini mode (default) — แสดงสรุปย่อ + ปุ่ม "ดูรายการแทง" เปิด fullscreen
  *   2. Fullscreen modal — ตารางเต็มจอ + แก้ราคาได้ + ปุ่มยืนยันแทง
  *
- * ⭐ ปุ่มยืนยันใช้สีธีม (primary) แทนสีทอง
+ * ⭐ ใช้ CSS variables ตามธีม (dark/light) ทั้งหมด — ไม่ hardcode สี
  */
 
 'use client'
@@ -56,30 +56,31 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
     return () => clearTimeout(timer)
   }, [checkNumbers])
 
+  // ===== Result Alert Overlay (แสดงหลังแทงสำเร็จ/ไม่สำเร็จ) =====
   // ถ้า betSlip ว่าง แต่มี resultAlert ที่ต้องปิด fullscreen → แสดง alert ก่อน
   if (betSlip.length === 0 && resultAlert && resultAlert.closeFull) {
     return (
       <div style={{
         position: 'fixed', inset: 0, zIndex: 300,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 24,
       }}>
         <div style={{
-          background: 'white', borderRadius: 20, padding: '32px 24px',
+          background: 'var(--ios-card)', borderRadius: 20, padding: '32px 24px',
           textAlign: 'center', maxWidth: 320, width: '100%',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
         }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>
             {resultAlert.type === 'success' ? '✅' : '❌'}
           </div>
           <div style={{
             fontSize: 18, fontWeight: 700, marginBottom: 8,
-            color: resultAlert.type === 'success' ? '#1a3d35' : '#CC2020',
+            color: resultAlert.type === 'success' ? 'var(--ios-green)' : 'var(--ios-red)',
           }}>
             {resultAlert.type === 'success' ? 'แทงสำเร็จ!' : 'แทงไม่สำเร็จ'}
           </div>
-          <div style={{ fontSize: 14, color: '#666', marginBottom: 20, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+          <div style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 20, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
             {resultAlert.message}
           </div>
           <button
@@ -88,7 +89,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
               width: '100%', padding: '14px',
               borderRadius: 12, fontSize: 16, fontWeight: 700,
               color: 'white', border: 'none', cursor: 'pointer',
-              background: resultAlert.type === 'success' ? '#0d6e6e' : '#CC2020',
+              background: resultAlert.type === 'success' ? 'var(--ios-green)' : 'var(--ios-red)',
             }}
           >
             ตกลง
@@ -98,12 +99,16 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
     )
   }
 
+  // ===== Empty State =====
   if (betSlip.length === 0 && !resultAlert) {
     return (
-      <div className="card p-6 text-center">
-        <p className="text-3xl mb-2">📝</p>
-        <p className="text-muted text-sm">ยังไม่มีรายการแทง</p>
-        <p className="text-muted text-xs mt-1">เลือกประเภท → กดเลข → เพิ่มรายการ</p>
+      <div style={{
+        background: 'var(--ios-card)', borderRadius: 16, padding: 24,
+        textAlign: 'center', boxShadow: 'var(--shadow-card)',
+      }}>
+        <p style={{ fontSize: 32, marginBottom: 8 }}>📝</p>
+        <p style={{ color: 'var(--ios-secondary-label)', fontSize: 14 }}>ยังไม่มีรายการแทง</p>
+        <p style={{ color: 'var(--ios-tertiary-label)', fontSize: 12, marginTop: 4 }}>เลือกประเภท → กดเลข → เพิ่มรายการ</p>
       </div>
     )
   }
@@ -113,53 +118,67 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
   // ── Mini mode: แสดงสรุปย่อ + ปุ่มเปิดเต็มจอ ──────────────────────────────
   return (
     <>
-      <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--color-bg-card-alt)' }}>
-          <h3 className="font-bold text-sm">รายการแทง ({betSlip.length})</h3>
-          <button onClick={clearBetSlip} className="text-xs font-semibold" style={{ color: 'var(--color-red)' }}>
+      <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 16px', background: 'var(--ios-bg)',
+        }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--ios-label)' }}>รายการแทง ({betSlip.length})</span>
+          <button onClick={clearBetSlip} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ios-red)', background: 'none', border: 'none', cursor: 'pointer' }}>
             ล้างทั้งหมด
           </button>
         </div>
 
         {/* สรุปย่อ: แสดง 3 รายการแรก */}
-        <div className="px-4 py-2">
+        <div style={{ padding: '4px 16px' }}>
           {betSlip.slice(0, 3).map((item: BetSlipItem) => {
             const warn = numberWarnings[`${item.betType}-${item.number}`]
             return (
-              <div key={item.id} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-card-alt)' }}>
+              <div key={item.id} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '6px 0', borderBottom: '0.5px solid var(--ios-separator)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+                    background: 'var(--ios-bg)', color: 'var(--ios-secondary-label)',
+                  }}>
                     {item.betTypeName}
                   </span>
-                  <span className="font-mono font-bold text-sm" style={{ color: 'var(--color-primary)' }}>{item.number}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 14, color: 'var(--ios-green)' }}>{item.number}</span>
                   {warn && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{
-                      background: warn.status === 'full_ban' || warn.status === 'banned' ? '#FEE2E2' : '#FEF3C7',
-                      color: warn.status === 'full_ban' || warn.status === 'banned' ? '#DC2626' : '#D97706',
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 10,
+                      background: warn.status === 'full_ban' || warn.status === 'banned' ? 'rgba(255,59,48,0.1)' : 'rgba(255,159,10,0.1)',
+                      color: warn.status === 'full_ban' || warn.status === 'banned' ? 'var(--ios-red)' : 'var(--ios-orange)',
                     }}>
                       {warn.message}
                     </span>
                   )}
                 </div>
-                <span className="text-xs font-semibold">฿{item.amount}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ios-label)' }}>฿{item.amount}</span>
               </div>
             )
           })}
           {betSlip.length > 3 && (
-            <p className="text-center text-xs text-muted py-1">+{betSlip.length - 3} รายการเพิ่มเติม</p>
+            <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--ios-tertiary-label)', padding: '4px 0' }}>+{betSlip.length - 3} รายการเพิ่มเติม</p>
           )}
         </div>
 
         {/* Footer: ยอดรวม + ปุ่มเปิดเต็มจอ */}
-        <div className="px-4 py-3" style={{ background: 'var(--color-bg-card-alt)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-muted">ยอดรวม</span>
-            <span className="text-lg font-bold" style={{ color: 'var(--color-primary-dark)' }}>฿{totalAmount.toLocaleString()}</span>
+        <div style={{ padding: '10px 16px 14px', background: 'var(--ios-bg)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ fontSize: 13, color: 'var(--ios-secondary-label)' }}>ยอดรวม</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--ios-green)' }}>฿{totalAmount.toLocaleString()}</span>
           </div>
           <button
             onClick={() => setShowFull(true)}
-            className="w-full py-3 rounded-xl text-sm font-bold text-white"
-            style={{ background: 'var(--color-primary)', boxShadow: '0 4px 16px rgba(13,110,110,0.3)' }}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 12, fontSize: 14, fontWeight: 700,
+              color: 'white', border: 'none', cursor: 'pointer',
+              background: 'var(--ios-green)', boxShadow: '0 4px 16px rgba(52,199,89,0.3)',
+            }}
           >
             ดูรายการแทง ({betSlip.length} รายการ)
           </button>
@@ -170,22 +189,23 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
       {showFull && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 200,
-          background: 'white',
+          background: 'var(--ios-bg)',
           display: 'flex', flexDirection: 'column',
         }}>
-          {/* Header */}
+          {/* Header — ใช้สีธีม */}
           <div style={{
-            background: '#1a3d35',
+            background: 'var(--ios-card)',
             padding: '14px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             flexShrink: 0,
+            borderBottom: '0.5px solid var(--ios-separator)',
           }}>
             <button onClick={() => setShowFull(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} style={{ width: 22, height: 22 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--ios-label)" strokeWidth={2.5} style={{ width: 22, height: 22 }}>
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-            <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>
+            <span style={{ color: 'var(--ios-label)', fontSize: 17, fontWeight: 700 }}>
               รายการแทง ({betSlip.length})
             </span>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -195,10 +215,10 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   ? { type: 'success', message: `ลบเลขซ้ำ ${n} รายการ` }
                   : { type: 'success', message: 'ไม่มีเลขซ้ำ' }
                 )
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: 13, fontWeight: 600 }}>
+              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-blue)', fontSize: 13, fontWeight: 600 }}>
                 เคลียซ้ำ
               </button>
-              <button onClick={clearBetSlip} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FF6B6B', fontSize: 13, fontWeight: 600 }}>
+              <button onClick={clearBetSlip} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-red)', fontSize: 13, fontWeight: 600 }}>
                 ล้างทั้งหมด
               </button>
             </div>
@@ -215,16 +235,15 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 if (!digitMap[d]) digitMap[d] = []
                 digitMap[d].push(item)
               }
-              // เรียงจากมากไปน้อย (3→2→1)
               const groupMeta: Record<number, { label: string; color: string; bg: string }> = {
-                3: { label: '3 ตัว', color: '#0055CC', bg: 'rgba(0,85,204,0.08)' },
-                2: { label: '2 ตัว', color: '#CC6600', bg: 'rgba(204,102,0,0.08)' },
-                1: { label: 'วิ่ง / 1 ตัว', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)' },
-                4: { label: '4 ตัว', color: '#DC2626', bg: 'rgba(220,38,38,0.08)' },
+                3: { label: '3 ตัว', color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
+                2: { label: '2 ตัว', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+                1: { label: 'วิ่ง / 1 ตัว', color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)' },
+                4: { label: '4 ตัว', color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
               }
               for (const d of [4, 3, 2, 1]) {
                 if (digitMap[d]) {
-                  const meta = groupMeta[d] || { label: `${d} หลัก`, color: '#666', bg: '#f5f5f5' }
+                  const meta = groupMeta[d] || { label: `${d} หลัก`, color: 'var(--ios-secondary-label)', bg: 'var(--ios-bg)' }
                   groups.push({ ...meta, items: digitMap[d] })
                 }
               }
@@ -234,7 +253,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   <div style={{
                     padding: '8px 16px',
                     background: group.bg,
-                    borderBottom: '1px solid #eee',
+                    borderBottom: '0.5px solid var(--ios-separator)',
                     display: 'flex', alignItems: 'center', gap: 8,
                   }}>
                     <span style={{
@@ -243,7 +262,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                     }}>
                       {group.label}
                     </span>
-                    <span style={{ fontSize: 12, color: '#888' }}>
+                    <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
                       {group.items.length} รายการ
                     </span>
                   </div>
@@ -254,7 +273,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                     <div key={item.id} style={{
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '10px 16px',
-                      borderBottom: '0.5px solid #f0f0f0',
+                      borderBottom: '0.5px solid var(--ios-separator)',
                       opacity: isBanned ? 0.4 : 1,
                       background: isBanned ? 'rgba(255,59,48,0.04)' : undefined,
                     }}>
@@ -268,20 +287,20 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                         {item.betTypeName}
                       </span>
                       {/* เลข + warning */}
-                      <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: '#1a3d35', minWidth: 40, textAlign: 'center' }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 18, color: 'var(--ios-label)', minWidth: 40, textAlign: 'center' }}>
                         {item.number}
                       </span>
                       {numberWarnings[`${item.betType}-${item.number}`] && (
                         <span style={{
                           fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 10,
-                          background: numberWarnings[`${item.betType}-${item.number}`].status === 'full_ban' || numberWarnings[`${item.betType}-${item.number}`].status === 'banned' ? '#FEE2E2' : '#FEF3C7',
-                          color: numberWarnings[`${item.betType}-${item.number}`].status === 'full_ban' || numberWarnings[`${item.betType}-${item.number}`].status === 'banned' ? '#DC2626' : '#D97706',
+                          background: numberWarnings[`${item.betType}-${item.number}`].status === 'full_ban' || numberWarnings[`${item.betType}-${item.number}`].status === 'banned' ? 'rgba(255,59,48,0.1)' : 'rgba(255,159,10,0.1)',
+                          color: numberWarnings[`${item.betType}-${item.number}`].status === 'full_ban' || numberWarnings[`${item.betType}-${item.number}`].status === 'banned' ? 'var(--ios-red)' : 'var(--ios-orange)',
                           flexShrink: 0,
                         }}>
                           {numberWarnings[`${item.betType}-${item.number}`].message}
                         </span>
                       )}
-                      {/* ราคา */}
+                      {/* ราคา input — ใช้สีธีม */}
                       <input
                         type="number"
                         value={item.amount}
@@ -289,14 +308,15 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                         min={1}
                         style={{
                           width: 60, textAlign: 'center', fontSize: 14, fontWeight: 700,
-                          border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '5px 4px',
-                          background: '#fafafa', outline: 'none', flexShrink: 0,
+                          border: '1.5px solid var(--ios-separator)', borderRadius: 8, padding: '5px 4px',
+                          background: 'var(--ios-bg)', color: 'var(--ios-label)',
+                          outline: 'none', flexShrink: 0,
                         }}
                       />
                       {/* เรท */}
-                      <span style={{ fontSize: 12, color: '#aaa', flexShrink: 0 }}>x{item.rate}</span>
+                      <span style={{ fontSize: 12, color: 'var(--ios-tertiary-label)', flexShrink: 0 }}>x{item.rate}</span>
                       {/* ชนะ */}
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#34C759', marginLeft: 'auto', flexShrink: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ios-green)', marginLeft: 'auto', flexShrink: 0 }}>
                         ฿{item.potentialWin.toLocaleString()}
                       </span>
                       {/* ลบ */}
@@ -304,7 +324,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                         onClick={() => removeFromBetSlip(item.id)}
                         style={{
                           width: 26, height: 26, borderRadius: 13,
-                          background: 'rgba(255,59,48,0.08)', color: '#FF3B30',
+                          background: 'rgba(255,59,48,0.08)', color: 'var(--ios-red)',
                           border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0,
@@ -324,25 +344,25 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
           {resultAlert && (
             <div style={{
               position: 'fixed', inset: 0, zIndex: 300,
-              background: 'rgba(0,0,0,0.5)',
+              background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: 24,
             }}>
               <div style={{
-                background: 'white', borderRadius: 20, padding: '32px 24px',
+                background: 'var(--ios-card)', borderRadius: 20, padding: '32px 24px',
                 textAlign: 'center', maxWidth: 320, width: '100%',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
               }}>
                 <div style={{ fontSize: 48, marginBottom: 12 }}>
                   {resultAlert.type === 'success' ? '✅' : '❌'}
                 </div>
                 <div style={{
                   fontSize: 18, fontWeight: 700, marginBottom: 8,
-                  color: resultAlert.type === 'success' ? '#1a3d35' : '#CC2020',
+                  color: resultAlert.type === 'success' ? 'var(--ios-green)' : 'var(--ios-red)',
                 }}>
                   {resultAlert.type === 'success' ? 'แทงสำเร็จ!' : 'แทงไม่สำเร็จ'}
                 </div>
-                <div style={{ fontSize: 14, color: '#666', marginBottom: 20, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 20, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
                   {resultAlert.message}
                 </div>
                 <button
@@ -351,7 +371,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                     width: '100%', padding: '14px',
                     borderRadius: 12, fontSize: 16, fontWeight: 700,
                     color: 'white', border: 'none', cursor: 'pointer',
-                    background: resultAlert.type === 'success' ? '#0d6e6e' : '#CC2020',
+                    background: resultAlert.type === 'success' ? 'var(--ios-green)' : 'var(--ios-red)',
                   }}
                 >
                   {resultAlert.type === 'success' ? 'ตกลง' : 'ลองใหม่'}
@@ -360,33 +380,34 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
             </div>
           )}
 
-          {/* Footer: เครดิต + ยอดแทง + ปุ่มยืนยัน */}
+          {/* Footer: เครดิต + ยอดแทง + ปุ่มยืนยัน — ใช้สีธีม */}
           <div style={{
-            padding: '12px 16px 16px', borderTop: '1px solid #eee',
-            background: 'white', flexShrink: 0,
+            padding: '12px 16px 16px',
+            borderTop: '0.5px solid var(--ios-separator)',
+            background: 'var(--ios-card)', flexShrink: 0,
             paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
           }}>
-            {/* เครดิตคงเหลือ + ยอดแทง */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: '#888' }}>เครดิตคงเหลือ</span>
-              <span style={{ fontWeight: 700, color: '#34C759' }}>
+            {/* เครดิตคงเหลือ + ยอดแทง + เครดิตหลังแทง */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+              <span style={{ color: 'var(--ios-secondary-label)' }}>เครดิตคงเหลือ</span>
+              <span style={{ fontWeight: 700, color: 'var(--ios-green)' }}>
                 ฿{(member?.balance || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: '#888' }}>ยอดแทง ({betSlip.length} รายการ)</span>
-              <span style={{ fontWeight: 700, color: '#FF9500' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+              <span style={{ color: 'var(--ios-secondary-label)' }}>ยอดแทง ({betSlip.length} รายการ)</span>
+              <span style={{ fontWeight: 700, color: 'var(--ios-orange)' }}>
                 ฿{totalAmount.toLocaleString()}
               </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, fontSize: 13 }}>
-              <span style={{ color: '#888' }}>เครดิตหลังแทง</span>
-              <span style={{ fontWeight: 700, color: (member?.balance || 0) >= totalAmount ? '#1a3d35' : '#FF3B30' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 13 }}>
+              <span style={{ color: 'var(--ios-secondary-label)' }}>เครดิตหลังแทง</span>
+              <span style={{ fontWeight: 700, color: (member?.balance || 0) >= totalAmount ? 'var(--ios-label)' : 'var(--ios-red)' }}>
                 ฿{((member?.balance || 0) - totalAmount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
               </span>
             </div>
 
-            {/* ⭐ เตือนถ้ามีเลขอั้น — ต้องลบออกก่อนแทง + ปุ่มลบเลขอั้น */}
+            {/* ⭐ เตือนถ้ามีเลขอั้น */}
             {(() => {
               const bannedItems = betSlip.filter(b => {
                 const w = numberWarnings[`${b.betType}-${b.number}`]
@@ -396,19 +417,18 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 <div style={{
                   background: 'rgba(255,59,48,0.08)', borderRadius: 10,
                   padding: '10px 12px', marginBottom: 12, fontSize: 13,
-                  color: '#FF3B30', textAlign: 'center', fontWeight: 600,
+                  color: 'var(--ios-red)', textAlign: 'center', fontWeight: 600,
                 }}>
-                  <div>🚫 มีเลขอั้น {bannedItems.length} รายการ</div>
+                  <div>มีเลขอั้น {bannedItems.length} รายการ</div>
                   <button
                     onClick={() => {
                       bannedItems.forEach(b => removeFromBetSlip(b.id))
-                      // ถ้าลบแล้ว betSlip ว่างหมด → ปิด fullscreen
                       const remaining = betSlip.length - bannedItems.length
                       if (remaining <= 0) setShowFull(false)
                     }}
                     style={{
                       marginTop: 8, padding: '8px 20px', borderRadius: 10,
-                      background: '#FF3B30', color: 'white', border: 'none',
+                      background: 'var(--ios-red)', color: 'white', border: 'none',
                       fontSize: 14, fontWeight: 700, cursor: 'pointer',
                     }}
                   >
@@ -424,12 +444,13 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
               <div style={{
                 background: 'rgba(255,59,48,0.08)', borderRadius: 10,
                 padding: '8px 12px', marginBottom: 12, fontSize: 13,
-                color: '#FF3B30', textAlign: 'center', fontWeight: 600,
+                color: 'var(--ios-red)', textAlign: 'center', fontWeight: 600,
               }}>
                 เครดิตไม่เพียงพอ กรุณาเติมเงินก่อน
               </div>
             )}
 
+            {/* ปุ่มยืนยัน — ใช้ --ios-green แทน hardcode */}
             <button
               onClick={async () => {
                 setResultAlert(null)
@@ -440,10 +461,9 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   setResultAlert({
                     type: 'success',
                     message: `ส่งโพย ${count} รายการ รวม ฿${amt.toLocaleString()} สำเร็จ\nเครดิตคงเหลือ ฿${((member?.balance || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
-                    closeFull: true, // ⭐ ปิด fullscreen หลังแทงสำเร็จ
+                    closeFull: true,
                   })
                 } else {
-                  // result = false (generic error) หรือ string (error message จาก backend)
                   setResultAlert({
                     type: 'error',
                     message: typeof result === 'string' ? result : 'ไม่สามารถส่งโพยได้ กรุณาตรวจสอบเลขอั้นหรือเครดิตคงเหลือ',
@@ -456,9 +476,9 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 borderRadius: 14, fontSize: 17, fontWeight: 700,
                 color: 'white', border: 'none',
                 cursor: (loading || (member?.balance || 0) < totalAmount) ? 'not-allowed' : 'pointer',
-                background: '#0d6e6e',
+                background: 'var(--ios-green)',
                 opacity: (loading || (member?.balance || 0) < totalAmount || betSlip.some(b => { const w = numberWarnings[`${b.betType}-${b.number}`]; return w && (w.status === 'full_ban' || w.status === 'banned') })) ? 0.5 : 1,
-                boxShadow: '0 4px 20px rgba(13,110,110,0.35)',
+                boxShadow: '0 4px 20px rgba(52,199,89,0.3)',
                 minHeight: 56,
               }}
             >

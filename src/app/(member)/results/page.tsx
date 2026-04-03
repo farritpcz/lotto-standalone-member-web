@@ -173,7 +173,7 @@ export default function ResultsPage() {
                         <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ios-label)' }}>
                           {(() => {
                             // แปลง round_date เป็น "1 เม.ย. 69" + ถ้ายี่กีแสดงรอบด้วย
-                            const d = round.round_date || round.created_at
+                            const d = round.round_date || (round as unknown as Record<string, string>).created_at
                             const dateStr = d ? new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : '-'
                             const isYeekee = group.code === 'YEEKEE'
                             if (isYeekee) {

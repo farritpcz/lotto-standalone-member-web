@@ -18,7 +18,7 @@
 
 import AppHeader from '@/components/layout/AppHeader'
 import BottomNav from '@/components/layout/BottomNav'
-import ContactFloat from '@/components/ContactFloat'
+import FloatingContact from '@/components/FloatingContact'
 import AuthGuard from '@/components/AuthGuard'
 
 export default function MemberLayout({
@@ -33,7 +33,7 @@ export default function MemberLayout({
         <main className="app-content">
           {children}
         </main>
-        {/* <ContactFloat /> */}
+        <FloatingContact />
         <BottomNav />
       </div>
     </AuthGuard>

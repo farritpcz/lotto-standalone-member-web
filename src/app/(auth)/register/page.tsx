@@ -19,15 +19,15 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Phone, Lock, Eye, EyeOff, User, CreditCard, ChevronDown, UserPlus, LogIn, Monitor, FileText } from 'lucide-react'
+import { Phone, Lock, Eye, EyeOff, User, CreditCard, ChevronDown, UserPlus, LogIn, Monitor, FileText, Sun, Moon } from 'lucide-react'
 import { authApi } from '@/lib/api'
+import { useThemeStore, resolveTheme } from '@/store/theme-store'
 import { useAuthStore } from '@/store/auth-store'
+import BankIcon from '@/components/BankIcon' // ไอคอนธนาคาร
 
 // ── Constants ──────────────────────────────────────────────────────────────────
-const CARD_BG = '#ffffff'
 const BTN_GREEN = '#1e5c48'
 const BTN_NAVY = '#1e3560'
-const INPUT_BG = '#f5f5f5'
 
 const providers = [
   { name: 'PRAGMATIC\nPLAY', bg: '#1a2a1a', color: '#f0c040' },
@@ -134,12 +134,12 @@ function RegisterForm() {
   const fieldStyle = {
     width: '100%',
     boxSizing: 'border-box' as const,
-    background: INPUT_BG,
-    border: '1px solid #e8e8e8',
+    background: 'var(--ios-bg)',
+    border: '1px solid var(--ios-separator)',
     borderRadius: 10,
     padding: '13px 14px 13px 46px',
     fontSize: 15,
-    color: '#333',
+    color: 'var(--ios-label)',
     outline: 'none',
   }
   const iconWrap = {
@@ -147,9 +147,13 @@ function RegisterForm() {
     left: 14,
     top: '50%',
     transform: 'translateY(-50%)',
-    color: '#aaa',
+    color: 'var(--ios-secondary-label)',
     display: 'flex',
   }
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { mode, setMode } = useThemeStore()
+  const isDark = resolveTheme(mode) === 'dark'
 
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
@@ -161,6 +165,21 @@ function RegisterForm() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
+        {/* ปุ่มเลือกธีม สว่าง/มืด */}
+        <button
+          onClick={() => setMode(isDark ? 'light' : 'dark')}
+          aria-label={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
+          style={{
+            position: 'absolute', top: 10, right: 10, zIndex: 10,
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white',
+          }}
+        >
+          {isDark ? <Sun size={16} strokeWidth={2} /> : <Moon size={16} strokeWidth={2} />}
+        </button>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 50%, rgba(255,200,0,0.08) 0%, transparent 70%)' }} />
         <div style={{ textAlign: 'center', padding: '0 24px', position: 'relative' }}>
           <div style={{ color: '#f0c060', fontSize: 13, fontWeight: 600, marginBottom: 6, letterSpacing: 1 }}>LOTTO ONLINE</div>
@@ -176,7 +195,7 @@ function RegisterForm() {
       </div>
 
       {/* ===== Form Card ===== */}
-      <div style={{ background: CARD_BG, margin: 0, padding: '20px 16px' }}>
+      <div style={{ background: 'var(--ios-card)', margin: 0, padding: '20px 16px' }}>
 
         {/* แสดง ref code ถ้ามี */}
         {refCodeFromUrl && (
@@ -196,7 +215,7 @@ function RegisterForm() {
 
           {/* Phone */}
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>เบอร์โทรศัพท์</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>เบอร์โทรศัพท์</label>
             <div style={{ position: 'relative' }}>
               <span style={iconWrap}>
                 <Phone size={18} strokeWidth={2} />
@@ -209,14 +228,20 @@ function RegisterForm() {
 
           {/* Bank */}
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>บัญชีธนาคาร</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>บัญชีธนาคาร</label>
             <div style={{ position: 'relative' }}>
+              {/* ไอคอนธนาคารที่เลือก — แสดงซ้ายสุดใน select */}
+              {bankCode && (
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', zIndex: 1 }}>
+                  <BankIcon code={bankCode} size={24} />
+                </span>
+              )}
               <select value={bankCode} onChange={e => setBankCode(e.target.value)}
-                style={{ ...fieldStyle, paddingLeft: 14, appearance: 'none', cursor: 'pointer', color: bankCode ? '#333' : '#aaa' }}>
+                style={{ ...fieldStyle, paddingLeft: bankCode ? 46 : 14, appearance: 'none', cursor: 'pointer', color: bankCode ? 'var(--ios-label)' : 'var(--ios-secondary-label)' }}>
                 <option value="" disabled>เลือกธนาคาร</option>
                 {THAI_BANKS.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
               </select>
-              <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: '#888', pointerEvents: 'none' }}>
+              <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ios-secondary-label)', pointerEvents: 'none' }}>
                 <ChevronDown size={16} strokeWidth={2.5} />
               </span>
             </div>
@@ -224,7 +249,7 @@ function RegisterForm() {
 
           {/* Account number */}
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>เลขบัญชีธนาคาร</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>เลขบัญชีธนาคาร</label>
             <div style={{ position: 'relative' }}>
               <span style={iconWrap}>
                 <CreditCard size={18} strokeWidth={2} />
@@ -236,7 +261,7 @@ function RegisterForm() {
 
           {/* Full name */}
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>ชื่อ-สกุล</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>ชื่อ-สกุล</label>
             <div style={{ position: 'relative' }}>
               <span style={iconWrap}>
                 <User size={18} strokeWidth={2} />
@@ -251,7 +276,7 @@ function RegisterForm() {
 
           {/* Password */}
           <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 8 }}>รหัสผ่าน</label>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>รหัสผ่าน</label>
             <div style={{ position: 'relative' }}>
               <span style={iconWrap}>
                 <Lock size={18} strokeWidth={2} />
@@ -261,7 +286,7 @@ function RegisterForm() {
                 placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัว)"
                 style={{ ...fieldStyle, paddingRight: 44 }} />
               <button onClick={() => setShowPw(!showPw)}
-                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', display: 'flex', padding: 2 }}>
+                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-secondary-label)', display: 'flex', padding: 2 }}>
                 {showPw
                   ? <EyeOff size={18} strokeWidth={2} />
                   : <Eye size={18} strokeWidth={2} />
@@ -301,7 +326,7 @@ function RegisterForm() {
       </div>
 
       {/* ===== Game Providers (เหมือน login) ===== */}
-      <div style={{ background: CARD_BG, borderTop: '6px solid #f0f0f0', padding: '12px 0' }}>
+      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '12px 0' }}>
         <div style={{ display: 'flex', gap: 8, padding: '0 16px', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {providers.map(p => (
             <div key={p.name} style={{
@@ -318,24 +343,24 @@ function RegisterForm() {
       </div>
 
       {/* ===== Quick Links (เหมือน login) ===== */}
-      <div style={{ background: CARD_BG, borderTop: '6px solid #f0f0f0', padding: '12px 16px 16px' }}>
-        <Link href="/rates" style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f5f5f5', borderRadius: 10, padding: '13px 16px', textDecoration: 'none', color: '#444', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>
-          <Monitor size={20} strokeWidth={1.8} style={{ color: '#666' }} />
+      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '12px 16px 16px' }}>
+        <Link href="/rates" style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 16px', textDecoration: 'none', color: 'var(--ios-label)', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>
+          <Monitor size={20} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
           อัตราจ่าย
         </Link>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <Link href="/rules" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f5f5f5', borderRadius: 10, padding: '13px 14px', textDecoration: 'none', color: '#444', fontSize: 14, fontWeight: 500 }}>
-            <FileText size={18} strokeWidth={1.8} style={{ color: '#666' }} />
+          <Link href="/rules" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 14px', textDecoration: 'none', color: 'var(--ios-label)', fontSize: 14, fontWeight: 500 }}>
+            <FileText size={18} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
             กฎและกติกา
           </Link>
-          <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f5f5f5', borderRadius: 10, padding: '13px 14px', textDecoration: 'none', color: '#444', fontSize: 14, fontWeight: 500 }}>
-            <LogIn size={18} strokeWidth={1.8} style={{ color: '#666' }} />
+          <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 14px', textDecoration: 'none', color: 'var(--ios-label)', fontSize: 14, fontWeight: 500 }}>
+            <LogIn size={18} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
             เข้าสู่ระบบ
           </Link>
         </div>
       </div>
 
-      <div style={{ height: 32, background: '#f0f0f0' }} />
+      <div style={{ height: 32, background: 'var(--ios-bg)' }} />
     </div>
   )
 }
@@ -343,7 +368,7 @@ function RegisterForm() {
 // ── Export หลัก (ครอบ Suspense เพราะใช้ useSearchParams) ─────────────────────
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div style={{ background: '#2a4a3a', minHeight: '100dvh' }} />}>
+    <Suspense fallback={<div style={{ background: 'var(--ios-bg)', minHeight: '100dvh' }} />}>
       <RegisterForm />
     </Suspense>
   )

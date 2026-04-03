@@ -156,6 +156,7 @@ export interface RegisterRequest {
   bank_code?: string
   bank_account?: string
   full_name?: string
+  ref_code?: string   // referral code จาก URL ?ref=CODE
 }
 
 /** Auth response (login/register) */
@@ -200,7 +201,7 @@ export interface PaginatedResponse<T> {
 }
 
 /** WebSocket message types (ยี่กี) */
-export type WSMessageType = 'shoot' | 'shoot_broadcast' | 'countdown' | 'result' | 'error'
+export type WSMessageType = 'shoot' | 'shoot_broadcast' | 'countdown' | 'result' | 'error' | 'round_info'
 
 export interface WSMessage {
   type: WSMessageType

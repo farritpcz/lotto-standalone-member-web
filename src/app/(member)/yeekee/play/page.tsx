@@ -112,7 +112,8 @@ function YeekeePlayContent() {
       setBetTypes(YEEKEE_BET_TYPES.map(bt => ({
         id: 0,
         name: bt.label,
-        code: bt.code,
+        code: bt.code as import('@/types').BetType,
+        description: '',
         digit_count: bt.digitCount,
         rate: bt.rate,
         max_bet_per_number: 0,
@@ -282,8 +283,8 @@ function YeekeePlayContent() {
           if (r.includes('limit') || r.includes('จำกัดยอด')) return 'เกินวงเงิน'
           return r
         }
-        const errMsgs = data.errors.map((e: { number: string; BetType: string; Reason: string }) =>
-          `เลข ${e.number}: ${translateReason(e.Reason)}`
+        const errMsgs = data.errors.map((e: { number: string; bet_type?: string; BetType?: string; reason?: string; Reason?: string }) =>
+          `เลข ${e.number}: ${translateReason(e.Reason || e.reason || '')}`
         ).join('\n')
         setBetMessage(errMsgs)
         setSubmitting(false)

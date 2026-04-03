@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronRight, Sun, Moon, Monitor } from 'lucide-react'
 import { useAuthStore } from '@/store/auth-store'
 import { useThemeStore } from '@/store/theme-store'
+import BankIcon from '@/components/BankIcon' // ไอคอนธนาคาร
 import { useToast } from '@/components/Toast'
 import { memberApi } from '@/lib/api'
 
@@ -226,8 +227,9 @@ export default function ProfilePage() {
             <label style={{ display: 'block', fontSize: 12, color: 'var(--ios-secondary-label)', paddingTop: 10, marginBottom: 2 }}>
               ธนาคาร
             </label>
-            <div style={{ fontSize: 16, color: 'var(--ios-label)', paddingBottom: 12 }}>
-              {member?.bank_code || '-'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, color: 'var(--ios-label)', paddingBottom: 12 }}>
+              {/* ไอคอนธนาคาร + ชื่อ bank_code */}
+              {member?.bank_code ? <BankIcon code={member.bank_code} size={28} showName /> : '-'}
             </div>
           </div>
 

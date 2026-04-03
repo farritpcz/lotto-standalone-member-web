@@ -140,8 +140,8 @@ export default function LotteryBetPage() {
           if (r.includes('limit') || r.includes('เกินวงเงิน') || r.includes('จำกัดยอด')) return 'เกินวงเงิน'
           return r
         }
-        const errMsgs = data.errors.map((e: { number: string; BetType: string; Reason: string }) =>
-          `เลข ${e.number}: ${translateReason(e.Reason)}`
+        const errMsgs = data.errors.map((e: { number: string; bet_type?: string; BetType?: string; reason?: string; Reason?: string }) =>
+          `เลข ${e.number}: ${translateReason(e.Reason || e.reason || '')}`
         ).join('\n')
         setMessage(errMsgs)
         setSubmitting(false)

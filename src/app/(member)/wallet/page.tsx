@@ -1,72 +1,80 @@
 /**
- * หน้า Wallet — iOS 17 HIG Design
- * ฝาก-ถอน + ประวัติธุรกรรม
+ * หน้า Wallet — Redesign ตามแบบเจริญดี88
+ *
+ * Layout ฝากเงิน:
+ *   1. Tab switcher (ฝาก / ถอน)
+ *   2. บัญชีผู้ใช้ (bank icon + เลขบัญชี + ชื่อ) + label "ใช้บัญชีนี้โอนเท่านั้น"
+ *   3. ระบุจำนวนเงิน (input + quick amounts 8 ปุ่ม)
+ *   4. ปุ่ม "ยืนยันฝากเงิน"
+ *   5. เงื่อนไขการเติมเงิน (collapsible)
+ *
+ * Layout ถอนเงิน:
+ *   1. Tab switcher
+ *   2. บัญชีผู้ใช้
+ *   3. ระบุจำนวนเงิน (input) + ยอดขั้นต่ำ
+ *   4. ปุ่ม "ถอนเงิน"
+ *   5. เงื่อนไขการถอนเงิน (collapsible)
+ *   6. รายการถอนเงิน (table)
  */
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ChevronDown, ChevronUp, QrCode } from 'lucide-react'
 import { walletApi } from '@/lib/api'
 import { useAuthStore } from '@/store/auth-store'
+import BankIcon, { BANK_NAMES } from '@/components/BankIcon'
 import { useToast } from '@/components/Toast'
-import type { Transaction } from '@/types'
+import Link from 'next/link'
 
-const txTypeLabels: Record<string, string> = {
-  deposit: 'ฝากเงิน', withdraw: 'ถอนเงิน', bet: 'แทงหวย', win: 'ชนะรางวัล', refund: 'คืนเงิน',
-}
-
-// แปลง bank code → ชื่อธนาคารภาษาไทย
-const BANK_NAMES: Record<string, string> = {
-  SCB: 'ไทยพาณิชย์', KBANK: 'กสิกรไทย', BBL: 'กรุงเทพ', KTB: 'กรุงไทย',
-  BAY: 'กรุงศรีอยุธยา', TTB: 'ทหารไทยธนชาต', GSB: 'ออมสิน', BAAC: 'ธกส.',
-  UOB: 'ยูโอบี', CITI: 'ซิตี้แบงก์',
-}
-// สีโลโก้ธนาคาร
-const BANK_COLORS: Record<string, string> = {
-  SCB: '#4E2A84', KBANK: '#138F2D', BBL: '#1E22AA', KTB: '#1BA5E0',
-  BAY: '#FEC43B', TTB: '#0050F0', GSB: '#EB1478', BAAC: '#4B9560',
-  UOB: '#0033A0', CITI: '#003B70',
-}
-const txTypeIcons: Record<string, string> = {
-  deposit: '💰', withdraw: '🏧', bet: '🎰', win: '🏆', refund: '↩️',
-}
-
-// ข้อมูลบัญชี agent สำหรับรับโอน (จะดึงจาก API จริงทีหลัง)
+// ข้อมูลบัญชี agent สำหรับรับโอน
 interface AgentBank { bank_code: string; bank_name: string; account_number: string; account_name: string }
 
 export default function WalletPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>กำลังโหลด...</div>}>
+      <WalletContent />
+    </Suspense>
+  )
+}
+
+function WalletContent() {
   const { member, updateBalance } = useAuthStore()
   const { toast } = useToast()
-  const [amount, setAmount] = useState('')
-
   const searchParams = useSearchParams()
-  const [action, setAction] = useState<'deposit' | 'withdraw'>('deposit')
 
-  // อ่าน ?tab=withdraw จาก URL → set active tab
+  // Tab ฝาก/ถอน
+  const [action, setAction] = useState<'deposit' | 'withdraw'>('deposit')
   useEffect(() => {
     if (searchParams.get('tab') === 'withdraw') setAction('withdraw')
   }, [searchParams])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  // ── Deposit flow states ──
-  const [showTransferModal, setShowTransferModal] = useState(false)  // แสดงบัญชี agent
-  const [depositAmount, setDepositAmount] = useState(0)              // จำนวนที่จะฝาก
-  const [depositAlert, setDepositAlert] = useState<'success' | null>(null)
-  const [agentBanks, setAgentBanks] = useState<AgentBank[]>([])      // บัญชี agent
-  const [memberBanks, setMemberBanks] = useState<{ id: number; bank_code: string; bank_name: string; account_number: string; account_name: string; account_type: string; is_default: boolean }[]>([]) // บัญชีสมาชิก
 
-  // ดึงประวัติฝาก/ถอน (deposit_requests + withdraw ล่าสุด)
-  const [depositHistory, setDepositHistory] = useState<{ id: number; amount: number; status: string; auto_matched: boolean; created_at: string }[]>([])
+  // Form state
+  const [amount, setAmount] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // Collapsible เงื่อนไข
+  const [showConditions, setShowConditions] = useState(false)
+
+  // Deposit flow
+  const [showTransferModal, setShowTransferModal] = useState(false)
+  const [depositAmount, setDepositAmount] = useState(0)
+  const [depositAlert, setDepositAlert] = useState<'success' | null>(null)
+  const [agentBanks, setAgentBanks] = useState<AgentBank[]>([])
+
+  // Withdraw flow
+  const [memberBanks, setMemberBanks] = useState<{ id: number; bank_code: string; bank_name: string; account_number: string; account_name: string; account_type: string; is_default: boolean }[]>([])
+
+  // ประวัติฝาก/ถอน
+  const [depositHistory, setDepositHistory] = useState<{ id: number; amount: number; status: string; created_at: string }[]>([])
   const [withdrawHistory, setWithdrawHistory] = useState<{ id: number; amount: number; status: string; created_at: string }[]>([])
 
+  // โหลดประวัติ
   const loadHistory = () => {
     import('@/lib/api').then(({ api }) => {
       api.get('/wallet/deposits?per_page=10').then(res => setDepositHistory(res.data.data?.items || [])).catch(() => {})
       api.get('/wallet/transactions?type=withdraw&per_page=10').then(res => {
-        // fallback: ดึงจาก transactions ถ้า deposits endpoint ยังไม่มี
         setWithdrawHistory((res.data.data?.items || []).map((t: Record<string, unknown>) => ({
           id: t.id as number, amount: Math.abs(t.amount as number), status: 'completed', created_at: t.created_at as string,
         })))
@@ -74,61 +82,63 @@ export default function WalletPage() {
     })
   }
 
-  useEffect(() => { loadHistory() }, [message, depositAlert])
+  useEffect(() => { loadHistory() }, [depositAlert])
 
-  // ยังคงดึง transactions สำหรับ backward compat
-  useEffect(() => {
-    walletApi.getTransactions({ per_page: 30 })
-      .then(res => setTransactions(res.data.data?.items || []))
-      .catch(() => {})
-  }, [message, depositAlert])
-
-  // ดึงบัญชี agent (ฝาก) + บัญชีสมาชิก (ถอน)
+  // โหลดบัญชี agent + member
   useEffect(() => {
     import('@/lib/api').then(({ api }) => {
-      api.get('/agent/bank-accounts').then(res => {
-        setAgentBanks(res.data.data || [])
-      }).catch(() => {
-        setAgentBanks([{
-          bank_code: 'KBANK', bank_name: 'ธนาคารกสิกรไทย',
-          account_number: '0001234567', account_name: 'บริษัท LOTTO จำกัด',
-        }])
+      api.get('/agent/bank-accounts').then(res => setAgentBanks(res.data.data || [])).catch(() => {
+        setAgentBanks([{ bank_code: 'KBANK', bank_name: 'กสิกรไทย', account_number: '0001234567', account_name: 'บริษัท LOTTO จำกัด' }])
       })
-      // ดึงบัญชีสมาชิก (สำหรับเลือกถอน)
-      api.get('/bank-accounts').then(res => {
-        setMemberBanks(res.data.data || [])
-      }).catch(() => {})
+      api.get('/bank-accounts').then(res => setMemberBanks(res.data.data || [])).catch(() => {})
     })
   }, [])
 
+  // Poll เช็คสถานะฝาก
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const { api: apiClient } = await import('@/lib/api')
+        const res = await apiClient.get('/wallet/deposits?per_page=1')
+        const latest = res.data.data?.items?.[0]
+        if (latest?.status === 'approved' && latest.approved_at) {
+          const elapsed = Date.now() - new Date(latest.approved_at).getTime()
+          if (elapsed < 30000) {
+            const balRes = await apiClient.get('/wallet/balance')
+            if (balRes.data.data?.balance !== undefined) updateBalance(balRes.data.data.balance)
+          }
+        }
+      } catch {}
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [updateBalance])
+
+  // ===== Submit ฝาก/ถอน =====
   const handleSubmit = async () => {
     const amt = parseFloat(amount)
     if (!amt || amt <= 0) { toast.warning('กรุณากรอกจำนวนเงิน'); return }
-    setMessage('')
 
     if (action === 'deposit') {
-      // ── ฝากเงิน: แสดงบัญชี agent ให้โอน ──
       setDepositAmount(amt)
       setShowTransferModal(true)
       return
     }
 
-    // ── ถอนเงิน: สร้างคำขอถอน (ไม่หักเงินทันที รอแอดมินอนุมัติ) ──
+    // ถอนเงิน
     if (amt > (member?.balance || 0)) { toast.error('ยอดเงินไม่เพียงพอ'); return }
     setLoading(true)
     try {
       await (await import('@/lib/api')).api.post('/wallet/withdraw', { amount: amt })
       setAmount('')
       toast.success('แจ้งถอนเงินสำเร็จ รอแอดมินอนุมัติ')
+      loadHistory()
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { error?: string } } }
-      toast.error(axiosErr.response?.data?.error || 'เกิดข้อผิดพลาด')
-    } finally {
-      setLoading(false)
-    }
+      const e = err as { response?: { data?: { error?: string } } }
+      toast.error(e.response?.data?.error || 'เกิดข้อผิดพลาด')
+    } finally { setLoading(false) }
   }
 
-  // ลูกค้ากดยืนยันว่าโอนแล้ว → สร้างคำขอฝาก
+  // ยืนยันโอนแล้ว (ฝากเงิน)
   const handleConfirmTransfer = async () => {
     setLoading(true)
     try {
@@ -137,560 +147,504 @@ export default function WalletPage() {
       setDepositAlert('success')
       setAmount('')
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { error?: string } } }
-      const errMsg = axiosErr.response?.data?.error || 'เกิดข้อผิดพลาด'
-      toast.error(errMsg)
+      const e = err as { response?: { data?: { error?: string } } }
+      toast.error(e.response?.data?.error || 'เกิดข้อผิดพลาด')
       setShowTransferModal(false)
-    } finally {
-      setLoading(false)
+    } finally { setLoading(false) }
+  }
+
+  // ===== หาข้อมูลบัญชีที่จะแสดง =====
+  const isDeposit = action === 'deposit'
+  let bankCode = member?.bank_code || ''
+  let bankName = BANK_NAMES[bankCode] || bankCode
+  let bankNumber = member?.bank_account_number || ''
+  let bankAccountName = member?.bank_account_name || ''
+
+  if (!isDeposit) {
+    const mba = memberBanks.find(b => b.account_type === 'withdraw' && b.is_default) || memberBanks[0]
+    if (mba) {
+      bankCode = mba.bank_code
+      bankName = mba.bank_name || BANK_NAMES[mba.bank_code] || mba.bank_code
+      bankNumber = mba.account_number
+      bankAccountName = mba.account_name
     }
   }
 
-  // ── Poll เช็คสถานะฝาก pending → ถ้าสำเร็จแสดง push notification ──
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const { api: apiClient } = await import('@/lib/api')
-        // เช็คว่ามี approved deposit ใหม่หรือไม่
-        const res = await apiClient.get('/wallet/deposits?per_page=1')
-        const latest = res.data.data?.items?.[0]
-        if (latest && latest.status === 'approved' && latest.approved_at) {
-          const approvedTime = new Date(latest.approved_at).getTime()
-          const now = Date.now()
-          // ถ้าอนุมัติภายใน 30 วินาที → แจ้งเตือน
-          if (now - approvedTime < 30000) {
-            // ใช้ toast notification
-            import('@/components/Toast').then(({ useToast }) => {
-              // Note: useToast ใช้ใน component เท่านั้น — ใช้ custom event แทน
-            }).catch(() => {})
-            // Refresh balance
-            const balRes = await apiClient.get('/wallet/balance')
-            if (balRes.data.data?.balance !== undefined) {
-              const { useAuthStore } = await import('@/store/auth-store')
-              useAuthStore.getState().updateBalance(balRes.data.data.balance)
-            }
-          }
-        }
-      } catch {}
-    }, 10000) // เช็คทุก 10 วินาที
-    return () => clearInterval(interval)
-  }, [])
-
-  const isSuccess = message && message.includes('สำเร็จ')
-
   return (
-    <div>
-      {/* Balance Card */}
-      <div style={{ padding: '16px 16px 8px' }}>
-        <div className="balance-card" style={{ textAlign: 'center', paddingTop: 24, paddingBottom: 24 }}>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, marginBottom: 8 }}>ยอดเงินคงเหลือ</p>
-          <p style={{ color: 'white', fontSize: 36, fontWeight: 700, letterSpacing: -0.5, lineHeight: 1 }}>
-            ฿{member?.balance?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'}
-          </p>
+    <div style={{ paddingBottom: 16 }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 10px', position: 'relative' }}>
+        <Link href="/dashboard" style={{ color: 'var(--ios-label)', position: 'absolute', left: 16 }}>
+          <ChevronLeft size={22} strokeWidth={2.5} />
+        </Link>
+        <span style={{ flex: 1, textAlign: 'center', fontSize: 17, fontWeight: 700, color: 'var(--ios-label)' }}>
+          {isDeposit ? 'ฝากเงิน' : 'ถอนเงิน'}
+        </span>
+      </div>
+
+      {/* Tab Switcher */}
+      <div style={{ padding: '0 16px 12px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 10, padding: 3, display: 'flex', boxShadow: 'var(--shadow-card)' }}>
+          {(['deposit', 'withdraw'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => { setAction(t); setAmount(''); setShowConditions(false) }}
+              style={{
+                flex: 1, padding: '9px 0', borderRadius: 8, fontSize: 14, fontWeight: 600,
+                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                background: action === t ? (t === 'deposit' ? 'var(--ios-green)' : 'var(--ios-red)') : 'transparent',
+                color: action === t ? 'white' : 'var(--ios-secondary-label)',
+              }}
+            >
+              {t === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Action Toggle — iOS segmented control */}
-      <div style={{ padding: '8px 16px 16px' }}>
-        <div style={{
-          background: 'var(--ios-card)',
-          borderRadius: 12,
-          padding: 4,
-          display: 'flex',
-          gap: 4,
-          boxShadow: 'var(--shadow-card)',
-        }}>
-          <button
-            onClick={() => setAction('deposit')}
-            style={{
-              flex: 1,
-              padding: '10px 8px',
-              borderRadius: 10,
-              fontWeight: 600,
-              fontSize: 15,
-              border: 'none',
-              cursor: 'pointer',
-              background: action === 'deposit' ? 'var(--ios-green)' : 'transparent',
-              color: action === 'deposit' ? 'white' : 'var(--ios-secondary-label)',
-              transition: 'all 0.15s',
-              minHeight: 44,
-            }}
-          >
-            ฝากเงิน
-          </button>
-          <button
-            onClick={() => setAction('withdraw')}
-            style={{
-              flex: 1,
-              padding: '10px 8px',
-              borderRadius: 10,
-              fontWeight: 600,
-              fontSize: 15,
-              border: 'none',
-              cursor: 'pointer',
-              background: action === 'withdraw' ? 'var(--ios-red)' : 'transparent',
-              color: action === 'withdraw' ? 'white' : 'var(--ios-secondary-label)',
-              transition: 'all 0.15s',
-              minHeight: 44,
-            }}
-          >
-            ถอนเงิน
-          </button>
+      {/* ===== Section 1: บัญชีผู้ใช้ ===== */}
+      <div style={{ padding: '0 16px 12px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '16px', boxShadow: 'var(--shadow-card)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>บัญชีผู้ใช้</span>
+            <span style={{ fontSize: 12, color: 'var(--ios-green)', fontWeight: 500 }}>
+              {isDeposit ? 'ใช้บัญชีนี้โอนเท่านั้น' : 'บัญชีรับเงินถอน'}
+            </span>
+          </div>
+
+          {bankCode ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <BankIcon code={bankCode} size={44} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 2 }}>{bankName}</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--ios-green)', letterSpacing: 1 }}>{bankNumber}</p>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', textAlign: 'right' }}>{bankAccountName}</p>
+            </div>
+          ) : (
+            <p style={{ fontSize: 14, color: 'var(--ios-orange)', textAlign: 'center', padding: '8px 0' }}>
+              ยังไม่มีบัญชีธนาคาร กรุณาเพิ่มที่หน้าบัญชี
+            </p>
+          )}
         </div>
       </div>
 
-      {/* ── บัญชี (ฝาก/ถอน — layout เดียวกัน) ─────────────────── */}
-      {(() => {
-        const isDeposit = action === 'deposit'
-        const gradient = isDeposit
-          ? 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)'
-          : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-        const shadow = isDeposit
-          ? '0 4px 16px rgba(13,110,110,0.2)'
-          : '0 4px 16px rgba(239,68,68,0.2)'
-        const label = isDeposit ? 'บัญชีที่ใช้โอนเงินเข้าระบบ' : 'บัญชีรับเงินถอน'
-
-        // หาข้อมูลบัญชีที่จะแสดง
-        let bankCode = member?.bank_code || ''
-        let bankName = BANK_NAMES[bankCode] || bankCode
-        let bankNumber = member?.bank_account_number || ''
-        let bankAccountName = member?.bank_account_name || ''
-
-        if (!isDeposit) {
-          const mba = memberBanks.find(b => b.account_type === 'withdraw' && b.is_default) || memberBanks[0]
-          if (mba) {
-            bankCode = mba.bank_code
-            bankName = mba.bank_name || BANK_NAMES[mba.bank_code] || mba.bank_code
-            bankNumber = mba.account_number
-            bankAccountName = mba.account_name
-          }
-        }
-
-        if (!bankCode) {
-          return (
-            <div style={{ padding: '0 16px 12px' }}>
-              <div style={{
-                background: isDeposit ? 'rgba(255,159,10,0.08)' : 'rgba(239,68,68,0.08)',
-                border: `1px solid ${isDeposit ? 'rgba(255,159,10,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                borderRadius: 12, padding: '12px 16px', fontSize: 14, textAlign: 'center',
-                color: isDeposit ? '#c87800' : '#ef4444',
-              }}>
-                {isDeposit ? 'คุณยังไม่ได้เพิ่มบัญชีธนาคาร กรุณาเพิ่มที่หน้าบัญชีผู้ใช้' : 'คุณยังไม่มีบัญชีรับเงินถอน กรุณาเพิ่มที่หน้าบัญชีผู้ใช้'}
-              </div>
-            </div>
-          )
-        }
-
-        return (
-          <div style={{ padding: '0 16px 12px' }}>
-            <div style={{
-              background: gradient, borderRadius: 16, padding: '16px 18px',
-              boxShadow: shadow, color: 'white',
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.8, marginBottom: 8, letterSpacing: 0.5 }}>
-                {label}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 12,
-                  background: 'rgba(255,255,255,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 800, fontSize: 11, flexShrink: 0,
-                }}>
-                  {bankCode}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{bankName}</div>
-                  <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, marginBottom: 2 }}>{bankNumber}</div>
-                  {bankAccountName && <div style={{ fontSize: 12, opacity: 0.8 }}>{bankAccountName}</div>}
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* แจ้งเตือนถ้ายังไม่มีบัญชีธนาคาร — ซ่อนเพราะจัดการข้างบนแล้ว */}
-      {false && action === 'deposit' && !member?.bank_code && (
-        <div style={{ padding: '0 16px 12px' }}>
-          <div style={{            background: 'rgba(255,159,10,0.08)',
-            border: '1px solid rgba(255,159,10,0.2)',
-            borderRadius: 12,
-            padding: '12px 16px',
-            fontSize: 14,
-            color: '#c87800',
-            textAlign: 'center',
-          }}>
-            คุณยังไม่ได้เพิ่มบัญชีธนาคาร กรุณาเพิ่มที่หน้าบัญชีผู้ใช้ก่อนฝากเงิน
-          </div>
-        </div>
-      )}
-
-      {/* Amount Input card */}
-      <div style={{ padding: '0 16px 16px' }}>
-        <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '20px 16px', boxShadow: 'var(--shadow-card)' }}>
-
-          {/* จำนวนเงิน Label */}
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-secondary-label)', marginBottom: 10, textAlign: 'center' }}>
-            จำนวนเงิน{action === 'deposit' ? 'ฝาก' : 'ถอน'}
+      {/* ===== Section 2: ระบุจำนวนเงิน ===== */}
+      <div style={{ padding: '0 16px 12px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '16px', boxShadow: 'var(--shadow-card)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>ระบุจำนวนเงิน</span>
+            <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+              ยอดขั้นต่ำ {isDeposit ? '100' : '300'} บาท
+            </span>
           </div>
 
-          {/* Number input — ใหญ่ตรงกลาง */}
+          {/* Input จำนวนเงิน */}
           <div style={{
-            background: 'var(--ios-bg)',
-            borderRadius: 14,
-            marginBottom: 14,
-            padding: '4px 16px',
-            border: amount ? '2px solid var(--ios-green)' : '2px solid var(--ios-separator)',
-            transition: 'border-color 0.2s',
+            background: 'var(--ios-bg)', borderRadius: 12,
+            padding: '4px 16px', marginBottom: 12,
+            border: amount ? `2px solid var(--ios-green)` : '2px solid var(--ios-separator)',
           }}>
             <input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              min={1}
+              onChange={e => setAmount(e.target.value)}
+              placeholder="0.00"
               style={{
-                display: 'block',
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '12px 0',
-                textAlign: 'center',
-                fontSize: 32,
-                fontWeight: 800,
-                color: 'var(--ios-label)',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                fontFamily: 'inherit',
+                width: '100%', boxSizing: 'border-box', padding: '12px 0',
+                textAlign: 'right', fontSize: 24, fontWeight: 700,
+                color: 'var(--ios-label)', background: 'transparent',
+                border: 'none', outline: 'none',
               }}
             />
           </div>
 
-          {/* Quick amounts — pill style */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 14, justifyContent: 'center' }}>
-            {[100, 500, 1000, 5000].map(a => (
+          {/* Quick amounts — 2 แถว 4 ปุ่ม (เหมือนเจริญดี88) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
+            {[100, 200, 500, 1000, 5000, 10000, 15000, 20000].map(a => (
               <button
                 key={a}
                 onClick={() => setAmount(String(a))}
                 style={{
-                  padding: '8px 16px', borderRadius: 20, fontSize: 14, fontWeight: 600,
-                  border: 'none', cursor: 'pointer',
-                  background: amount === String(a) ? 'var(--ios-green)' : 'var(--ios-bg)',
-                  color: amount === String(a) ? 'white' : 'var(--ios-label)',
-                  transition: 'all 0.15s',
-                  boxShadow: amount === String(a) ? '0 2px 8px rgba(52,199,89,0.3)' : 'none',
+                  padding: '8px 4px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  border: amount === String(a) ? '1.5px solid var(--ios-green)' : '1.5px solid var(--ios-separator)',
+                  background: amount === String(a) ? 'rgba(52,199,89,0.08)' : 'var(--ios-bg)',
+                  color: amount === String(a) ? 'var(--ios-green)' : 'var(--ios-label)',
+                  cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                ฿{a.toLocaleString()}
+                ฿{a >= 1000 ? `${(a / 1000).toLocaleString()}k` : a.toLocaleString()}
               </button>
             ))}
           </div>
 
-          {/* Message */}
-          {message && (
-            <div style={{
-              borderRadius: 10,
-              padding: '10px 14px',
-              marginBottom: 12,
-              fontSize: 14,
-              fontWeight: 500,
-              textAlign: 'center',
-              background: isSuccess ? 'rgba(52,199,89,0.10)' : 'rgba(255,59,48,0.10)',
-              color: isSuccess ? 'var(--ios-green-dark)' : 'var(--ios-red)',
-            }}>
-              {isSuccess ? '✓' : '✗'} {message}
-            </div>
-          )}
-
+          {/* ปุ่ม Submit */}
           <button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || !amount}
             style={{
-              display: 'block',
-              width: '100%',
-              padding: '14px',
-              borderRadius: 12,
-              fontSize: 17,
-              fontWeight: 600,
-              color: 'white',
-              border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              width: '100%', padding: '14px', borderRadius: 12,
+              fontSize: 16, fontWeight: 700, color: 'white', border: 'none',
               cursor: loading ? 'not-allowed' : 'pointer',
-              background: action === 'deposit' ? 'var(--ios-green)' : 'var(--ios-red)',
-              opacity: loading ? 0.6 : 1,
+              background: isDeposit ? 'var(--ios-green)' : 'var(--ios-red)',
+              opacity: (loading || !amount) ? 0.5 : 1,
               minHeight: 50,
-              boxShadow: action === 'deposit'
-                ? '0 4px 16px rgba(52,199,89,0.3)'
-                : '0 4px 16px rgba(255,59,48,0.25)',
             }}
           >
-            {loading ? 'กำลังดำเนินการ...' : action === 'deposit' ? 'ยืนยันฝากเงิน' : 'ยืนยันถอนเงิน'}
+            <QrCode size={20} strokeWidth={2} />
+            {loading ? 'กำลังดำเนินการ...' : isDeposit ? 'ยืนยันฝากเงิน' : 'ถอนเงิน'}
           </button>
         </div>
       </div>
 
-      {/* ── ประวัติฝาก/ถอน ─────────────────────────────────────── */}
-      <div className="section-title">
-        <span>รายการฝาก/ถอน</span>
-      </div>
-      <div style={{ padding: '0 16px', paddingBottom: 16 }}>
-        {(() => {
-          // รวม deposit + withdraw → ซ่อน expired/cancelled → เรียงวันที่
-          const allItems = [
-            ...depositHistory.map(d => ({ ...d, type: 'deposit' as const })),
-            ...withdrawHistory.map(w => ({ ...w, type: 'withdraw' as const })),
-          ]
-            .filter(i => !['expired', 'cancelled'].includes(i.status))
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 10)
+      {/* ===== Section 3: เงื่อนไข (collapsible) ===== */}
+      <div style={{ padding: '0 16px 12px' }}>
+        <button
+          onClick={() => setShowConditions(v => !v)}
+          style={{
+            width: '100%', background: 'var(--ios-card)', borderRadius: 16,
+            padding: '14px 16px', boxShadow: 'var(--shadow-card)',
+            border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}
+        >
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>
+            เงื่อนไขการ{isDeposit ? 'เติมเงิน' : 'ถอนเงิน'}
+          </span>
+          {showConditions ? <ChevronUp size={18} color="var(--ios-secondary-label)" /> : <ChevronDown size={18} color="var(--ios-secondary-label)" />}
+        </button>
 
-          if (allItems.length === 0) {
-            return (
-              <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '40px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
-                <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีรายการ</p>
+        {showConditions && (
+          <div style={{
+            background: 'var(--ios-card)', borderRadius: '0 0 16px 16px',
+            padding: '0 16px 16px', marginTop: -8,
+            fontSize: 13, color: 'var(--ios-secondary-label)', lineHeight: 1.8,
+          }}>
+            {isDeposit ? (
+              <>
+                <p style={{ fontWeight: 600, color: 'var(--ios-label)', marginBottom: 4 }}>ธนาคารออนไลน์ ปรับปรุงระบบทุกวัน ดังนี้</p>
+                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                  <li>(SCB) ไทยพาณิชย์ 23.00-00.00 น.</li>
+                  <li>(KTB) กรุงไทย 23.00-03.00 น.</li>
+                  <li>(KBANK) กสิกรไทย 01.00-03.30 น.</li>
+                  <li>(BBL) กรุงเทพ 23.00-23.30 น. และ 02.30-04.00 น.</li>
+                  <li>(BAY) กรุงศรี 23.30-00.30 น.</li>
+                </ul>
+              </>
+            ) : (
+              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                <li>ยอดขั้นต่ำ 300 บาท</li>
+                <li>ถอนได้สูงสุด 50,000 บาท/ครั้ง</li>
+                <li>ต้องเดิมพัน 1 เท่าของยอดฝากก่อนถอน</li>
+                <li>ระบบจะโอนเข้าบัญชีภายใน 1-5 นาที</li>
+                <li>หากยอดเกิน 50,000 บาท อาจใช้เวลาตรวจสอบเพิ่มเติม</li>
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ===== Section 4: ประวัติ (table style ตามแบบเจริญดี88) ===== */}
+      <div style={{ padding: '0 16px 16px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>
+              รายการ{isDeposit ? 'ฝากเงิน' : 'ถอนเงิน'}
+            </span>
+          </div>
+
+          {/* Table header */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
+            padding: '8px 16px', background: 'var(--ios-bg)',
+            fontSize: 12, fontWeight: 600, color: 'var(--ios-secondary-label)',
+          }}>
+            <span>วันที่</span>
+            <span>ช่องทาง</span>
+            <span style={{ textAlign: 'right' }}>จำนวนเงิน</span>
+            <span style={{ textAlign: 'right' }}>สถานะ</span>
+          </div>
+
+          {/* Table rows */}
+          {(() => {
+            const items = isDeposit
+              ? depositHistory.filter(d => !['expired', 'cancelled'].includes(d.status)).slice(0, 5)
+              : withdrawHistory.slice(0, 5)
+
+            if (items.length === 0) return (
+              <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--ios-tertiary-label)', fontSize: 14 }}>
+                ไม่มีข้อมูล
               </div>
             )
-          }
 
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {allItems.map((item) => {
-                const isDeposit = item.type === 'deposit'
-                const isPending = item.status === 'pending'
-                const isSuccess = item.status === 'approved' || item.status === 'completed'
-                const isRejected = item.status === 'rejected'
-
-                return (
-                  <div key={`${item.type}-${item.id}`} style={{
-                    background: 'var(--ios-card)', borderRadius: 14,
-                    padding: '14px 16px',
-                    boxShadow: 'var(--shadow-card)',
-                    borderLeft: `3px solid ${isPending ? '#FF9500' : isSuccess ? (isDeposit ? '#34C759' : '#3b82f6') : isRejected ? '#ef4444' : '#ccc'}`,
-                    opacity: isRejected ? 0.6 : 1,
+            return items.map((item, idx) => {
+              const isPending = item.status === 'pending'
+              const isSuccess = item.status === 'approved' || item.status === 'completed'
+              return (
+                <div key={item.id} style={{
+                  display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
+                  padding: '10px 16px', alignItems: 'center',
+                  borderBottom: idx < items.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
+                  fontSize: 13,
+                }}>
+                  <span style={{ color: 'var(--ios-secondary-label)' }}>
+                    {new Date(item.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                  </span>
+                  <span style={{ color: 'var(--ios-secondary-label)' }}>
+                    {isDeposit ? 'โอนเงิน' : 'ธนาคาร'}
+                  </span>
+                  <span style={{ textAlign: 'right', fontWeight: 600, color: isDeposit ? 'var(--ios-green)' : 'var(--ios-label)' }}>
+                    {isDeposit ? '+' : '-'}฿{item.amount.toLocaleString()}
+                  </span>
+                  <span style={{
+                    textAlign: 'right', fontSize: 11, fontWeight: 600,
+                    color: isPending ? 'var(--ios-orange)' : isSuccess ? 'var(--ios-green)' : 'var(--ios-red)',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      {/* Left: type + status */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        {/* Icon circle */}
-                        <div style={{
-                          width: 36, height: 36, borderRadius: 10,
-                          background: isDeposit
-                            ? (isPending ? 'rgba(255,149,0,0.12)' : 'rgba(52,199,89,0.12)')
-                            : 'rgba(59,130,246,0.12)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0,
-                        }}>
-                          {isDeposit ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isPending ? '#FF9500' : '#34C759'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 5v14M5 12l7 7 7-7"/>
-                            </svg>
-                          ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 19V5M5 12l7-7 7 7"/>
-                            </svg>
-                          )}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 2 }}>
-                            {isDeposit ? 'ฝากเงิน' : 'ถอนเงิน'}
-                          </div>
-                          <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
-                            {new Date(item.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right: amount + status */}
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{
-                          fontSize: 18, fontWeight: 700, marginBottom: 2,
-                          color: isDeposit ? '#34C759' : '#3b82f6',
-                        }}>
-                          {isDeposit ? '+' : '-'}฿{item.amount.toLocaleString()}
-                        </div>
-                        <span style={{
-                          fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
-                          background: isPending ? 'rgba(255,149,0,0.12)' : isSuccess ? 'rgba(52,199,89,0.12)' : isRejected ? 'rgba(239,68,68,0.1)' : 'rgba(142,142,147,0.1)',
-                          color: isPending ? '#FF9500' : isSuccess ? '#34C759' : isRejected ? '#ef4444' : '#888',
-                        }}>
-                          {isPending ? 'รอตรวจสอบ' : isSuccess ? 'สำเร็จ' : isRejected ? 'ปฏิเสธ' : item.status}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })()}
+                    {isPending ? 'รอตรวจสอบ' : isSuccess ? 'สำเร็จ' : item.status === 'rejected' ? 'ปฏิเสธ' : item.status}
+                  </span>
+                </div>
+              )
+            })
+          })()}
+        </div>
       </div>
 
-      {/* ── Transfer Modal: แสดงบัญชี agent ให้โอน ──────────────────────── */}
-      {showTransferModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--ios-bg)', display: 'flex', flexDirection: 'column' }}>
-          {/* Header — gradient */}
-          <div style={{
-            background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
-            padding: '16px', paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
-          }}>
-            <button onClick={() => setShowTransferModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-              <ChevronLeft size={22} strokeWidth={2.5} color="white" />
-            </button>
-            <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>ฝากเงิน</span>
-            <div style={{ width: 30 }} />
-          </div>
+      {/* ===== Transfer Modal — ตามแบบเจริญดี88 ===== */}
+      {showTransferModal && <TransferModal
+        depositAmount={depositAmount}
+        agentBanks={agentBanks}
+        loading={loading}
+        onConfirm={handleConfirmTransfer}
+        onClose={() => setShowTransferModal(false)}
+        toast={toast}
+      />}
 
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {/* ── จำนวนเงิน — card gradient ── */}
-            <div style={{
-              background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
-              padding: '24px 16px 32px', textAlign: 'center',
-              borderRadius: '0 0 24px 24px',
-              marginBottom: -16, // overlap
-            }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>จำนวนเงินที่ต้องโอน</div>
-              <div style={{ fontSize: 42, fontWeight: 800, color: 'white', letterSpacing: -1 }}>
-                ฿{depositAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-              </div>
-            </div>
-
-            <div style={{ padding: '28px 16px 16px' }}>
-              {/* ── บัญชีปลายทาง ── */}
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#888', marginBottom: 10 }}>โอนเข้าบัญชี</div>
-              {agentBanks.map((bank, i) => (
-                <div key={i} style={{
-                  background: 'var(--ios-card)', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  borderLeft: '4px solid ' + (BANK_COLORS[bank.bank_code] || '#0d6e6e'),
-                }}>
-                  <div style={{
-                    width: 46, height: 46, borderRadius: 12,
-                    background: BANK_COLORS[bank.bank_code] || '#0d6e6e',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontWeight: 800, fontSize: 11, flexShrink: 0,
-                  }}>
-                    {bank.bank_code}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 2 }}>
-                      {BANK_NAMES[bank.bank_code] || bank.bank_name}
-                    </div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ios-label)', letterSpacing: 1.5, marginBottom: 2 }}>
-                      {bank.account_number}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#999' }}>{bank.account_name}</div>
-                  </div>
-                  {/* Copy button */}
-                  <button onClick={() => { navigator.clipboard.writeText(bank.account_number); toast.success('คัดลอกเลขบัญชีแล้ว') }}
-                    style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--ios-separator)', background: 'var(--ios-card)', color: 'var(--color-primary)', cursor: 'pointer' }}>
-                    คัดลอก
-                  </button>
-                </div>
-              ))}
-
-              {/* ── Steps ── */}
-              <div style={{
-                background: 'var(--ios-card)', borderRadius: 14, padding: '16px 18px', marginTop: 8,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 12 }}>ขั้นตอน</div>
-                {[
-                  { num: '1', text: `โอนเงิน ฿${depositAmount.toLocaleString()} เข้าบัญชีด้านบน`, color: '#3b82f6' },
-                  { num: '2', text: 'กดปุ่ม "โอนแล้ว" ด้านล่าง', color: '#f5a623' },
-                  { num: '3', text: 'รอระบบตรวจสอบ (1-3 นาที)', color: '#34C759' },
-                ].map((step, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: i < 2 ? 10 : 0 }}>
-                    <div style={{
-                      width: 26, height: 26, borderRadius: '50%', background: step.color,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0,
-                    }}>{step.num}</div>
-                    <span style={{ fontSize: 13, color: '#555' }}>{step.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{ padding: '12px 16px', flexShrink: 0, paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', background: 'var(--ios-card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.05)' }}>
-            <button
-              onClick={handleConfirmTransfer}
-              disabled={loading}
-              style={{
-                display: 'block', width: '100%', padding: '16px',
-                borderRadius: 14, fontSize: 17, fontWeight: 700,
-                color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                background: 'linear-gradient(135deg, #34C759 0%, #30B350 100%)',
-                opacity: loading ? 0.6 : 1,
-                boxShadow: '0 4px 20px rgba(52,199,89,0.35)',
-                minHeight: 56, marginBottom: 8,
-              }}
-            >
-              {loading ? 'กำลังตรวจสอบ...' : 'โอนแล้ว ยืนยัน'}
-            </button>
-            <button
-              onClick={() => setShowTransferModal(false)}
-              style={{
-                display: 'block', width: '100%', padding: '12px',
-                borderRadius: 14, fontSize: 14, fontWeight: 500,
-                color: '#999', background: 'transparent', border: 'none', cursor: 'pointer',
-              }}
-            >
-              ย้อนกลับ
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Deposit Success Alert ────────────────────────────────────────── */}
+      {/* ===== Deposit Success Alert ===== */}
       {depositAlert === 'success' && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 300,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 24,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
         }}>
           <div style={{
             background: 'var(--ios-card)', borderRadius: 20, padding: '32px 24px',
             textAlign: 'center', maxWidth: 320, width: '100%',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ios-label)', marginBottom: 8 }}>
-              แจ้งฝากเงินสำเร็จ!
-            </div>
-            <div style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 6, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+            <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--ios-label)', marginBottom: 8 }}>แจ้งฝากเงินสำเร็จ!</p>
+            <p style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 6 }}>
               แจ้งฝากเงิน ฿{depositAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#FF9500', marginBottom: 20 }}>
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-orange)', marginBottom: 20 }}>
               รอแอดมินตรวจสอบและอนุมัติ
-            </div>
+            </p>
             <button
               onClick={() => setDepositAlert(null)}
               style={{
                 width: '100%', padding: '14px', borderRadius: 12,
-                fontSize: 16, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer',
-                background: 'var(--color-primary)', marginBottom: 8,
+                fontSize: 16, fontWeight: 700, color: 'white', border: 'none',
+                cursor: 'pointer', background: 'var(--ios-green)',
               }}
             >
               ตกลง
             </button>
-            <button
-              onClick={() => { setDepositAlert(null); window.location.href = '/deposit-history' }}
-              style={{
-                width: '100%', padding: '12px', borderRadius: 12,
-                fontSize: 14, fontWeight: 500, color: 'var(--color-primary)', border: '1px solid var(--color-primary)',
-                background: 'transparent', cursor: 'pointer',
-              }}
-            >
-              ดูประวัติฝากเงิน
-            </button>
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// =============================================================================
+// TransferModal — หน้าแสดงบัญชีเว็บหลังกดฝากเงิน (ตามแบบเจริญดี88)
+//
+// Layout:
+//   1. Warning banner สีเหลือง "ใช้บัญชีนี้โอนเท่านั้น!!"
+//   2. บัญชีเว็บ + bank icon + เลขบัญชี
+//   3. Countdown timer "กรุณาโอนภายใน XX:XX"
+//   4. หมายเลขอ้างอิง + ปุ่มคัดลอก
+//   5. ข้อความ "ยอดไม่เข้าภายใน 2 นาที กรุณาแนบสลิป"
+//   6. ปุ่ม "โอนแล้ว ยืนยัน"
+// =============================================================================
+function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose, toast }: {
+  depositAmount: number
+  agentBanks: AgentBank[]
+  loading: boolean
+  onConfirm: () => void
+  onClose: () => void
+  toast: { success: (m: string) => void; error: (m: string) => void; warning: (m: string) => void }
+}) {
+  // Countdown timer — 10 นาที
+  const [seconds, setSeconds] = useState(600)
+  useEffect(() => {
+    const timer = setInterval(() => setSeconds(s => s > 0 ? s - 1 : 0), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  const mm = String(Math.floor(seconds / 60)).padStart(2, '0')
+  const ss = String(seconds % 60).padStart(2, '0')
+
+  // สร้างหมายเลขอ้างอิง (unique per session)
+  const [refNo] = useState(() => {
+    const hex = () => Math.random().toString(16).slice(2, 10)
+    return `${hex()}-${hex().slice(0,4)}-${hex().slice(0,4)}-${hex()}`
+  })
+
+  const bank = agentBanks[0] // บัญชีหลัก
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200, background: 'var(--ios-bg)',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'var(--ios-card)', padding: '14px 16px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        borderBottom: '0.5px solid var(--ios-separator)', flexShrink: 0,
+      }}>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <ChevronLeft size={22} strokeWidth={2.5} color="var(--ios-label)" />
+        </button>
+        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ios-label)' }}>ฝากเงิน</span>
+        <div style={{ width: 30 }} />
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+
+        {/* ===== 1. Warning banner สีเหลือง ===== */}
+        <div style={{
+          margin: '12px 16px', padding: '10px 14px', borderRadius: 10,
+          background: 'rgba(255,204,0,0.12)', border: '1px solid rgba(255,204,0,0.3)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 20 }}>⚠️</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#cc9900' }}>
+            ใช้บัญชีนี้โอนเท่านั้น!!
+          </span>
+        </div>
+
+        {/* ===== 2. บัญชีเว็บ + bank icon ===== */}
+        {bank && (
+          <div style={{
+            margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
+            padding: '14px 16px', boxShadow: 'var(--shadow-card)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>ใช้บัญชีนี้โอน</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BankIcon code={bank.bank_code} size={28} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>
+                  {BANK_NAMES[bank.bank_code] || bank.bank_name}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--ios-green)', letterSpacing: 1 }}>
+                {bank.account_number}
+              </span>
+              <span style={{ fontSize: 13, color: 'var(--ios-secondary-label)' }}>{bank.account_name}</span>
+            </div>
+          </div>
+        )}
+
+        {/* ===== 3. Countdown Timer ===== */}
+        <div style={{
+          margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
+          padding: '14px', textAlign: 'center', boxShadow: 'var(--shadow-card)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14, color: 'var(--ios-secondary-label)' }}>กรุณาโอนภายใน :</span>
+            <span style={{
+              fontSize: 28, fontWeight: 800, fontFamily: 'monospace', letterSpacing: 2,
+              color: seconds < 60 ? 'var(--ios-red)' : 'var(--ios-green)',
+            }}>
+              {mm} : {ss}
+            </span>
+          </div>
+        </div>
+
+        {/* ===== 4. จำนวนเงิน ===== */}
+        <div style={{
+          margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
+          padding: '20px', textAlign: 'center', boxShadow: 'var(--shadow-card)',
+        }}>
+          <p style={{ fontSize: 12, color: 'var(--ios-secondary-label)', marginBottom: 6 }}>จำนวนเงินที่ต้องโอน</p>
+          <p style={{ fontSize: 36, fontWeight: 800, color: 'var(--ios-green)' }}>
+            ฿{depositAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          </p>
+        </div>
+
+        {/* ===== 5. หมายเลขอ้างอิง ===== */}
+        <div style={{
+          margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
+          padding: '12px 16px', boxShadow: 'var(--shadow-card)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>หมายเลขอ้างอิง : </span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-orange)', fontFamily: 'monospace' }}>
+              {refNo.slice(0, 20)}...
+            </span>
+          </div>
+          <button
+            onClick={() => { navigator.clipboard.writeText(refNo); toast.success('คัดลอกหมายเลขอ้างอิงแล้ว') }}
+            style={{
+              padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+              border: '1px solid var(--ios-separator)', background: 'var(--ios-bg)',
+              color: 'var(--ios-green)', cursor: 'pointer',
+            }}
+          >
+            คัดลอก
+          </button>
+        </div>
+
+        {/* ===== 6. ข้อความแนบสลิป ===== */}
+        <div style={{
+          margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
+          padding: '14px 16px', textAlign: 'center', boxShadow: 'var(--shadow-card)',
+        }}>
+          <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 4 }}>
+            กรุณาแคปหน้าจอเพื่อนำไปใช้สแกน หรือบันทึกข้อมูล
+          </p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-orange)' }}>
+            ยอดไม่เข้าภายใน 2 นาที กรุณาแนบสลิป
+          </p>
+        </div>
+      </div>
+
+      {/* ===== Footer: ปุ่มโอนแล้ว + ย้อนกลับ ===== */}
+      <div style={{
+        padding: '12px 16px', flexShrink: 0, background: 'var(--ios-card)',
+        borderTop: '0.5px solid var(--ios-separator)',
+        paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+      }}>
+        <button
+          onClick={onConfirm}
+          disabled={loading || seconds === 0}
+          style={{
+            width: '100%', padding: '14px', borderRadius: 12,
+            fontSize: 17, fontWeight: 700, color: 'white', border: 'none',
+            cursor: (loading || seconds === 0) ? 'not-allowed' : 'pointer',
+            background: seconds === 0 ? 'var(--ios-secondary-label)' : 'var(--ios-green)',
+            opacity: (loading || seconds === 0) ? 0.5 : 1,
+            minHeight: 50, marginBottom: 8,
+          }}
+        >
+          {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา กรุณาทำรายการใหม่' : 'โอนแล้ว ยืนยัน'}
+        </button>
+        <button
+          onClick={onClose}
+          style={{
+            width: '100%', padding: '10px', borderRadius: 12,
+            fontSize: 14, fontWeight: 500, color: 'var(--ios-secondary-label)',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+          }}
+        >
+          ย้อนกลับ
+        </button>
+      </div>
     </div>
   )
 }
