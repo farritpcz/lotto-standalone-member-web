@@ -11,8 +11,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// หน้าที่ไม่ต้อง auth (public)
-const PUBLIC_PATHS = ['/login', '/register', '/forgot-password']
+// หน้าที่ไม่ต้อง auth (public) — นอกนี้ทั้งหมดต้อง login
+const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/contact']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -30,10 +30,10 @@ export function middleware(request: NextRequest) {
   // ⭐ เช็คว่ามี httpOnly cookie (access_token) หรือไม่
   const token = request.cookies.get('access_token')?.value
 
-  const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p))
+  const isPublicPath = pathname === '/' || PUBLIC_PATHS.some(p => pathname.startsWith(p))
 
-  // ถ้าอยู่หน้า public + มี token → redirect ไป dashboard
-  if (isPublicPath && token) {
+  // ถ้าอยู่หน้า public + มี token → redirect ไป dashboard (ยกเว้น / ที่ redirect เอง)
+  if (isPublicPath && token && pathname !== '/') {
     return addSecurityHeaders(
       NextResponse.redirect(new URL('/dashboard', request.url))
     )
