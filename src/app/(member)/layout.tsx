@@ -33,7 +33,7 @@ export default function MemberLayout({
         <main className="app-content">
           {children}
         </main>
-        <ContactFloat />
+        {/* <ContactFloat /> */}
         <BottomNav />
       </div>
     </AuthGuard>
