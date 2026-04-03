@@ -116,47 +116,53 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 
         {/* User Info — fade in */}
         <div style={{
-          padding: '24px 20px 16px',
+          padding: '20px 20px 12px',
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(10px)',
           transition: 'all 0.3s ease 0.1s',
         }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 24,
-            background: 'linear-gradient(135deg, #34C759, #30DB5B)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 12,
-            boxShadow: '0 4px 12px rgba(52,199,89,0.3)',
-          }}>
-            {(member?.username || 'U')[0].toUpperCase()}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 20,
+              background: 'linear-gradient(135deg, #34C759, #30DB5B)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 17, fontWeight: 700, color: 'white', flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(52,199,89,0.3)',
+            }}>
+              {(member?.username || 'U')[0].toUpperCase()}
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>
+                {member?.username || 'สมาชิก'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>
+                เครดิตคงเหลือ
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-label)' }}>
-            {member?.username || 'สมาชิก'}
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginTop: 2 }}>
-            เครดิตคงเหลือ
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--ios-green)', marginTop: 2 }}>
-            ฿{(member?.balance || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
+            <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--ios-green)' }}>
+              ฿{(member?.balance || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </span>
           </div>
 
           {/* Deposit / Withdraw */}
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
             <Link href="/wallet?tab=deposit" onClick={handleClose} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '10px', borderRadius: 12, fontSize: 13, fontWeight: 600,
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600,
               background: 'rgba(52,199,89,0.12)', color: 'var(--ios-green)',
               textDecoration: 'none',
             }}>
-              <ArrowDownToLine size={16} /> เติมเงิน
+              <ArrowDownToLine size={14} /> เติมเงิน
             </Link>
             <Link href="/wallet?tab=withdraw" onClick={handleClose} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '10px', borderRadius: 12, fontSize: 13, fontWeight: 600,
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600,
               background: 'rgba(255,59,48,0.08)', color: 'var(--ios-red)',
               textDecoration: 'none',
             }}>
-              <ArrowUpFromLine size={16} /> ถอนเงิน
+              <ArrowUpFromLine size={14} /> ถอนเงิน
             </Link>
           </div>
         </div>
@@ -165,7 +171,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
         <div style={{ height: 1, background: 'var(--ios-separator)', margin: '0 20px' }} />
 
         {/* Menu Items — staggered animation */}
-        <div style={{ padding: '8px 12px', flex: 1 }}>
+        <div style={{ padding: '4px 12px', flex: 1 }}>
           {menuItems.map((item, i) => {
             const Icon = item.icon
             return (
@@ -174,9 +180,9 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
                 href={item.href}
                 onClick={handleClose}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  padding: '13px 12px', borderRadius: 12,
-                  fontSize: 15, fontWeight: 500,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 10px', borderRadius: 10,
+                  fontSize: 14, fontWeight: 500,
                   color: 'var(--ios-label)', textDecoration: 'none',
                   opacity: visible ? 1 : 0,
                   transform: visible ? 'translateX(0)' : 'translateX(30px)',
@@ -184,12 +190,12 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
                 }}
               >
                 <div style={{
-                  width: 36, height: 36, borderRadius: 10,
+                  width: 32, height: 32, borderRadius: 8,
                   background: 'rgba(128,128,128,0.1)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <Icon size={18} strokeWidth={1.8} color="var(--ios-secondary-label)" />
+                  <Icon size={16} strokeWidth={1.8} color="var(--ios-secondary-label)" />
                 </div>
                 {item.label}
               </Link>
@@ -199,7 +205,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
 
         {/* Logout — staggered last */}
         <div style={{
-          padding: '12px 12px 24px',
+          padding: '8px 12px 20px',
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(10px)',
           transition: `all 0.3s ease ${0.05 + menuItems.length * 0.04}s`,
