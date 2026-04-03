@@ -11,7 +11,7 @@
  * TODO: แยกเป็น @lotto/api-client npm package ในอนาคต
  */
 
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 
 // Base URL ของ standalone-member-api (#3)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
@@ -22,41 +22,40 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
  * - Request interceptor: แนบ JWT token ทุก request
  * - Response interceptor: จัดการ 401 (token expired → redirect login)
  */
+/** อ่าน cookie value จาก document.cookie */
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30000,
+    withCredentials: true, // ⭐ ส่ง httpOnly cookie ทุก request (แทน localStorage token)
     headers: {
       'Content-Type': 'application/json',
     },
   })
 
-  // Request interceptor — แนบ JWT token
-  client.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      // ดึง token จาก localStorage (Zustand persist)
-      const token = typeof window !== 'undefined'
-        ? localStorage.getItem('access_token')
-        : null
-
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    },
-    (error) => Promise.reject(error)
-  )
+  // ⭐ CSRF: อ่าน csrf_token cookie → ส่งกลับใน X-CSRF-Token header
+  client.interceptors.request.use((config) => {
+    const csrfToken = getCookie('csrf_token')
+    if (csrfToken && config.headers) {
+      config.headers['X-CSRF-Token'] = csrfToken
+    }
+    return config
+  })
 
   // Response interceptor — จัดการ error
   client.interceptors.response.use(
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        // Token expired → ลบ token + redirect ไป login
-        // ⭐ ป้องกัน infinite redirect loop: ถ้าอยู่ที่ /login อยู่แล้ว ไม่ต้อง redirect ซ้ำ
+        // Token expired → redirect ไป login
+        // ⭐ ไม่ต้องลบ localStorage แล้ว เพราะใช้ httpOnly cookie (browser จัดการเอง)
         if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
           window.location.href = '/login'
         }
       }
@@ -97,6 +96,10 @@ export const authApi = {
 
   register: (data: RegisterRequest) =>
     api.post<AuthResponse>('/auth/register', data),
+
+  /** Logout — ลบ httpOnly cookie ที่ backend */
+  logout: () =>
+    api.post('/auth/logout'),
 
   refreshToken: (refreshToken: string) =>
     api.post<AuthResponse>('/auth/refresh', { refresh_token: refreshToken }),

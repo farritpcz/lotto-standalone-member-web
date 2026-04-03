@@ -116,8 +116,9 @@ function RegisterForm() {
         // ⭐ ส่ง ref_code ไป API เพื่อผูก referred_by → commission_job คำนวณค่าคอมทีหลัง
         ref_code: refCodeFromUrl,
       })
-      const { access_token, refresh_token, member } = res.data.data
-      setAuth(member, access_token, refresh_token)
+      const { member } = res.data.data
+      // ⭐ JWT token อยู่ใน httpOnly cookie แล้ว — เก็บแค่ member info
+      setAuth(member)
       router.push('/dashboard')
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string; message?: string } } }

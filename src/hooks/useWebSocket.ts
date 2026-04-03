@@ -87,12 +87,11 @@ export function useWebSocket({
 
   // สร้าง WebSocket connection
   const connect = useCallback(() => {
-    // ดึง JWT token สำหรับ auth
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (!token || !roundId) return
+    if (!roundId) return
 
-    // สร้าง WebSocket URL พร้อม token
-    const wsUrl = `${WS_BASE_URL}/yeekee/ws/${roundId}?token=${token}`
+    // ⭐ WebSocket URL — ไม่ต้องส่ง token ใน query แล้ว
+    // httpOnly cookie (access_token) ถูกส่งอัตโนมัติใน WebSocket handshake
+    const wsUrl = `${WS_BASE_URL}/yeekee/ws/${roundId}`
 
     try {
       const ws = new WebSocket(wsUrl)

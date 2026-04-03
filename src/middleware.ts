@@ -2,12 +2,11 @@
  * Next.js Middleware — Route Guard + Security Headers
  *
  * ป้องกันเข้าหน้า member โดยไม่ login:
- * - ถ้าไม่มี access_token cookie → redirect ไป /login
+ * - ถ้าไม่มี access_token httpOnly cookie → redirect ไป /login
  * - ถ้ามี token แล้วเข้า /login → redirect ไป /dashboard
  *
- * ⚠️ ตอนนี้เช็คแค่ว่ามี token หรือไม่ (client-side check)
- * API จะ reject ด้วย 401 ถ้า token invalid/expired
- * เมื่อเปลี่ยนเป็น httpOnly cookie → middleware จะ verify JWT จริง
+ * ⭐ httpOnly cookie ถูก set โดย backend (member-api)
+ * middleware เช็คแค่ว่า cookie มีหรือไม่ (API จะ verify จริง)
  */
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
@@ -28,9 +27,7 @@ export function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next())
   }
 
-  // เช็คว่ามี token หรือไม่ (จาก cookie)
-  // ⚠️ ตอนนี้ยังใช้ localStorage ฝั่ง client → cookie อาจยังไม่มี
-  // เมื่อ migrate เป็น httpOnly cookie → middleware นี้จะทำงานเต็มที่
+  // ⭐ เช็คว่ามี httpOnly cookie (access_token) หรือไม่
   const token = request.cookies.get('access_token')?.value
 
   const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p))
@@ -42,13 +39,12 @@ export function middleware(request: NextRequest) {
     )
   }
 
-  // ถ้าไม่ใช่หน้า public + ไม่มี token → redirect ไป login
-  // ⚠️ disabled จนกว่าจะ migrate เป็น httpOnly cookie
-  // if (!isPublicPath && !token) {
-  //   return addSecurityHeaders(
-  //     NextResponse.redirect(new URL('/login', request.url))
-  //   )
-  // }
+  // ⭐ ถ้าไม่ใช่หน้า public + ไม่มี token → redirect ไป login
+  if (!isPublicPath && !token) {
+    return addSecurityHeaders(
+      NextResponse.redirect(new URL('/login', request.url))
+    )
+  }
 
   return addSecurityHeaders(NextResponse.next())
 }

@@ -66,8 +66,9 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await authApi.login({ username: phone, password })
-      const { access_token, refresh_token, member } = res.data.data
-      setAuth(member, access_token, refresh_token)
+      const { member } = res.data.data
+      // ⭐ JWT token อยู่ใน httpOnly cookie แล้ว (set โดย backend) — เก็บแค่ member info
+      setAuth(member)
       router.push('/dashboard')
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } }
@@ -89,8 +90,7 @@ export default function LoginPage() {
 
   const handleDemo = () => {
     setAuth(
-      { id: 1, username: 'demo_user', phone: '0812345678', email: 'demo@lotto.com', balance: 12500.50, status: 'active', created_at: '2025-01-15T00:00:00Z' },
-      'demo-token-xxx', 'demo-refresh-xxx'
+      { id: 1, username: 'demo_user', phone: '0812345678', email: 'demo@lotto.com', balance: 12500.50, status: 'active', created_at: '2025-01-15T00:00:00Z' }
     )
     router.push('/dashboard')
   }
