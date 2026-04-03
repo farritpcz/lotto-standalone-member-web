@@ -53,7 +53,7 @@
 
   /* === Layout === */
   --header-height: 56px;
-  --bottom-nav-height: 56px;
+  --bottom-nav-height: 60px;
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-top: env(safe-area-inset-top, 0px);
 

@@ -29,13 +29,14 @@ export default function BottomNav() {
       right: 0,
       maxWidth: 480,
       margin: '0 auto',
-      height: 56,
+      height: 60,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-around',
-      background: 'var(--ios-card, #1C1C1E)',
-      borderTop: '1px solid var(--ios-separator, rgba(60,60,67,0.29))',
+      background: '#111827',
+      borderTop: '1px solid #374151',
       zIndex: 9999,
+      boxShadow: '0 -2px 10px rgba(0,0,0,0.3)',
     }}>
       {tabs.map((tab) => {
         const active = tab.match.some(p => pathname.startsWith(p))
