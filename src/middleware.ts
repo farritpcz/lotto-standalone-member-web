@@ -32,13 +32,6 @@ export function middleware(request: NextRequest) {
 
   const isPublicPath = pathname === '/' || PUBLIC_PATHS.some(p => pathname.startsWith(p))
 
-  // ถ้าอยู่หน้า public + มี token → redirect ไป dashboard (ยกเว้น / ที่ redirect เอง)
-  if (isPublicPath && token && pathname !== '/') {
-    return addSecurityHeaders(
-      NextResponse.redirect(new URL('/dashboard', request.url))
-    )
-  }
-
   // ⭐ ถ้าไม่ใช่หน้า public + ไม่มี token → redirect ไป login
   if (!isPublicPath && !token) {
     return addSecurityHeaders(

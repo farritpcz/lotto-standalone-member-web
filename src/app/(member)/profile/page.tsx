@@ -58,13 +58,9 @@ export default function ProfilePage() {
     }
   }
 
-  const handleLogout = async () => {
-    // เรียก API ลบ cookie ก่อน แล้ว redirect (ไม่ง้อ auth store)
-    try {
-      const { api } = await import('@/lib/api')
-      await api.post('/auth/logout')
-    } catch {}
-    // ลบ Zustand persist
+  const handleLogout = () => {
+    // เรียก API ลบ cookie (fire-and-forget)
+    fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
     try { localStorage.removeItem('lotto-auth') } catch {}
     window.location.href = '/login'
   }
