@@ -527,7 +527,7 @@ export default function WalletPage() {
 
       {/* ── Transfer Modal: แสดงบัญชี agent ให้โอน ──────────────────────── */}
       {showTransferModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#f5f5f5', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--ios-bg)', display: 'flex', flexDirection: 'column' }}>
           {/* Header — gradient */}
           <div style={{
             background: 'linear-gradient(135deg, #0d6e6e 0%, #1a8a6e 100%)',
@@ -560,7 +560,7 @@ export default function WalletPage() {
               <div style={{ fontSize: 13, fontWeight: 600, color: '#888', marginBottom: 10 }}>โอนเข้าบัญชี</div>
               {agentBanks.map((bank, i) => (
                 <div key={i} style={{
-                  background: 'white', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
+                  background: 'var(--ios-card)', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
                   boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
                   display: 'flex', alignItems: 'center', gap: 14,
                   borderLeft: '4px solid ' + (BANK_COLORS[bank.bank_code] || '#0d6e6e'),
@@ -577,14 +577,14 @@ export default function WalletPage() {
                     <div style={{ fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 2 }}>
                       {BANK_NAMES[bank.bank_code] || bank.bank_name}
                     </div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: '#1a3d35', letterSpacing: 1.5, marginBottom: 2 }}>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ios-label)', letterSpacing: 1.5, marginBottom: 2 }}>
                       {bank.account_number}
                     </div>
                     <div style={{ fontSize: 12, color: '#999' }}>{bank.account_name}</div>
                   </div>
                   {/* Copy button */}
                   <button onClick={() => { navigator.clipboard.writeText(bank.account_number); toast.success('คัดลอกเลขบัญชีแล้ว') }}
-                    style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid #ddd', background: 'white', color: '#0d6e6e', cursor: 'pointer' }}>
+                    style={{ padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: '1px solid var(--ios-separator)', background: 'var(--ios-card)', color: 'var(--color-primary)', cursor: 'pointer' }}>
                     คัดลอก
                   </button>
                 </div>
@@ -592,7 +592,7 @@ export default function WalletPage() {
 
               {/* ── Steps ── */}
               <div style={{
-                background: 'white', borderRadius: 14, padding: '16px 18px', marginTop: 8,
+                background: 'var(--ios-card)', borderRadius: 14, padding: '16px 18px', marginTop: 8,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 12 }}>ขั้นตอน</div>
@@ -615,7 +615,7 @@ export default function WalletPage() {
           </div>
 
           {/* Footer */}
-          <div style={{ padding: '12px 16px', flexShrink: 0, paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', background: 'white', boxShadow: '0 -2px 12px rgba(0,0,0,0.05)' }}>
+          <div style={{ padding: '12px 16px', flexShrink: 0, paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', background: 'var(--ios-card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.05)' }}>
             <button
               onClick={handleConfirmTransfer}
               disabled={loading}
@@ -654,15 +654,15 @@ export default function WalletPage() {
           padding: 24,
         }}>
           <div style={{
-            background: 'white', borderRadius: 20, padding: '32px 24px',
+            background: 'var(--ios-card)', borderRadius: 20, padding: '32px 24px',
             textAlign: 'center', maxWidth: 320, width: '100%',
             boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#1a3d35', marginBottom: 8 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ios-label)', marginBottom: 8 }}>
               แจ้งฝากเงินสำเร็จ!
             </div>
-            <div style={{ fontSize: 14, color: '#666', marginBottom: 6, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 6, lineHeight: 1.5 }}>
               แจ้งฝากเงิน ฿{depositAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
             </div>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#FF9500', marginBottom: 20 }}>
@@ -673,7 +673,7 @@ export default function WalletPage() {
               style={{
                 width: '100%', padding: '14px', borderRadius: 12,
                 fontSize: 16, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer',
-                background: '#0d6e6e', marginBottom: 8,
+                background: 'var(--color-primary)', marginBottom: 8,
               }}
             >
               ตกลง
@@ -682,7 +682,7 @@ export default function WalletPage() {
               onClick={() => { setDepositAlert(null); window.location.href = '/deposit-history' }}
               style={{
                 width: '100%', padding: '12px', borderRadius: 12,
-                fontSize: 14, fontWeight: 500, color: '#0d6e6e', border: '1px solid #0d6e6e',
+                fontSize: 14, fontWeight: 500, color: 'var(--color-primary)', border: '1px solid var(--color-primary)',
                 background: 'transparent', cursor: 'pointer',
               }}
             >
