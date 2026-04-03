@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   const isError = message && message.includes('ไม่')
