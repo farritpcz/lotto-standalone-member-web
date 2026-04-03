@@ -10,18 +10,19 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronRight, Sun, Moon, Monitor } from 'lucide-react'
 import { useAuthStore } from '@/store/auth-store'
 import { useThemeStore } from '@/store/theme-store'
+import { useToast } from '@/components/Toast'
 import { memberApi } from '@/lib/api'
 
 export default function ProfilePage() {
   const router = useRouter()
   const { member, updateMember, logout } = useAuthStore()
   const { mode: themeMode, setMode: setThemeMode } = useThemeStore()
+  const { toast } = useToast()
 
   const [phone, setPhone] = useState(member?.phone || '')
   const [email, setEmail] = useState(member?.email || '')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
 
   const [showPwForm, setShowPwForm] = useState(false)
   const [oldPw, setOldPw] = useState('')
@@ -32,10 +33,10 @@ export default function ProfilePage() {
     try {
       await memberApi.updateProfile({ phone, email })
       updateMember({ phone, email })
-      setMessage('บันทึกสำเร็จ')
+      toast('บันทึกข้อมูลสำเร็จ', 'success')
       setEditing(false)
     } catch {
-      setMessage('บันทึกไม่สำเร็จ')
+      toast('บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error')
     } finally {
       setSaving(false)
     }
@@ -46,12 +47,12 @@ export default function ProfilePage() {
     try {
       const { api } = await import('@/lib/api')
       await api.put('/member/password', { old_password: oldPw, new_password: newPw })
-      setMessage('เปลี่ยนรหัสผ่านสำเร็จ')
+      toast('เปลี่ยนรหัสผ่านสำเร็จ', 'success')
       setShowPwForm(false)
       setOldPw('')
       setNewPw('')
     } catch {
-      setMessage('รหัสผ่านเดิมไม่ถูกต้อง')
+      toast('รหัสผ่านเดิมไม่ถูกต้อง', 'error')
     } finally {
       setSaving(false)
     }
@@ -61,8 +62,6 @@ export default function ProfilePage() {
     logout()
     window.location.href = '/login'
   }
-
-  const isError = message && message.includes('ไม่')
 
   const inputStyle = {
     display: 'block',
@@ -104,23 +103,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-
-      {/* Message */}
-      {message && (
-        <div style={{ padding: '0 16px 8px' }}>
-          <div style={{
-            borderRadius: 10,
-            padding: '10px 14px',
-            fontSize: 14,
-            fontWeight: 500,
-            textAlign: 'center',
-            background: isError ? 'rgba(255,59,48,0.10)' : 'rgba(52,199,89,0.10)',
-            color: isError ? 'var(--ios-red)' : 'var(--ios-green-dark)',
-          }}>
-            {isError ? '✗' : '✓'} {message}
-          </div>
-        </div>
-      )}
 
       {/* Profile Info — iOS grouped input style */}
       <div style={{ padding: '8px 16px' }}>
