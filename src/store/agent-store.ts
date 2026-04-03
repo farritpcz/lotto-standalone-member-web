@@ -109,11 +109,17 @@ function readCache(): CachedConfig | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return null
-    const cached = JSON.parse(raw) as CachedConfig
-    // เช็คอายุ cache (30 วัน)
+    const parsed = JSON.parse(raw)
+    // ⭐ Handle format เก่า (AgentConfig ตรงๆ ไม่มี .config wrapper)
+    if (!parsed.config || !parsed.ts) {
+      localStorage.removeItem(CACHE_KEY) // ลบ cache format เก่า
+      return null
+    }
+    const cached = parsed as CachedConfig
     if (Date.now() - cached.ts > CACHE_TTL) return null
     return cached
   } catch {
+    localStorage.removeItem(CACHE_KEY)
     return null
   }
 }
@@ -134,6 +140,7 @@ export const useAgentStore = create<AgentStoreState>((set) => ({
 
 /** Apply สี agent เป็น CSS variables บน document */
 export function applyAgentTheme(config: AgentConfig) {
+  if (!config?.primaryColor) return // ⭐ ป้องกัน undefined
   const root = document.documentElement.style
   root.setProperty('--color-primary', config.primaryColor)
   root.setProperty('--color-primary-dark', config.primaryColor)
