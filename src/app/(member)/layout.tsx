@@ -19,6 +19,7 @@
 import AppHeader from '@/components/layout/AppHeader'
 import BottomNav from '@/components/layout/BottomNav'
 import ContactFloat from '@/components/ContactFloat'
+import AuthGuard from '@/components/AuthGuard'
 
 export default function MemberLayout({
   children,
@@ -26,13 +27,15 @@ export default function MemberLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="app-container">
-      <AppHeader />
-      <main className="app-content">
-        {children}
-      </main>
-      <ContactFloat />
-      <BottomNav />
-    </div>
+    <AuthGuard>
+      <div className="app-container">
+        <AppHeader />
+        <main className="app-content">
+          {children}
+        </main>
+        <ContactFloat />
+        <BottomNav />
+      </div>
+    </AuthGuard>
   )
 }

@@ -53,9 +53,18 @@ const createApiClient = (): AxiosInstance => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        // Token expired → redirect ไป login
-        // ⭐ ไม่ต้องลบ localStorage แล้ว เพราะใช้ httpOnly cookie (browser จัดการเอง)
+        // Token expired / cookie หมดอายุ → clear auth store + redirect login
         if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+          // ⭐ ลบ Zustand persist ด้วย (ไม่งั้น isAuthenticated ค้างใน localStorage)
+          try {
+            const raw = localStorage.getItem('lotto-auth')
+            if (raw) {
+              localStorage.setItem('lotto-auth', JSON.stringify({
+                state: { member: null, isAuthenticated: false },
+                version: 0,
+              }))
+            }
+          } catch {}
           window.location.href = '/login'
         }
       }
