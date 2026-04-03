@@ -22,6 +22,8 @@ export interface AgentConfig {
   cardGradient2: string
   navBG: string
   headerBG: string
+  // Version (สำหรับ cache invalidation — admin เปลี่ยนสี → version++)
+  themeVersion: number
   // Site config
   tickerText: string
   contactLine: string
@@ -48,6 +50,7 @@ export const DEFAULT_AGENT_CONFIG: AgentConfig = {
   cardGradient2: '#2d6a4f',
   navBG: '#0d1f1a',
   headerBG: '#0d3d2e',
+  themeVersion: 0,
   tickerText: '',
   contactLine: '',
   contactPhone: '',
@@ -59,8 +62,7 @@ export const DEFAULT_AGENT_CONFIG: AgentConfig = {
 }
 
 const CACHE_KEY = 'agent-config'
-const CACHE_TS_KEY = 'agent-config-ts'
-const CACHE_TTL = 5 * 60 * 1000 // 5 นาที
+const CACHE_TTL = 30 * 24 * 60 * 60 * 1000 // 30 วัน (เคลียจากหลังบ้านเมื่อเปลี่ยนสี)
 
 interface AgentStoreState {
   config: AgentConfig
@@ -84,6 +86,7 @@ function mapApiResponse(data: Record<string, unknown>): AgentConfig {
     cardGradient2: (data.theme_card_gradient2 as string) || DEFAULT_AGENT_CONFIG.cardGradient2,
     navBG: (data.theme_nav_bg as string) || DEFAULT_AGENT_CONFIG.navBG,
     headerBG: (data.theme_header_bg as string) || DEFAULT_AGENT_CONFIG.headerBG,
+    themeVersion: (data.theme_version as number) || 0,
     tickerText: (data.ticker_text as string) || '',
     contactLine: (data.contact_line as string) || '',
     contactPhone: (data.contact_phone as string) || '',
@@ -95,25 +98,31 @@ function mapApiResponse(data: Record<string, unknown>): AgentConfig {
   }
 }
 
+interface CachedConfig {
+  config: AgentConfig
+  version: number  // theme_version จาก backend
+  ts: number       // timestamp ที่ cache
+}
+
 /** อ่าน cache จาก localStorage */
-function readCache(): AgentConfig | null {
+function readCache(): CachedConfig | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
-    const ts = localStorage.getItem(CACHE_TS_KEY)
-    if (!raw || !ts) return null
-    // เช็คอายุ cache
-    if (Date.now() - Number(ts) > CACHE_TTL) return null
-    return JSON.parse(raw) as AgentConfig
+    if (!raw) return null
+    const cached = JSON.parse(raw) as CachedConfig
+    // เช็คอายุ cache (30 วัน)
+    if (Date.now() - cached.ts > CACHE_TTL) return null
+    return cached
   } catch {
     return null
   }
 }
 
 /** เขียน cache ลง localStorage */
-function writeCache(config: AgentConfig) {
+function writeCache(config: AgentConfig, version: number) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(config))
-    localStorage.setItem(CACHE_TS_KEY, String(Date.now()))
+    const cached: CachedConfig = { config, version, ts: Date.now() }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cached))
   } catch {}
 }
 
@@ -139,28 +148,56 @@ export function applyAgentTheme(config: AgentConfig) {
   root.setProperty('--accent-color', config.accentColor)
 }
 
-/** Fetch agent config จาก API (พร้อม cache) */
+/** Fetch agent config จาก API (พร้อม cache 30 วัน + version check) */
 export async function fetchAgentConfig(): Promise<AgentConfig> {
-  // 1) อ่าน cache ก่อน
   const cached = readCache()
+
+  // 1) มี cache → ใช้เลย + เช็ค version ใน background
   if (cached) {
-    applyAgentTheme(cached)
-    useAgentStore.getState().setConfig(cached)
-    return cached
+    applyAgentTheme(cached.config)
+    useAgentStore.getState().setConfig(cached.config)
+
+    // Background version check (ไม่ block UI)
+    checkVersionInBackground(cached)
+
+    return cached.config
   }
 
-  // 2) Fetch จาก API
+  // 2) ไม่มี cache → fetch เลย
+  return await fetchFreshConfig()
+}
+
+/** เช็ค version จาก API — ถ้าไม่ตรง → refetch + apply */
+async function checkVersionInBackground(cached: CachedConfig) {
+  try {
+    // ⭐ Lightweight check: ดึงแค่ version ไม่ต้อง full config
+    const res = await fetch('/api/v1/agent/config', { credentials: 'include' })
+    if (!res.ok) return
+    const json = await res.json()
+    const serverVersion = (json.data?.theme_version as number) || 0
+    // ถ้า version ตรง → ไม่ต้องทำอะไร
+    if (serverVersion === cached.version) return
+    // Version ไม่ตรง → admin เปลี่ยนสี → apply สีใหม่
+    const config = mapApiResponse(json.data || {})
+    writeCache(config, serverVersion)
+    applyAgentTheme(config)
+    useAgentStore.getState().setConfig(config)
+  } catch {}
+}
+
+/** Fetch config ใหม่จาก API */
+async function fetchFreshConfig(): Promise<AgentConfig> {
   try {
     const res = await fetch('/api/v1/agent/config', { credentials: 'include' })
     if (!res.ok) throw new Error('fetch failed')
     const json = await res.json()
     const config = mapApiResponse(json.data || {})
-    writeCache(config)
+    const version = (json.data?.theme_version as number) || 0
+    writeCache(config, version)
     applyAgentTheme(config)
     useAgentStore.getState().setConfig(config)
     return config
   } catch {
-    // fallback to default
     applyAgentTheme(DEFAULT_AGENT_CONFIG)
     useAgentStore.getState().setConfig(DEFAULT_AGENT_CONFIG)
     return DEFAULT_AGENT_CONFIG
