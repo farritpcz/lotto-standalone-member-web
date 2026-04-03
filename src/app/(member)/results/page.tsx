@@ -131,9 +131,12 @@ export default function ResultsPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {group.imageUrl ? (
-                    <img src={group.imageUrl} alt={group.name} style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
-                  ) : null}
+                  {group.imageUrl && (
+                    <img src={group.imageUrl} alt={group.name}
+                      style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }}
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                    />
+                  )}
                   <span style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{group.name}</span>
                 </div>
                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>{selectedDate}</span>

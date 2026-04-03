@@ -36,7 +36,7 @@ export default function BottomNav() {
       paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
       background: 'var(--nav-bg, #0d1f1a)',
       borderTop: '1px solid rgba(255,255,255,0.08)',
-      zIndex: 9999,
+      zIndex: 100,
       boxShadow: '0 -2px 12px rgba(0,0,0,0.4)',
     }}>
       {tabs.map((tab) => {
