@@ -28,13 +28,15 @@ export default function MemberLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="app-container">
-        <AppHeader />
-        <main className="app-content">
-          {children}
-        </main>
-        <FloatingContact />
-        <BottomNav />
+      <div className="app-outer">
+        <div className="app-container">
+          <AppHeader />
+          <main className="app-content">
+            {children}
+          </main>
+          <FloatingContact />
+          <BottomNav />
+        </div>
       </div>
     </AuthGuard>
   )

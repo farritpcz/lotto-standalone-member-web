@@ -191,21 +191,24 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
           position: 'fixed', inset: 0, zIndex: 200,
           background: 'var(--ios-bg)',
           display: 'flex', flexDirection: 'column',
+          maxWidth: 680, margin: '0 auto',
+          borderLeft: '1px solid var(--ios-separator)',
+          borderRight: '1px solid var(--ios-separator)',
         }}>
-          {/* Header — ใช้สีธีม */}
+          {/* Header — โทน balance card */}
           <div style={{
-            background: 'var(--ios-card)',
+            background: 'linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
             padding: '14px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             flexShrink: 0,
-            borderBottom: '0.5px solid var(--ios-separator)',
+            borderBottom: '1px solid var(--ios-separator)',
           }}>
             <button onClick={() => setShowFull(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--ios-label)" strokeWidth={2.5} style={{ width: 22, height: 22 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} style={{ width: 22, height: 22 }}>
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-            <span style={{ color: 'var(--ios-label)', fontSize: 17, fontWeight: 700 }}>
+            <span style={{ color: 'white', fontSize: 17, fontWeight: 700 }}>
               รายการแทง ({betSlip.length})
             </span>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -215,7 +218,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                   ? { type: 'success', message: `ลบเลขซ้ำ ${n} รายการ` }
                   : { type: 'success', message: 'ไม่มีเลขซ้ำ' }
                 )
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-blue)', fontSize: 13, fontWeight: 600 }}>
+              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-color)', fontSize: 13, fontWeight: 600 }}>
                 เคลียซ้ำ
               </button>
               <button onClick={clearBetSlip} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-red)', fontSize: 13, fontWeight: 600 }}>
@@ -316,7 +319,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                       {/* เรท */}
                       <span style={{ fontSize: 12, color: 'var(--ios-tertiary-label)', flexShrink: 0 }}>x{item.rate}</span>
                       {/* ชนะ */}
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ios-green)', marginLeft: 'auto', flexShrink: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-color)', marginLeft: 'auto', flexShrink: 0 }}>
                         ฿{item.potentialWin.toLocaleString()}
                       </span>
                       {/* ลบ */}
@@ -358,7 +361,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 </div>
                 <div style={{
                   fontSize: 18, fontWeight: 700, marginBottom: 8,
-                  color: resultAlert.type === 'success' ? 'var(--ios-green)' : 'var(--ios-red)',
+                  color: resultAlert.type === 'success' ? 'var(--accent-color)' : 'var(--ios-red)',
                 }}>
                   {resultAlert.type === 'success' ? 'แทงสำเร็จ!' : 'แทงไม่สำเร็จ'}
                 </div>
@@ -371,7 +374,10 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                     width: '100%', padding: '14px',
                     borderRadius: 12, fontSize: 16, fontWeight: 700,
                     color: 'white', border: 'none', cursor: 'pointer',
-                    background: resultAlert.type === 'success' ? 'var(--ios-green)' : 'var(--ios-red)',
+                    background: resultAlert.type === 'success'
+                      ? 'linear-gradient(180deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 82%, black) 100%)'
+                      : 'var(--ios-red)',
+                    color: resultAlert.type === 'success' ? '#1a1a1a' : 'white',
                   }}
                 >
                   {resultAlert.type === 'success' ? 'ตกลง' : 'ลองใหม่'}
@@ -390,7 +396,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
             {/* เครดิตคงเหลือ + ยอดแทง + เครดิตหลังแทง */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
               <span style={{ color: 'var(--ios-secondary-label)' }}>เครดิตคงเหลือ</span>
-              <span style={{ fontWeight: 700, color: 'var(--ios-green)' }}>
+              <span style={{ fontWeight: 700, color: 'var(--accent-color)' }}>
                 ฿{(member?.balance || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -476,9 +482,10 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
                 borderRadius: 14, fontSize: 17, fontWeight: 700,
                 color: 'white', border: 'none',
                 cursor: (loading || (member?.balance || 0) < totalAmount) ? 'not-allowed' : 'pointer',
-                background: 'var(--ios-green)',
+                background: 'linear-gradient(180deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 82%, black) 100%)',
+                color: '#1a1a1a',
                 opacity: (loading || (member?.balance || 0) < totalAmount || betSlip.some(b => { const w = numberWarnings[`${b.betType}-${b.number}`]; return w && (w.status === 'full_ban' || w.status === 'banned') })) ? 0.5 : 1,
-                boxShadow: '0 4px 20px rgba(52,199,89,0.3)',
+                boxShadow: '0 4px 20px color-mix(in srgb, var(--accent-color) 30%, transparent)',
                 minHeight: 56,
               }}
             >

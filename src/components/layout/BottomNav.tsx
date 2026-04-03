@@ -27,7 +27,7 @@ export default function BottomNav() {
       bottom: 0,
       left: 0,
       right: 0,
-      maxWidth: 480,
+      maxWidth: 680,
       margin: '0 auto',
       display: 'flex',
       alignItems: 'center',

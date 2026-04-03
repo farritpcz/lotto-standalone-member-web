@@ -185,13 +185,19 @@ body {
   overscroll-behavior-y: contain;
 }
 
-/* === Mobile App Container === */
+/* === App Container (shared — auth + member layouts) === */
+.app-outer {
+  min-height: 100dvh;
+  background: var(--ios-bg-secondary);
+}
 .app-container {
-  max-width: 480px;
+  max-width: 680px;
   margin: 0 auto;
   min-height: 100dvh;
   position: relative;
   background: var(--ios-bg);
+  border-left: 1px solid var(--ios-separator);
+  border-right: 1px solid var(--ios-separator);
 }
 
 /* ============================================================
@@ -230,12 +236,33 @@ body {
   box-shadow: var(--shadow-card);
 }
 
-/* Balance Card — dark forest green gradient */
+/* Balance Card — premium luxury style with SVG pattern overlay */
 .balance-card {
   background: var(--card-gradient);
   border-radius: var(--radius-lg);
   color: white;
-  padding: 20px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+/* Decorative corner accent */
+.balance-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-color) 12%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+/* SVG pattern overlay — subtle geometric luxury feel */
+.balance-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 /* ============================================================
@@ -336,7 +363,7 @@ body {
 .section-title .see-all {
   font-size: var(--text-subhead);
   font-weight: 500;
-  color: var(--ios-green);
+  color: var(--accent-color);
   text-decoration: none;
 }
 
@@ -546,4 +573,30 @@ body {
 .bg-primary         { background: var(--ios-green); }
 .text-muted         { color: var(--ios-secondary-label); }
 .text-secondary     { color: var(--ios-secondary-label); }
+
+/* =============================================================================
+ * Responsive — PC 2-column layouts
+ * ============================================================================= */
+.wallet-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+@media (min-width: 600px) {
+  .wallet-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 0 8px;
+  }
+  .transfer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+}
+
+.transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
 

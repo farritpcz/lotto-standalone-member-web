@@ -1,17 +1,25 @@
 /**
  * Auth Layout — ครอบ login + register pages
- *
- * ใช้ AppHeader เดียวกันกับ member pages
- * ไม่มี BottomNav (auth pages ไม่ต้องการ)
+ * ใช้ .app-outer + .app-container ร่วมกับ member layout (globals.css)
+ * เพิ่ม AppHeader + PageTransition + FloatingContact
  */
 
+'use client'
+
 import AppHeader from '@/components/layout/AppHeader'
+import FloatingContact from '@/components/FloatingContact'
+import PageTransition from '@/components/PageTransition'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: 'var(--ios-bg)' }}>
-      <AppHeader />
-      {children}
+    <div className="app-outer">
+      <div className="app-container">
+        <AppHeader />
+        <PageTransition>
+          {children}
+        </PageTransition>
+        <FloatingContact bottom={24} />
+      </div>
     </div>
   )
 }

@@ -17,8 +17,16 @@ import { RefreshCw, ChevronRight, Ticket, Trophy, ClipboardList, Target, PlusCir
 import Link from 'next/link'
 import Loading from '@/components/Loading'
 import { useAuthStore } from '@/store/auth-store'
-import { lotteryApi, resultApi, walletApi } from '@/lib/api'
+import { api, lotteryApi, resultApi, walletApi } from '@/lib/api'
 import type { LotteryTypeInfo, LotteryRound } from '@/types'
+import BannerCarousel from '@/components/BannerCarousel'
+
+/* ─── Fallback banners — ใช้เมื่อยังไม่มี banner จาก API ─── */
+const FALLBACK_BANNERS = [
+  { image_url: '/images/banners/banner-default.png' },
+  { image_url: '/images/banners/banner-default.png' },
+  { image_url: '/images/banners/banner-default.png' },
+]
 
 const lotteryIcons: Record<string, string> = {
   THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
@@ -37,13 +45,6 @@ const lotteryGradients: Record<string, string> = {
   YEEKEE: 'linear-gradient(135deg, #0d6e6e, #34d399)',
 }
 
-// ⭐ Default banners — ใช้รูป SVG จาก public/images/banners/
-// agent สามารถอัพรูปใหม่ทับได้ผ่าน CMS admin
-const defaultBanners = [
-  { id: 1, image: '/images/banners/banner-1.svg', title: 'สมัครใหม่รับโบนัส 100%', sub: 'เฉพาะสมาชิกใหม่เท่านั้น' },
-  { id: 2, image: '/images/banners/banner-2.svg', title: 'ฝากเงินรับเพิ่ม 50%', sub: 'ทุกยอดฝาก สูงสุด 5,000 บาท' },
-  { id: 3, image: '/images/banners/banner-3.svg', title: 'คืนยอดเสีย 10%', sub: 'ทุกวันจันทร์' },
-]
 
 // ⭐ Default ticker — ดึงจาก agent config ถ้ามี
 const defaultTicker = '🎉 ยินดีต้อนรับสู่ LOTTO · จ่ายจริง ถอนได้จริง · สมัครวันนี้รับโบนัส 100% · หวยรัฐบาลจ่ายบาทละ 900'
@@ -63,7 +64,7 @@ export default function DashboardPage() {
   const { member, updateBalance } = useAuthStore()
   const [lotteries, setLotteries] = useState<LotteryTypeInfo[]>([])
   const [latestResults, setLatestResults] = useState<LotteryRound[]>([])
-  const [currentBanner, setCurrentBanner] = useState(0)
+  const [banners, setBanners] = useState(FALLBACK_BANNERS)
   const [refreshing, setRefreshing] = useState(false)
 
   // ดึงยอดเงินล่าสุดจาก API
@@ -84,17 +85,16 @@ export default function DashboardPage() {
     resultApi.getResults({ per_page: 3 })
       .then(res => setLatestResults(res.data.data?.items || []))
       .catch(() => {})
-  }, [])
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentBanner(prev => (prev + 1) % defaultBanners.length)
-    }, 4000)
-    return () => clearInterval(timer)
+    // โหลด banners จาก API — ถ้าไม่มีใช้ fallback
+    api.get('/banners').then(res => {
+      const data = res.data.data || []
+      if (data.length > 0) setBanners(data)
+    }).catch(() => {})
   }, [])
 
   return (
-    <div>
+    <div style={{ fontFamily: 'var(--font-sarabun), -apple-system, BlinkMacSystemFont, sans-serif' }}>
 
       {/* ===== 1. Ticker Bar — ⭐ ข้อความจาก CMS (ตั้งค่าใน admin → จัดการเว็บ → ตัวอักษรวิ่ง) ===== */}
       <div className="ticker-bar">
@@ -103,63 +103,67 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ===== 2. Balance Card ===== */}
+      {/* ===== 2. Banner Slider — ดึงจาก API, fallback เป็น default ===== */}
+      <div style={{ padding: '12px 16px 0' }}>
+        <BannerCarousel banners={banners} height={140} interval={4000} />
+      </div>
+
+      {/* ===== 3. Balance Card ===== */}
       <div className="ios-animate ios-animate-1" style={{ padding: '16px 16px 8px' }}>
-        <div className="balance-card">
+        <div className="balance-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Top row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
             <div>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 2 }}>สวัสดี</p>
-              <p style={{ color: 'white', fontWeight: 700, fontSize: 16 }}>{member?.username || 'สมาชิก'}</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 2 }}>สวัสดี</p>
+              <p style={{ color: 'white', fontWeight: 700, fontSize: 17 }}>{member?.username || 'สมาชิก'}</p>
             </div>
             <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 700,
-              fontSize: 18,
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.1)',
+              border: '2px solid color-mix(in srgb, var(--accent-color) 40%, transparent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--accent-color)', fontWeight: 700, fontSize: 18,
             }}>
               {member?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
           </div>
 
           {/* Balance + Refresh */}
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginBottom: 4 }}>ยอดเงินคงเหลือ</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <p style={{ color: 'white', fontSize: 32, fontWeight: 700, letterSpacing: -0.5, lineHeight: 1, margin: 0 }}>
-              ฿{member?.balance?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'}
-            </p>
-            <button
-              onClick={refreshBalance}
-              disabled={refreshing}
-              style={{
-                background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20,
-                width: 32, height: 32, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'transform 0.3s',
-                transform: refreshing ? 'rotate(360deg)' : 'none',
-              }}
-              aria-label="รีเฟรชเครดิต"
-            >
-              <RefreshCw size={16} strokeWidth={2.5} color="white" />
-            </button>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, marginBottom: 6 }}>ยอดเงินคงเหลือ</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <p style={{ color: 'var(--accent-color)', fontSize: 34, fontWeight: 700, letterSpacing: -0.5, lineHeight: 1, margin: 0 }}>
+                ฿{member?.balance?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'}
+              </p>
+              <button
+                onClick={refreshBalance}
+                disabled={refreshing}
+                style={{
+                  background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 20, width: 32, height: 32, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'transform 0.3s',
+                  transform: refreshing ? 'rotate(360deg)' : 'none',
+                }}
+                aria-label="รีเฟรชเครดิต"
+              >
+                <RefreshCw size={16} strokeWidth={2.5} color="rgba(255,255,255,0.7)" />
+              </button>
+            </div>
           </div>
 
-          {/* Action buttons — ใช้สีธีม */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 18, position: 'relative', zIndex: 1 }}>
             <Link
               href="/wallet"
               style={{
                 flex: 1, textAlign: 'center',
-                background: 'var(--ios-green)', color: 'white',
+                background: 'linear-gradient(180deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color) 82%, black) 100%)',
+                color: '#1a1a1a',
                 padding: '11px 8px', borderRadius: 12,
                 fontSize: 14, fontWeight: 700, textDecoration: 'none',
                 minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-color) 30%, transparent)',
               }}
             >
               ฝากเงิน
@@ -168,11 +172,12 @@ export default function DashboardPage() {
               href="/wallet?tab=withdraw"
               style={{
                 flex: 1, textAlign: 'center',
-                background: 'rgba(255,255,255,0.15)', color: 'white',
+                background: 'linear-gradient(180deg, color-mix(in srgb, var(--header-bg) 85%, white) 0%, var(--header-bg) 100%)',
+                color: 'white',
                 padding: '11px 8px', borderRadius: 12,
                 fontSize: 14, fontWeight: 700, textDecoration: 'none',
                 minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 2px 8px color-mix(in srgb, var(--header-bg) 35%, transparent)',
               }}
             >
               ถอนเงิน
@@ -209,45 +214,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ===== 4. Banner Slider — ดึงรูปจาก CMS (public/images/banners/) ===== */}
-      <div className="ios-animate ios-animate-3" style={{ padding: '0 16px 24px' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, height: 120 }}>
-          {defaultBanners.map((banner, i) => (
-            <div
-              key={banner.id}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: 16,
-                overflow: 'hidden',
-                transition: 'opacity 0.5s, transform 0.5s',
-                opacity: i === currentBanner ? 1 : 0,
-                transform: i === currentBanner ? 'translateX(0)' : 'translateX(100%)',
-              }}
-            >
-              {/* ⭐ รูปจาก CMS — agent อัพรูปใหม่ทับได้ */}
-              <img
-                src={banner.image}
-                alt={banner.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
-          ))}
-          {/* Pagination dots */}
-          <div style={{
-            position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
-            display: 'flex', gap: 5,
-          }}>
-            {defaultBanners.map((_, i) => (
-              <button key={i} onClick={() => setCurrentBanner(i)} style={{
-                width: i === currentBanner ? 16 : 6, height: 6, borderRadius: 3,
-                background: i === currentBanner ? 'white' : 'rgba(255,255,255,0.45)',
-                border: 'none', padding: 0, cursor: 'pointer', transition: 'width 0.25s, background 0.25s',
-              }} />
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ===== 5. หวยที่เปิดอยู่ ===== */}
       <div className="section-title ios-animate ios-animate-4">
@@ -270,7 +236,8 @@ export default function DashboardPage() {
               >
                 <div style={{
                   background: 'var(--ios-card)', borderRadius: 14, overflow: 'hidden',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                  border: '1px solid var(--ios-separator)',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
                 }}>
                   <div style={{ height: 3, background: gradient }} />
                   <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -319,7 +286,8 @@ export default function DashboardPage() {
             borderRadius: 16,
             padding: '32px 16px',
             textAlign: 'center',
-            boxShadow: 'var(--shadow-card)',
+            border: '1px solid var(--ios-separator)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
           }}>
             <p style={{ color: 'var(--ios-secondary-label)', fontSize: 15 }}>ยังไม่มีผลรางวัล</p>
           </div>
@@ -330,7 +298,8 @@ export default function DashboardPage() {
                 background: 'var(--ios-card)',
                 borderRadius: 16,
                 padding: '14px 16px',
-                boxShadow: 'var(--shadow-card)',
+                border: '1px solid var(--ios-separator)',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -343,9 +312,9 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                   {[
-                    { label: '3 ตัวบน', value: round.result_top3 || '-', color: 'var(--ios-orange)', bg: 'rgba(255,159,10,0.08)' },
-                    { label: '2 ตัวบน', value: round.result_top2 || '-', color: 'var(--ios-green)', bg: 'rgba(52,199,89,0.08)' },
-                    { label: '2 ตัวล่าง', value: round.result_bottom2 || '-', color: 'var(--ios-blue)', bg: 'rgba(0,122,255,0.08)' },
+                    { label: '3 ตัวบน', value: round.result_top3 || '-', color: 'var(--accent-color)', bg: 'color-mix(in srgb, var(--accent-color) 10%, transparent)' },
+                    { label: '2 ตัวบน', value: round.result_top2 || '-', color: 'var(--ios-label)', bg: 'var(--ios-bg)' },
+                    { label: '2 ตัวล่าง', value: round.result_bottom2 || '-', color: 'var(--ios-label)', bg: 'var(--ios-bg)' },
                   ].map((item) => (
                     <div key={item.label} style={{ background: item.bg, borderRadius: 10, padding: '8px 4px', textAlign: 'center' }}>
                       <div style={{ color: 'var(--ios-secondary-label)', fontSize: 11, marginBottom: 4 }}>{item.label}</div>

@@ -82,8 +82,13 @@ export default function RatesPage() {
         ) : (
           <div className="card overflow-hidden">
             {/* Table Header */}
-            <div className="grid grid-cols-4 gap-2 px-4 py-2.5 text-[10px] font-semibold text-muted uppercase tracking-wider"
-              style={{ background: 'var(--color-bg-card-alt)' }}>
+            <div className="grid grid-cols-4 gap-2 px-4 py-3 text-[11px] font-bold uppercase tracking-wider"
+              style={{
+                background: 'linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
+                color: 'var(--accent-color)',
+                position: 'relative', overflow: 'hidden',
+                backgroundImage: `linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%), url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+              }}>
               <div>ประเภท</div>
               <div className="text-center">จำนวนหลัก</div>
               <div className="text-center">อัตราจ่าย</div>

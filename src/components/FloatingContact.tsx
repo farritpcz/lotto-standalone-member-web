@@ -32,7 +32,7 @@ interface ContactChannel {
   link_url: string; icon_url: string; sort_order: number
 }
 
-export default function FloatingContact() {
+export default function FloatingContact({ bottom = 80 }: { bottom?: number } = {}) {
   const [open, setOpen] = useState(false)
   const [channels, setChannels] = useState<ContactChannel[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -64,7 +64,7 @@ export default function FloatingContact() {
         style={{
           position: 'fixed',
           right: 16,
-          bottom: 80, // เหนือ BottomNav (60px) + gap
+          bottom, // เหนือ BottomNav (60px) + gap — ปรับได้ผ่าน prop
           zIndex: 90,
           width: 52, height: 52, borderRadius: '50%',
           background: 'var(--ios-green)',
@@ -94,7 +94,7 @@ export default function FloatingContact() {
           <div style={{
             position: 'fixed',
             right: 16,
-            bottom: 140, // เหนือปุ่มลอย
+            bottom: bottom + 60, // เหนือปุ่มลอย
             zIndex: 91,
             width: 280,
             background: 'var(--ios-card)',

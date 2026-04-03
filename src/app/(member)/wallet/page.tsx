@@ -203,32 +203,82 @@ function WalletContent() {
         </div>
       </div>
 
-      {/* ===== Section 1: บัญชีผู้ใช้ ===== */}
+      {/* ===== Section 1: บัญชีผู้ใช้ — Mini Credit Card Style ===== */}
       <div style={{ padding: '0 16px 12px' }}>
-        <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '16px', boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>บัญชีผู้ใช้</span>
-            <span style={{ fontSize: 12, color: 'var(--ios-green)', fontWeight: 500 }}>
+        <div style={{
+          background: 'linear-gradient(145deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
+          borderRadius: 18, padding: '18px 20px',
+          position: 'relative', overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          color: 'white', minHeight: 120,
+        }}>
+          {/* SVG pattern — ลายเส้นหรูๆ */}
+          <div style={{
+            position: 'absolute', inset: 0, opacity: 0.04,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+            pointerEvents: 'none',
+          }} />
+          {/* Corner glow */}
+          <div style={{
+            position: 'absolute', top: -30, right: -30, width: 140, height: 140,
+            background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-color) 15%, transparent) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+
+          {/* Top row: label + badge */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>บัญชีผู้ใช้</span>
+            <span style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: 0.3,
+              color: 'var(--accent-color)',
+              background: 'rgba(0,0,0,0.3)',
+              padding: '3px 10px', borderRadius: 20,
+              border: '1px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
+            }}>
               {isDeposit ? 'ใช้บัญชีนี้โอนเท่านั้น' : 'บัญชีรับเงินถอน'}
             </span>
           </div>
 
           {bankCode ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <BankIcon code={bankCode} size={44} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 14, color: 'var(--ios-secondary-label)', marginBottom: 2 }}>{bankName}</p>
-                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--ios-green)', letterSpacing: 1 }}>{bankNumber}</p>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Bank icon — มุมขวาบน floating */}
+              <div style={{
+                position: 'absolute', top: -8, right: 0,
+                width: 48, height: 48, borderRadius: 12,
+                background: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              }}>
+                <BankIcon code={bankCode} size={36} />
               </div>
-              <p style={{ fontSize: 13, color: 'var(--ios-secondary-label)', textAlign: 'right' }}>{bankAccountName}</p>
+
+              {/* Bank name */}
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 6 }}>{bankName}</p>
+
+              {/* Account number — hero */}
+              <p style={{
+                fontSize: 22, fontWeight: 800, color: 'var(--accent-color)',
+                letterSpacing: 2, fontVariantNumeric: 'tabular-nums',
+                margin: '0 0 12px', textShadow: '0 1px 8px rgba(0,0,0,0.3)',
+              }}>
+                {bankNumber}
+              </p>
+
+              {/* Account holder name */}
+              <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)', margin: 0, letterSpacing: 0.5 }}>
+                {bankAccountName}
+              </p>
             </div>
           ) : (
-            <p style={{ fontSize: 14, color: 'var(--ios-orange)', textAlign: 'center', padding: '8px 0' }}>
+            <p style={{ fontSize: 14, color: 'var(--ios-orange)', textAlign: 'center', padding: '8px 0', position: 'relative', zIndex: 1 }}>
               ยังไม่มีบัญชีธนาคาร กรุณาเพิ่มที่หน้าบัญชี
             </p>
           )}
         </div>
       </div>
+
+      {/* ===== PC: 2 columns / Mobile: 1 column ===== */}
+      <div className="wallet-grid">
 
       {/* ===== Section 2: ระบุจำนวนเงิน ===== */}
       <div style={{ padding: '0 16px 12px' }}>
@@ -299,6 +349,9 @@ function WalletContent() {
         </div>
       </div>
 
+      {/* ===== Column 2 (PC) ===== */}
+      <div>
+
       {/* ===== Section 3: เงื่อนไข (collapsible) ===== */}
       <div style={{ padding: '0 16px 12px' }}>
         <button
@@ -358,8 +411,12 @@ function WalletContent() {
           {/* Table header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
-            padding: '8px 16px', background: 'var(--ios-bg)',
-            fontSize: 12, fontWeight: 600, color: 'var(--ios-secondary-label)',
+            padding: '10px 16px',
+            fontSize: 11, fontWeight: 700, color: 'var(--accent-color)',
+            textTransform: 'uppercase', letterSpacing: 0.5,
+            background: 'linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
+            backgroundImage: `linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%), url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+            borderRadius: '12px 12px 0 0',
           }}>
             <span>วันที่</span>
             <span>ช่องทาง</span>
@@ -410,6 +467,9 @@ function WalletContent() {
           })()}
         </div>
       </div>
+
+      </div>{/* close column 2 */}
+      </div>{/* close wallet-grid */}
 
       {/* ===== Transfer Modal — ตามแบบเจริญดี88 ===== */}
       {showTransferModal && <TransferModal
@@ -497,6 +557,9 @@ function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose,
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200, background: 'var(--ios-bg)',
       display: 'flex', flexDirection: 'column',
+      maxWidth: 680, margin: '0 auto',
+      borderLeft: '1px solid var(--ios-separator)',
+      borderRight: '1px solid var(--ios-separator)',
     }}>
       {/* Header */}
       <div style={{
@@ -525,6 +588,11 @@ function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose,
           </span>
         </div>
 
+        {/* ===== PC 2-column grid ===== */}
+        <div className="transfer-grid">
+
+        {/* Left column */}
+        <div>
         {/* ===== 2. บัญชีเว็บ + bank icon ===== */}
         {bank && (
           <div style={{
@@ -576,6 +644,10 @@ function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose,
           </p>
         </div>
 
+        </div>{/* close left column */}
+
+        {/* Right column */}
+        <div>
         {/* ===== 5. หมายเลขอ้างอิง ===== */}
         <div style={{
           margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
@@ -611,6 +683,8 @@ function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose,
           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-orange)' }}>
             ยอดไม่เข้าภายใน 2 นาที กรุณาแนบสลิป
           </p>
+        </div>
+        </div>
         </div>
       </div>
 

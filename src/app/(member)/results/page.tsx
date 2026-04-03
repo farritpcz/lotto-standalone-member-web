@@ -152,8 +152,12 @@ export default function ResultsPage() {
                   {/* Table header */}
                   <div style={{
                     display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
-                    padding: '10px 16px', borderBottom: '1px solid var(--ios-separator)',
-                    fontSize: 12, fontWeight: 600, color: 'var(--ios-secondary-label)',
+                    padding: '10px 16px',
+                    fontSize: 11, fontWeight: 700, color: 'var(--accent-color)',
+                    textTransform: 'uppercase', letterSpacing: 0.5,
+                    background: 'linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
+                    backgroundImage: `linear-gradient(135deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%), url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+                    borderRadius: '12px 12px 0 0',
                   }}>
                     <span>งวดวันที่</span>
                     <span style={{ textAlign: 'center' }}>3 ตัวบน</span>

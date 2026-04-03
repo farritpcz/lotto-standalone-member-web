@@ -1,81 +1,54 @@
 /**
- * หน้าสมัครสมาชิก — layout เดียวกับหน้า login (ทรงเจริญดี88)
+ * หน้าสมัครสมาชิก — minimal, clean design (แบบเดียวกับ login)
  *
- * Layout:
- * 1. Header (dark teal + logo + hamburger) — เหมือน login
- * 2. Banner (gradient) — เหมือน login
- * 3. Form card: เบอร์, ธนาคาร, เลขบัญชี, ชื่อ-สกุล, รหัสผ่าน
- * 4. Game providers (horizontal scroll) — เหมือน login
- * 5. Quick links — เหมือน login
- *
- * ⭐ Ref code: อ่านจาก URL ?ref=CODE → ส่งไป API ตอนสมัคร
+ * Ref code: อ่านจาก URL ?ref=CODE → ส่งไป API ตอนสมัคร
  * ความสัมพันธ์:
- * - POST /api/v1/auth/register (member-api #3) → ref_code → referred_by
- * - หน้า referral (#4) ใช้ ref code จาก link ที่สร้างใน referral handler
+ * - POST /api/v1/auth/register (member-api) → ref_code → referred_by
  */
 
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Phone, Lock, Eye, EyeOff, User, CreditCard, ChevronDown, UserPlus, LogIn, Monitor, FileText, Sun, Moon } from 'lucide-react'
+import { Phone, Lock, Eye, EyeOff, User, CreditCard, ChevronDown } from 'lucide-react'
 import { authApi } from '@/lib/api'
-import { useThemeStore, resolveTheme } from '@/store/theme-store'
 import { useAuthStore } from '@/store/auth-store'
-import BankIcon from '@/components/BankIcon' // ไอคอนธนาคาร
-
-// ── Constants ──────────────────────────────────────────────────────────────────
-const BTN_GREEN = '#1e5c48'
-const BTN_NAVY = '#1e3560'
-
-const providers = [
-  { name: 'PRAGMATIC\nPLAY', bg: '#1a2a1a', color: '#f0c040' },
-  { name: 'DREAM\nGAMING',   bg: '#1a2a3a', color: '#c0a040' },
-  { name: 'SPADE\nGAMING',   bg: '#2a1a2a', color: '#c0c0c0' },
-  { name: 'SA\nGAMING',      bg: '#0a1a2e', color: '#4488ff' },
-  { name: 'JOKER',           bg: '#0a0a0a', color: '#ff4444' },
-  { name: 'PG\nSOFT',        bg: '#1a1a2e', color: '#a0c0ff' },
-]
+import BankIcon from '@/components/BankIcon'
 
 const THAI_BANKS = [
-  { code: 'SCB',   name: 'ธนาคารไทยพาณิชย์' },
-  { code: 'KBANK', name: 'ธนาคารกสิกรไทย' },
-  { code: 'BBL',   name: 'ธนาคารกรุงเทพ' },
-  { code: 'KTB',   name: 'ธนาคารกรุงไทย' },
-  { code: 'BAY',   name: 'ธนาคารกรุงศรีอยุธยา' },
-  { code: 'TTB',   name: 'ธนาคารทหารไทยธนชาต' },
-  { code: 'GSB',   name: 'ธนาคารออมสิน' },
-  { code: 'BAAC',  name: 'ธนาคาร ธกส.' },
-  { code: 'UOB',   name: 'ธนาคารยูโอบี' },
+  { code: 'SCB',   name: 'ไทยพาณิชย์' },
+  { code: 'KBANK', name: 'กสิกรไทย' },
+  { code: 'BBL',   name: 'กรุงเทพ' },
+  { code: 'KTB',   name: 'กรุงไทย' },
+  { code: 'BAY',   name: 'กรุงศรีอยุธยา' },
+  { code: 'TTB',   name: 'ทหารไทยธนชาต' },
+  { code: 'GSB',   name: 'ออมสิน' },
+  { code: 'BAAC',  name: 'ธกส.' },
+  { code: 'UOB',   name: 'ยูโอบี' },
   { code: 'CITI',  name: 'ซิตี้แบงก์' },
 ]
 
-// แปลง error messages จาก API เป็นภาษาไทย
 function translateError(msg: string): string {
   if (!msg) return 'สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่'
   const map: Record<string, string> = {
-    'username already exists': 'เบอร์โทรนี้ถูกใช้สมัครแล้ว กรุณาใช้เบอร์อื่น',
-    'failed to hash password': 'เกิดข้อผิดพลาดในการตั้งรหัสผ่าน กรุณาลองใหม่',
-    'failed to create member': 'ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่ภายหลัง',
+    'username already exists': 'เบอร์โทรนี้ถูกใช้สมัครแล้ว',
+    'failed to hash password': 'เกิดข้อผิดพลาด กรุณาลองใหม่',
+    'failed to create member': 'ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่',
     'invalid request': 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง',
   }
   const lower = msg.toLowerCase()
   for (const [key, thai] of Object.entries(map)) {
     if (lower.includes(key)) return thai
   }
-  // ถ้า msg เป็นภาษาไทยอยู่แล้ว ใช้ได้เลย
   if (/[\u0E00-\u0E7F]/.test(msg)) return msg
   return 'สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่'
 }
 
-// ── Inner component (useSearchParams ต้องอยู่ใน Suspense) ──────────────────────
 function RegisterForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { setAuth } = useAuthStore()
 
-  // อ่าน ref code จาก URL (?ref=CODE) — สำหรับ affiliate referral
   const refCodeFromUrl = searchParams.get('ref') || ''
 
   const [phone, setPhone] = useState('')
@@ -87,14 +60,6 @@ function RegisterForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // ── Input filters ──────────────────────────────────────────────────────────
-  // เบอร์โทร: ตัวเลขเท่านั้น
-  const handlePhoneChange = (v: string) => setPhone(v.replace(/\D/g, ''))
-  // เลขบัญชี: ตัวเลขเท่านั้น
-  const handleAccountChange = (v: string) => setAccountNumber(v.replace(/\D/g, ''))
-  // ชื่อ-สกุล: ไทย/อังกฤษ/เว้นวรรคเท่านั้น ห้ามตัวเลข+อักษรพิเศษ
-  const handleNameChange = (v: string) => setFullName(v.replace(/[^a-zA-Zก-๏\s]/g, ''))
-
   const handleRegister = async () => {
     if (!phone) { setError('กรุณากรอกเบอร์โทรศัพท์'); return }
     if (!/^\d{9,10}$/.test(phone)) { setError('เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก'); return }
@@ -102,7 +67,7 @@ function RegisterForm() {
     if (!/^[a-zA-Zก-๏\s]+$/.test(fullName)) { setError('ชื่อ-สกุลต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น'); return }
     if (!password) { setError('กรุณากรอกรหัสผ่าน'); return }
     if (password.length < 6) { setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return }
-    if (accountNumber && !/^\d+$/.test(accountNumber)) { setError('เลขบัญชีธนาคารต้องเป็นตัวเลขเท่านั้น'); return }
+    if (accountNumber && !/^\d+$/.test(accountNumber)) { setError('เลขบัญชีต้องเป็นตัวเลขเท่านั้น'); return }
     setError('')
     setLoading(true)
     try {
@@ -113,259 +78,164 @@ function RegisterForm() {
         bank_code: bankCode,
         bank_account: accountNumber,
         full_name: fullName,
-        // ⭐ ส่ง ref_code ไป API เพื่อผูก referred_by → commission_job คำนวณค่าคอมทีหลัง
         ref_code: refCodeFromUrl,
       })
       const { member } = res.data.data
-      // ⭐ JWT token อยู่ใน httpOnly cookie แล้ว — เก็บแค่ member info
       setAuth(member)
       window.location.href = '/dashboard'
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string; message?: string } } }
       const msg = e.response?.data?.error || e.response?.data?.message || ''
-      // แปลง error จาก API (ภาษาอังกฤษ) เป็นภาษาไทย
       setError(translateError(msg))
     } finally {
       setLoading(false)
     }
   }
 
-  // shared input style
-  const fieldStyle = {
-    width: '100%',
-    boxSizing: 'border-box' as const,
-    background: 'var(--ios-bg)',
-    border: '1px solid var(--ios-separator)',
-    borderRadius: 10,
-    padding: '13px 14px 13px 46px',
-    fontSize: 15,
-    color: 'var(--ios-label)',
-    outline: 'none',
-  }
-  const iconWrap = {
-    position: 'absolute' as const,
-    left: 14,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    color: 'var(--ios-secondary-label)',
-    display: 'flex',
-  }
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { mode, setMode } = useThemeStore()
-  const isDark = resolveTheme(mode) === 'dark'
-
   return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+    <div className="auth-page">
+      <div className="reg-card">
+        {/* Section title */}
+        <h1 className="reg-title">สมัครสมาชิก</h1>
 
-      {/* ===== Banner (เหมือน login) ===== */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0d3d2e 0%, #1a6a4a 40%, #0a2a1e 100%)',
-        height: 160,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* ปุ่มเลือกธีม สว่าง/มืด */}
-        <button
-          onClick={() => setMode(isDark ? 'light' : 'dark')}
-          aria-label={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
-          style={{
-            position: 'absolute', top: 10, right: 10, zIndex: 10,
-            width: 36, height: 36, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white',
-          }}
-        >
-          {isDark ? <Sun size={16} strokeWidth={2} /> : <Moon size={16} strokeWidth={2} />}
-        </button>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 50%, rgba(255,200,0,0.08) 0%, transparent 70%)' }} />
-        <div style={{ textAlign: 'center', padding: '0 24px', position: 'relative' }}>
-          <div style={{ color: '#f0c060', fontSize: 13, fontWeight: 600, marginBottom: 6, letterSpacing: 1 }}>LOTTO ONLINE</div>
-          <div style={{ color: 'white', fontSize: 22, fontWeight: 800, lineHeight: 1.2, marginBottom: 6 }}>
-            สมัครสมาชิก <span style={{ color: '#f0c060' }}>ฟรี!</span>
-          </div>
-          <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14 }}>
-            สมัครง่าย รับโบนัสทันที ครบจบในเว็บเดียว
-          </div>
+        {/* Info note */}
+        <div className="reg-note">
+          สมัครง่ายแค่กรอกข้อมูล เริ่มเล่นได้ทันที
+          <br />ฝาก-ถอนรวดเร็ว ปลอดภัย 100%
         </div>
-        <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: 48, opacity: 0.15 }}>🎲</div>
-        <div style={{ position: 'absolute', left: 12, top: 20, fontSize: 32, opacity: 0.12 }}>🎰</div>
-      </div>
 
-      {/* ===== Form Card ===== */}
-      <div style={{ background: 'var(--ios-card)', margin: 0, padding: '20px 16px' }}>
-
-        {/* แสดง ref code ถ้ามี */}
+        {/* Ref code badge */}
         {refCodeFromUrl && (
-          <div style={{ background: 'rgba(52,199,89,0.08)', border: '1px solid rgba(52,199,89,0.25)', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#1a8a40', textAlign: 'center' }}>
-            🎁 คุณถูกเชิญโดย <strong>{refCodeFromUrl}</strong> — รับโบนัสพิเศษ!
+          <div className="auth-ref-badge">
+            แนะนำโดย <strong>{refCodeFromUrl}</strong>
           </div>
         )}
 
         {/* Error */}
-        {error && (
-          <div style={{ background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', color: '#cc2020', padding: '10px 14px', borderRadius: 8, fontSize: 14, marginBottom: 14, textAlign: 'center' }}>
-            {error}
-          </div>
-        )}
+        {error && <div className="auth-error">{error}</div>}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
+        {/* Form */}
+        <div className="auth-form">
           {/* Phone */}
-          <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>เบอร์โทรศัพท์</label>
-            <div style={{ position: 'relative' }}>
-              <span style={iconWrap}>
-                <Phone size={18} strokeWidth={2} />
-              </span>
-              <input type="tel" value={phone} onChange={e => handlePhoneChange(e.target.value)} placeholder="099999999" maxLength={10}
+          <div className="auth-field">
+            <label className="auth-label">เบอร์โทรศัพท์</label>
+            <div className="auth-input-wrap">
+              <Phone size={17} className="auth-input-icon" />
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
                 onKeyDown={e => e.key === 'Enter' && handleRegister()}
-                style={fieldStyle} />
-            </div>
-          </div>
-
-          {/* Bank */}
-          <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>บัญชีธนาคาร</label>
-            <div style={{ position: 'relative' }}>
-              {/* ไอคอนธนาคารที่เลือก — แสดงซ้ายสุดใน select */}
-              {bankCode && (
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', zIndex: 1 }}>
-                  <BankIcon code={bankCode} size={24} />
-                </span>
-              )}
-              <select value={bankCode} onChange={e => setBankCode(e.target.value)}
-                style={{ ...fieldStyle, paddingLeft: bankCode ? 46 : 14, appearance: 'none', cursor: 'pointer', color: bankCode ? 'var(--ios-label)' : 'var(--ios-secondary-label)' }}>
-                <option value="" disabled>เลือกธนาคาร</option>
-                {THAI_BANKS.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
-              </select>
-              <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ios-secondary-label)', pointerEvents: 'none' }}>
-                <ChevronDown size={16} strokeWidth={2.5} />
-              </span>
-            </div>
-          </div>
-
-          {/* Account number */}
-          <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>เลขบัญชีธนาคาร</label>
-            <div style={{ position: 'relative' }}>
-              <span style={iconWrap}>
-                <CreditCard size={18} strokeWidth={2} />
-              </span>
-              <input type="text" value={accountNumber} onChange={e => handleAccountChange(e.target.value)}
-                placeholder="กรอกเลขบัญชีธนาคาร" maxLength={20} inputMode="numeric" style={fieldStyle} />
+                placeholder="0XX-XXX-XXXX"
+                maxLength={10}
+                className="auth-input"
+              />
             </div>
           </div>
 
           {/* Full name */}
-          <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>ชื่อ-สกุล</label>
-            <div style={{ position: 'relative' }}>
-              <span style={iconWrap}>
-                <User size={18} strokeWidth={2} />
-              </span>
-              <input type="text" value={fullName} onChange={e => handleNameChange(e.target.value)}
-                placeholder="ชื่อ-สกุล (ไม่ต้องใส่คำนำหน้า)" style={fieldStyle} />
+          <div className="auth-field">
+            <label className="auth-label">ชื่อ-สกุล</label>
+            <div className="auth-input-wrap">
+              <User size={17} className="auth-input-icon" />
+              <input
+                type="text"
+                value={fullName}
+                onChange={e => setFullName(e.target.value.replace(/[^a-zA-Zก-๏\s]/g, ''))}
+                placeholder="ชื่อ สกุล (ไม่ต้องใส่คำนำหน้า)"
+                className="auth-input"
+              />
             </div>
-            <p style={{ fontSize: 12, color: '#e05050', marginTop: 5 }}>
-              กรอกชื่อ-สกุล ไม่ต้องกรอกคำนำหน้า และไม่ต้องใส่เครื่องหมาย (-)
-            </p>
           </div>
 
+          {/* Bank */}
+          <div className="auth-field">
+            <label className="auth-label">ธนาคาร <span className="auth-optional">ไม่บังคับ</span></label>
+            <div className="auth-input-wrap">
+              {bankCode ? (
+                <span className="auth-input-icon" style={{ pointerEvents: 'none' }}>
+                  <BankIcon code={bankCode} size={20} />
+                </span>
+              ) : (
+                <CreditCard size={17} className="auth-input-icon" />
+              )}
+              <select
+                value={bankCode}
+                onChange={e => setBankCode(e.target.value)}
+                className="auth-input auth-select"
+                style={{ color: bankCode ? 'var(--ios-label)' : 'var(--ios-tertiary-label)' }}
+              >
+                <option value="">เลือกธนาคาร</option>
+                {THAI_BANKS.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
+              </select>
+              <ChevronDown size={15} className="auth-select-arrow" />
+            </div>
+          </div>
+
+          {/* Account number */}
+          {bankCode && (
+            <div className="auth-field">
+              <label className="auth-label">เลขบัญชี</label>
+              <div className="auth-input-wrap">
+                <CreditCard size={17} className="auth-input-icon" />
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={e => setAccountNumber(e.target.value.replace(/\D/g, ''))}
+                  placeholder="เลขบัญชีธนาคาร"
+                  maxLength={20}
+                  inputMode="numeric"
+                  className="auth-input"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Password */}
-          <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 8 }}>รหัสผ่าน</label>
-            <div style={{ position: 'relative' }}>
-              <span style={iconWrap}>
-                <Lock size={18} strokeWidth={2} />
-              </span>
-              <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+          <div className="auth-field">
+            <label className="auth-label">รหัสผ่าน</label>
+            <div className="auth-input-wrap">
+              <Lock size={17} className="auth-input-icon" />
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleRegister()}
-                placeholder="ตั้งรหัสผ่าน (อย่างน้อย 6 ตัว)"
-                style={{ ...fieldStyle, paddingRight: 44 }} />
-              <button onClick={() => setShowPw(!showPw)}
-                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ios-secondary-label)', display: 'flex', padding: 2 }}>
-                {showPw
-                  ? <EyeOff size={18} strokeWidth={2} />
-                  : <Eye size={18} strokeWidth={2} />
-                }
+                placeholder="อย่างน้อย 6 ตัวอักษร"
+                className="auth-input auth-input--pw"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(!showPw)}
+                className="auth-pw-toggle"
+              >
+                {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
           </div>
 
-          {/* Register button */}
-          <button onClick={handleRegister} disabled={loading}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              width: '100%', padding: '14px', borderRadius: 10,
-              background: BTN_NAVY, color: 'white',
-              fontSize: 16, fontWeight: 700,
-              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1, marginBottom: 10, minHeight: 50,
-            }}>
-            <UserPlus size={18} strokeWidth={2.5} />
+          {/* Submit */}
+          <button
+            onClick={handleRegister}
+            disabled={loading}
+            className="auth-btn auth-btn--primary"
+          >
             {loading ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}
           </button>
-
-          {/* Login link */}
-          <Link href="/login"
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              width: '100%', padding: '14px', borderRadius: 10,
-              background: BTN_GREEN, color: 'white',
-              fontSize: 16, fontWeight: 700,
-              textDecoration: 'none', marginBottom: 10, minHeight: 50,
-              boxSizing: 'border-box',
-            }}>
-            <LogIn size={18} strokeWidth={2.5} />
-            เข้าสู่ระบบ (มีบัญชีแล้ว)
-          </Link>
         </div>
+
+        {/* Footer */}
+        <p className="auth-footer">
+          มีบัญชีอยู่แล้ว?{' '}
+          <Link href="/login" className="auth-link">เข้าสู่ระบบ</Link>
+        </p>
       </div>
 
-      {/* ===== Game Providers (เหมือน login) ===== */}
-      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '12px 0' }}>
-        <div style={{ display: 'flex', gap: 8, padding: '0 16px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          {providers.map(p => (
-            <div key={p.name} style={{
-              background: p.bg, borderRadius: 8,
-              width: 90, height: 56, flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 800, color: p.color,
-              textAlign: 'center', whiteSpace: 'pre', lineHeight: 1.3, cursor: 'pointer',
-            }}>
-              {p.name}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ===== Quick Links (เหมือน login) ===== */}
-      <div style={{ background: 'var(--ios-card)', borderTop: '6px solid var(--ios-bg)', padding: '12px 16px 16px' }}>
-        <Link href="/rates" style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 16px', textDecoration: 'none', color: 'var(--ios-label)', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>
-          <Monitor size={20} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
-          อัตราจ่าย
-        </Link>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <Link href="/rules" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 14px', textDecoration: 'none', color: 'var(--ios-label)', fontSize: 14, fontWeight: 500 }}>
-            <FileText size={18} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
-            กฎและกติกา
-          </Link>
-          <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ios-bg)', borderRadius: 10, padding: '13px 14px', textDecoration: 'none', color: 'var(--ios-label)', fontSize: 14, fontWeight: 500 }}>
-            <LogIn size={18} strokeWidth={1.8} style={{ color: 'var(--ios-secondary-label)' }} />
-            เข้าสู่ระบบ
-          </Link>
-        </div>
-      </div>
-
-      <div style={{ height: 32, background: 'var(--ios-bg)' }} />
+      <style>{authStyles}</style>
     </div>
   )
 }
 
-// ── Export หลัก (ครอบ Suspense เพราะใช้ useSearchParams) ─────────────────────
 export default function RegisterPage() {
   return (
     <Suspense fallback={<div style={{ background: 'var(--ios-bg)', minHeight: '100dvh' }} />}>
@@ -373,3 +243,82 @@ export default function RegisterPage() {
     </Suspense>
   )
 }
+
+/* ─── Styles ─── */
+const authStyles = `
+  .auth-page {
+    min-height: calc(100dvh - 56px);
+    background: var(--ios-bg);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 20px;
+    font-family: var(--font-sarabun), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  /* ── Register layout ── */
+  .reg-card {
+    width: 100%; max-width: 600px;
+    background: var(--ios-card);
+    border: 1px solid var(--ios-separator);
+    border-radius: 14px;
+    padding: 20px 18px;
+  }
+  .reg-title {
+    font-size: 20px; font-weight: 700; color: var(--ios-label);
+    margin: 0 0 16px; text-align: center;
+  }
+  .reg-note {
+    background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 20%, transparent);
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 14px; line-height: 1.6;
+    color: var(--accent-color); text-align: center;
+    margin-bottom: 20px;
+  }
+  .auth-ref-badge {
+    background: color-mix(in srgb, var(--ios-green) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ios-green) 25%, transparent);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 20px;
+    font-size: 13px; color: var(--ios-green); text-align: center;
+  }
+  .auth-error {
+    background: color-mix(in srgb, var(--ios-red) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ios-red) 15%, transparent);
+    color: var(--ios-red); padding: 10px 14px; border-radius: 10px;
+    font-size: 14px; text-align: center; margin-bottom: 20px;
+  }
+  .auth-form { display: flex; flex-direction: column; gap: 16px; }
+  .auth-field { display: flex; flex-direction: column; gap: 6px; }
+  .auth-label { font-size: 14px; font-weight: 600; color: var(--ios-label); }
+  .auth-optional { font-size: 12px; font-weight: 400; color: var(--ios-secondary-label); }
+  .auth-input-wrap { position: relative; display: flex; align-items: center; }
+  .auth-input-icon { position: absolute; left: 14px; color: var(--ios-secondary-label); pointer-events: none; }
+  .auth-input {
+    width: 100%; box-sizing: border-box;
+    background: var(--ios-card); border: 1px solid var(--ios-separator);
+    border-radius: 10px; padding: 12px 14px 12px 42px;
+    font-size: 16px; color: var(--ios-label); outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  .auth-input::placeholder { color: var(--ios-tertiary-label); }
+  .auth-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 12%, transparent); }
+  .auth-input--pw { padding-right: 44px; }
+  .auth-select { appearance: none; cursor: pointer; padding-right: 40px; }
+  .auth-select-arrow { position: absolute; right: 14px; color: var(--ios-secondary-label); pointer-events: none; }
+  .auth-pw-toggle {
+    position: absolute; right: 12px; background: none; border: none;
+    cursor: pointer; color: var(--ios-secondary-label); display: flex; padding: 4px;
+  }
+  .auth-btn {
+    width: 100%; padding: 13px; border-radius: 10px;
+    font-size: 16px; font-weight: 600; border: none; cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s; margin-top: 4px;
+    font-family: inherit;
+  }
+  .auth-btn:active:not(:disabled) { transform: scale(0.985); }
+  .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .auth-btn--primary { background: var(--header-bg); color: white; }
+  .auth-btn--primary:hover:not(:disabled) { opacity: 0.9; }
+  .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: var(--ios-secondary-label); }
+  .auth-link { color: var(--accent-color); font-weight: 600; text-decoration: none; }
+  .auth-link:hover { text-decoration: underline; }
+`

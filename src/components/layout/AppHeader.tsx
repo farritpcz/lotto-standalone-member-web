@@ -9,7 +9,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/auth-store'
 import SideMenu from './SideMenu'
-import { Wallet, RefreshCw, LogIn, Bell, Menu } from 'lucide-react'
+import { Wallet, RefreshCw, LogIn, Bell, Menu, Sun, Moon } from 'lucide-react'
+import { useThemeStore, resolveTheme } from '@/store/theme-store'
 
 // ⭐ ใช้ CSS variable จาก agent config (fallback สีเขียวเข้ม)
 const HEADER_BG = 'var(--header-bg, #1a3d35)'
@@ -18,6 +19,8 @@ export default function AppHeader() {
   const { member, isAuthenticated, updateBalance } = useAuthStore()
   const [menuOpen, setMenuOpen] = useState(false)
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
+  const { mode, setMode } = useThemeStore()
+  const isDark = resolveTheme(mode) === 'dark'
 
   const handleRefreshBalance = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -100,17 +103,16 @@ export default function AppHeader() {
           </Link>
         )}
 
-        {/* Center — Brand */}
+        {/* Center — Brand Logo */}
         <Link href={isAuthenticated ? '/dashboard' : '/login'} style={{
           position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none',
+          display: 'flex', alignItems: 'center', textDecoration: 'none',
         }}>
-          <div style={{
-            width: 30, height: 30, borderRadius: 8, background: '#34C759',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, color: 'white', fontSize: 15,
-          }}>L</div>
-          <span style={{ color: '#f0c060', fontWeight: 800, fontSize: 18, letterSpacing: 0.5 }}>LOTTO</span>
+          <img
+            src="/images/logo.png"
+            alt="LOTTO 777"
+            style={{ height: 60, width: 'auto', objectFit: 'contain', marginTop: 2 }}
+          />
         </Link>
 
         {/* Right side */}
@@ -128,6 +130,15 @@ export default function AppHeader() {
               }} />
             </button>
           )}
+          <button onClick={() => setMode(isDark ? 'light' : 'dark')} style={{
+            width: 36, height: 36, background: 'transparent', border: 'none',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 18,
+          }} aria-label={isDark ? 'โหมดสว่าง' : 'โหมดมืด'}>
+            {isDark
+              ? <Sun size={20} stroke="rgba(255,255,255,0.8)" strokeWidth={1.8} />
+              : <Moon size={20} stroke="rgba(255,255,255,0.8)" strokeWidth={1.8} />
+            }
+          </button>
           <button onClick={() => setMenuOpen(true)} style={{
             width: 36, height: 36, background: 'transparent', border: 'none',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 18,

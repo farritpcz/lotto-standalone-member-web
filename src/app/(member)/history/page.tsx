@@ -296,7 +296,7 @@ export default function HistoryPage() {
             {/* Bottom sheet */}
             <div onClick={e => e.stopPropagation()} style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
-              maxWidth: 480, margin: '0 auto',
+              maxWidth: 680, margin: '0 auto',
               background: 'var(--ios-bg, white)', borderRadius: '20px 20px 0 0',
               maxHeight: '85dvh', display: 'flex', flexDirection: 'column',
               animation: 'slideUp 0.3s cubic-bezier(0.34,1.2,0.64,1)',
