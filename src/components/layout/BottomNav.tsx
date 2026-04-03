@@ -32,8 +32,8 @@ export default function BottomNav() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-around',
-      padding: '8px 0',
-      paddingBottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
+      padding: '10px 0',
+      paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
       background: '#111827',
       borderTop: '1px solid #374151',
       zIndex: 9999,
@@ -53,15 +53,15 @@ export default function BottomNav() {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 2,
+              gap: 4,
               flex: 1,
               height: '100%',
               textDecoration: 'none',
               color,
             }}
           >
-            <Icon size={20} fill={active ? color : 'none'} strokeWidth={active ? 0 : 1.8} />
-            <span style={{ fontSize: 10, fontWeight: 600, lineHeight: 1 }}>{tab.label}</span>
+            <Icon size={24} fill={active ? color : 'none'} strokeWidth={active ? 0 : 1.8} />
+            <span style={{ fontSize: 11, fontWeight: 600, lineHeight: 1 }}>{tab.label}</span>
           </Link>
         )
       })}
