@@ -7,13 +7,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Sun, Moon, Monitor } from 'lucide-react'
 import { useAuthStore } from '@/store/auth-store'
+import { useThemeStore } from '@/store/theme-store'
 import { memberApi } from '@/lib/api'
 
 export default function ProfilePage() {
   const router = useRouter()
   const { member, updateMember, logout } = useAuthStore()
+  const { mode: themeMode, setMode: setThemeMode } = useThemeStore()
 
   const [phone, setPhone] = useState(member?.phone || '')
   const [email, setEmail] = useState(member?.email || '')
@@ -345,6 +347,53 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Theme Toggle — iOS style segmented control */}
+      <div style={{ padding: '8px 16px' }}>
+        <div style={{ background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-card)', padding: '14px 16px' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ios-label)', marginBottom: 10 }}>
+            ธีม
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: 0,
+            background: 'var(--ios-bg)',
+            borderRadius: 10,
+            padding: 3,
+          }}>
+            {([
+              { value: 'light' as const, icon: Sun, label: 'สว่าง' },
+              { value: 'dark' as const, icon: Moon, label: 'มืด' },
+              { value: 'system' as const, icon: Monitor, label: 'ระบบ' },
+            ]).map(({ value, icon: Icon, label }) => (
+              <button
+                key={value}
+                onClick={() => setThemeMode(value)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                  padding: '8px 4px',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: themeMode === value ? 600 : 400,
+                  color: themeMode === value ? 'var(--ios-label)' : 'var(--ios-secondary-label)',
+                  background: themeMode === value ? 'var(--ios-card)' : 'transparent',
+                  boxShadow: themeMode === value ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Icon size={15} strokeWidth={2} />
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

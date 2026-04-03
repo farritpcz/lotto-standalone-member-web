@@ -102,6 +102,72 @@
   --color-green-light:     #30DB5B;
 }
 
+/* =============================================================================
+ * Dark Mode — iOS Dark Appearance
+ * data-theme="dark" set โดย ThemeProvider
+ * ============================================================================= */
+[data-theme="dark"] {
+  /* === iOS System Colors (Dark) === */
+  --ios-bg: #000000;
+  --ios-bg-secondary: #1C1C1E;
+  --ios-bg-tertiary: #2C2C2E;
+  --ios-card: #1C1C1E;
+
+  /* === iOS Label Colors (Dark) === */
+  --ios-label: #FFFFFF;
+  --ios-label-2: #EBEBF599;
+  --ios-label-3: #EBEBF54D;
+  --ios-label-4: #EBEBF52E;
+  --ios-secondary-label: #98989D;
+  --ios-tertiary-label: #48484A;
+
+  /* === iOS Separator (Dark) === */
+  --ios-separator: rgba(84, 84, 88, 0.65);
+  --ios-separator-opaque: #38383A;
+
+  /* === Balance Card === */
+  --card-gradient: linear-gradient(145deg, #0d2818 0%, #1a472a 100%);
+
+  /* === Shadow (Dark) === */
+  --shadow-icon: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  /* === Legacy aliases (dark) === */
+  --color-bg: #000000;
+  --color-bg-card: #1C1C1E;
+  --color-bg-card-alt: #2C2C2E;
+  --color-text: #FFFFFF;
+  --color-text-secondary: #98989D;
+  --color-text-muted: #98989D;
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] body {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] .app-header {
+  background: rgba(28, 28, 30, 0.72);
+}
+
+[data-theme="dark"] .bottom-nav {
+  background: rgba(28, 28, 30, 0.94);
+}
+
+[data-theme="dark"] .menu-grid-item .icon {
+  background: #2C2C2E;
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #2C2C2E 25%, #3A3A3C 50%, #2C2C2E 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme="dark"] .quick-amount button {
+  background: #2C2C2E;
+}
+
 /* === Base === */
 * {
   -webkit-tap-highlight-color: transparent;
