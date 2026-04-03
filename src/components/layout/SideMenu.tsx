@@ -61,7 +61,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
       <div
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0, zIndex: 998,
+          position: 'fixed', inset: 0, zIndex: 10000,
           background: 'rgba(0,0,0,0.4)',
           animation: 'fadeIn 0.2s ease',
         }}
@@ -70,7 +70,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
       {/* Panel */}
       <div style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: '300px', maxWidth: '85vw', zIndex: 999,
+        width: '300px', maxWidth: '85vw', zIndex: 10001,
         background: 'var(--ios-bg)',
         boxShadow: '-10px 0 40px rgba(0,0,0,0.15)',
         display: 'flex', flexDirection: 'column',
