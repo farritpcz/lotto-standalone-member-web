@@ -99,20 +99,21 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
         transition: 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
         overflowY: 'auto',
       }}>
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          style={{
-            position: 'absolute', top: 12, right: 12,
-            background: 'rgba(128,128,128,0.15)', border: 'none', cursor: 'pointer',
-            padding: 6, borderRadius: '50%', width: 32, height: 32,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: visible ? 1 : 0,
-            transition: 'opacity 0.2s ease 0.15s',
-          }}
-        >
-          <X size={18} color="var(--ios-secondary-label)" />
-        </button>
+        {/* Header: close button + user info */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px 16px 0' }}>
+          <div />
+          <button
+            onClick={(e) => { e.stopPropagation(); handleClose(); }}
+            style={{
+              background: 'rgba(128,128,128,0.2)', border: 'none', cursor: 'pointer',
+              borderRadius: '50%', width: 32, height: 32,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, zIndex: 1,
+            }}
+          >
+            <X size={18} color="var(--ios-secondary-label)" />
+          </button>
+        </div>
 
         {/* User Info — fade in */}
         <div style={{
