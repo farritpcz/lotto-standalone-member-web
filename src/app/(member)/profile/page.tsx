@@ -33,10 +33,10 @@ export default function ProfilePage() {
     try {
       await memberApi.updateProfile({ phone, email })
       updateMember({ phone, email })
-      toast('บันทึกข้อมูลสำเร็จ', 'success')
+      toast.success('บันทึกข้อมูลสำเร็จ')
       setEditing(false)
     } catch {
-      toast('บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error')
+      toast.error('บันทึกไม่สำเร็จ กรุณาลองใหม่')
     } finally {
       setSaving(false)
     }
@@ -47,12 +47,12 @@ export default function ProfilePage() {
     try {
       const { api } = await import('@/lib/api')
       await api.put('/member/password', { old_password: oldPw, new_password: newPw })
-      toast('เปลี่ยนรหัสผ่านสำเร็จ', 'success')
+      toast.success('เปลี่ยนรหัสผ่านสำเร็จ')
       setShowPwForm(false)
       setOldPw('')
       setNewPw('')
     } catch {
-      toast('รหัสผ่านเดิมไม่ถูกต้อง', 'error')
+      toast.error('รหัสผ่านเดิมไม่ถูกต้อง')
     } finally {
       setSaving(false)
     }
