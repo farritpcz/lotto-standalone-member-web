@@ -40,7 +40,10 @@
   --ios-separator: rgba(60, 60, 67, 0.29);
   --ios-separator-opaque: #C6C6C8;
 
-  /* === Balance Card — Dark Forest Green === */
+  /* === Agent Theme (defaults — overridden by AgentConfigProvider) === */
+  --nav-bg: #0d1f1a;
+  --header-bg: #0d3d2e;
+  --accent-color: #2dd4bf;
   --card-gradient: linear-gradient(145deg, #1a472a 0%, #2d6a4f 100%);
 
   /* === Spacing (8pt grid) === */

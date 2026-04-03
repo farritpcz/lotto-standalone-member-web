@@ -11,7 +11,8 @@ import { useAuthStore } from '@/store/auth-store'
 import SideMenu from './SideMenu'
 import { Wallet, RefreshCw, LogIn, Bell, Menu } from 'lucide-react'
 
-const HEADER_BG = '#1a3d35'
+// ⭐ ใช้ CSS variable จาก agent config (fallback สีเขียวเข้ม)
+const HEADER_BG = 'var(--header-bg, #1a3d35)'
 
 export default function AppHeader() {
   const { member, isAuthenticated, updateBalance } = useAuthStore()
@@ -44,13 +45,13 @@ export default function AppHeader() {
         {isAuthenticated ? (
           <Link href="/wallet" style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: 'rgba(52,199,89,0.18)', border: '1px solid rgba(52,199,89,0.3)',
+            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
             borderRadius: 20, padding: '5px 12px', textDecoration: 'none', minHeight: 32,
           }}>
-            <Wallet size={14} stroke="#34C759" strokeWidth={2} />
+            <Wallet size={14} stroke="var(--color-primary, #34C759)" strokeWidth={2} />
             {/* ---- Balance display with shimmer ---- */}
             <span style={{
-              fontSize: 13, fontWeight: 700, color: '#34C759',
+              fontSize: 13, fontWeight: 700, color: 'var(--color-primary, #34C759)',
               position: 'relative', overflow: 'hidden', display: 'inline-block',
               minWidth: 40,
             }}>

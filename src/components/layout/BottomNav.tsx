@@ -34,15 +34,15 @@ export default function BottomNav() {
       justifyContent: 'space-around',
       padding: '10px 0',
       paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
-      background: '#0d1f1a',
-      borderTop: '1px solid rgba(52,199,89,0.15)',
+      background: 'var(--nav-bg, #0d1f1a)',
+      borderTop: '1px solid rgba(255,255,255,0.08)',
       zIndex: 9999,
       boxShadow: '0 -2px 12px rgba(0,0,0,0.4)',
     }}>
       {tabs.map((tab) => {
         const active = tab.match.some(p => pathname.startsWith(p))
         const Icon = tab.icon
-        const color = active ? '#34C759' : '#8E8E93'
+        const color = active ? 'var(--color-primary, #34C759)' : '#8E8E93'
 
         return (
           <Link

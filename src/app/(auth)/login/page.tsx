@@ -21,7 +21,7 @@ import type { LotteryTypeInfo, LotteryRound } from '@/types'
 import { Phone, Lock, Eye, EyeOff, LogIn, UserPlus, Monitor, FileText, Users, ChevronRight } from 'lucide-react'
 
 const CARD_BG = '#ffffff'
-const BTN_GREEN = '#1e5c48'
+const BTN_GREEN = 'var(--header-bg, #1e5c48)'
 const BTN_NAVY = '#1e3560'
 const INPUT_BG = '#f5f5f5'
 

@@ -1,0 +1,168 @@
+/**
+ * Agent Config Store — ดึง theme + config ของ agent จาก API
+ *
+ * ⭐ Multi-agent: แต่ละ agent มีสี/โลโก้/ชื่อเว็บเป็นของตัวเอง
+ * Cache: localStorage 5 นาที → ไม่ fetch ทุก page load
+ */
+
+import { create } from 'zustand'
+
+export interface AgentConfig {
+  id: number
+  name: string
+  siteName: string
+  logoUrl: string
+  faviconUrl: string
+  // Theme colors
+  primaryColor: string
+  secondaryColor: string
+  bgColor: string
+  accentColor: string
+  cardGradient1: string
+  cardGradient2: string
+  navBG: string
+  headerBG: string
+  // Site config
+  tickerText: string
+  contactLine: string
+  contactPhone: string
+  referralEnabled: boolean
+  minBet: number
+  maxBet: number
+  minDeposit: number
+  minWithdraw: number
+}
+
+// Default config (สีเขียว — ใช้ก่อน fetch สำเร็จ)
+export const DEFAULT_AGENT_CONFIG: AgentConfig = {
+  id: 1,
+  name: 'LOTTO',
+  siteName: 'LOTTO',
+  logoUrl: '',
+  faviconUrl: '',
+  primaryColor: '#34C759',
+  secondaryColor: '#30DB5B',
+  bgColor: '#000000',
+  accentColor: '#2dd4bf',
+  cardGradient1: '#1a472a',
+  cardGradient2: '#2d6a4f',
+  navBG: '#0d1f1a',
+  headerBG: '#0d3d2e',
+  tickerText: '',
+  contactLine: '',
+  contactPhone: '',
+  referralEnabled: true,
+  minBet: 1,
+  maxBet: 0,
+  minDeposit: 100,
+  minWithdraw: 300,
+}
+
+const CACHE_KEY = 'agent-config'
+const CACHE_TS_KEY = 'agent-config-ts'
+const CACHE_TTL = 5 * 60 * 1000 // 5 นาที
+
+interface AgentStoreState {
+  config: AgentConfig
+  loaded: boolean
+  setConfig: (config: AgentConfig) => void
+}
+
+/** แปลง API response → AgentConfig */
+function mapApiResponse(data: Record<string, unknown>): AgentConfig {
+  return {
+    id: (data.id as number) || 1,
+    name: (data.name as string) || 'LOTTO',
+    siteName: (data.site_name as string) || 'LOTTO',
+    logoUrl: (data.logo_url as string) || '',
+    faviconUrl: (data.favicon_url as string) || '',
+    primaryColor: (data.theme_primary_color as string) || DEFAULT_AGENT_CONFIG.primaryColor,
+    secondaryColor: (data.theme_secondary_color as string) || DEFAULT_AGENT_CONFIG.secondaryColor,
+    bgColor: (data.theme_bg_color as string) || DEFAULT_AGENT_CONFIG.bgColor,
+    accentColor: (data.theme_accent_color as string) || DEFAULT_AGENT_CONFIG.accentColor,
+    cardGradient1: (data.theme_card_gradient1 as string) || DEFAULT_AGENT_CONFIG.cardGradient1,
+    cardGradient2: (data.theme_card_gradient2 as string) || DEFAULT_AGENT_CONFIG.cardGradient2,
+    navBG: (data.theme_nav_bg as string) || DEFAULT_AGENT_CONFIG.navBG,
+    headerBG: (data.theme_header_bg as string) || DEFAULT_AGENT_CONFIG.headerBG,
+    tickerText: (data.ticker_text as string) || '',
+    contactLine: (data.contact_line as string) || '',
+    contactPhone: (data.contact_phone as string) || '',
+    referralEnabled: (data.referral_enabled as boolean) ?? true,
+    minBet: (data.min_bet as number) || 1,
+    maxBet: (data.max_bet as number) || 0,
+    minDeposit: (data.min_deposit as number) || 100,
+    minWithdraw: (data.min_withdraw as number) || 300,
+  }
+}
+
+/** อ่าน cache จาก localStorage */
+function readCache(): AgentConfig | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    const ts = localStorage.getItem(CACHE_TS_KEY)
+    if (!raw || !ts) return null
+    // เช็คอายุ cache
+    if (Date.now() - Number(ts) > CACHE_TTL) return null
+    return JSON.parse(raw) as AgentConfig
+  } catch {
+    return null
+  }
+}
+
+/** เขียน cache ลง localStorage */
+function writeCache(config: AgentConfig) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(config))
+    localStorage.setItem(CACHE_TS_KEY, String(Date.now()))
+  } catch {}
+}
+
+export const useAgentStore = create<AgentStoreState>((set) => ({
+  config: DEFAULT_AGENT_CONFIG,
+  loaded: false,
+  setConfig: (config) => set({ config, loaded: true }),
+}))
+
+/** Apply สี agent เป็น CSS variables บน document */
+export function applyAgentTheme(config: AgentConfig) {
+  const root = document.documentElement.style
+  root.setProperty('--color-primary', config.primaryColor)
+  root.setProperty('--color-primary-dark', config.primaryColor)
+  root.setProperty('--color-primary-light', config.secondaryColor)
+  root.setProperty('--ios-green', config.primaryColor)
+  root.setProperty('--ios-green-dark', config.primaryColor)
+  root.setProperty('--color-green', config.primaryColor)
+  root.setProperty('--color-green-light', config.secondaryColor)
+  root.setProperty('--card-gradient', `linear-gradient(145deg, ${config.cardGradient1} 0%, ${config.cardGradient2} 100%)`)
+  root.setProperty('--nav-bg', config.navBG)
+  root.setProperty('--header-bg', config.headerBG)
+  root.setProperty('--accent-color', config.accentColor)
+}
+
+/** Fetch agent config จาก API (พร้อม cache) */
+export async function fetchAgentConfig(): Promise<AgentConfig> {
+  // 1) อ่าน cache ก่อน
+  const cached = readCache()
+  if (cached) {
+    applyAgentTheme(cached)
+    useAgentStore.getState().setConfig(cached)
+    return cached
+  }
+
+  // 2) Fetch จาก API
+  try {
+    const res = await fetch('/api/v1/agent/config', { credentials: 'include' })
+    if (!res.ok) throw new Error('fetch failed')
+    const json = await res.json()
+    const config = mapApiResponse(json.data || {})
+    writeCache(config)
+    applyAgentTheme(config)
+    useAgentStore.getState().setConfig(config)
+    return config
+  } catch {
+    // fallback to default
+    applyAgentTheme(DEFAULT_AGENT_CONFIG)
+    useAgentStore.getState().setConfig(DEFAULT_AGENT_CONFIG)
+    return DEFAULT_AGENT_CONFIG
+  }
+}

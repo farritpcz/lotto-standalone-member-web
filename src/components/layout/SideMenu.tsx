@@ -125,7 +125,7 @@ export default function SideMenu({ isOpen, onClose }: SideMenuProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 20,
-              background: 'linear-gradient(135deg, #34C759, #30DB5B)',
+              background: 'linear-gradient(135deg, var(--color-primary, #34C759), var(--color-primary-light, #30DB5B))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 17, fontWeight: 700, color: 'white', flexShrink: 0,
               boxShadow: '0 4px 12px rgba(52,199,89,0.3)',
