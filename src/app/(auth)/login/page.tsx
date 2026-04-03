@@ -69,7 +69,9 @@ export default function LoginPage() {
       const { member } = res.data.data
       // ⭐ JWT token อยู่ใน httpOnly cookie แล้ว (set โดย backend) — เก็บแค่ member info
       setAuth(member)
-      router.push('/dashboard')
+      // ⭐ ใช้ full page reload (ไม่ใช่ client-side navigation)
+      // เพื่อให้ middleware เห็น httpOnly cookie ที่เพิ่ง set
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } }
       const msg = e.response?.data?.message || ''
@@ -88,11 +90,17 @@ export default function LoginPage() {
     }
   }
 
-  const handleDemo = () => {
-    setAuth(
-      { id: 1, username: 'demo_user', phone: '0812345678', email: 'demo@lotto.com', balance: 12500.50, status: 'active', created_at: '2025-01-15T00:00:00Z' }
-    )
-    router.push('/dashboard')
+  const handleDemo = async () => {
+    // ⭐ Demo login ผ่าน API จริง (ไม่ใช่ fake) เพื่อให้ได้ httpOnly cookie
+    setLoading(true)
+    try {
+      const res = await authApi.login({ username: 'test1', password: 'Lotto@1234' })
+      setAuth(res.data.data.member)
+      window.location.href = '/dashboard'
+    } catch {
+      setError('ไม่สามารถเข้าสู่โหมดทดลองได้')
+      setLoading(false)
+    }
   }
 
   return (

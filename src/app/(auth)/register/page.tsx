@@ -119,7 +119,7 @@ function RegisterForm() {
       const { member } = res.data.data
       // ⭐ JWT token อยู่ใน httpOnly cookie แล้ว — เก็บแค่ member info
       setAuth(member)
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string; message?: string } } }
       const msg = e.response?.data?.error || e.response?.data?.message || ''

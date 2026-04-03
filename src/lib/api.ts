@@ -13,8 +13,10 @@
 
 import axios, { AxiosInstance } from 'axios'
 
-// Base URL ของ standalone-member-api (#3)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
+// ⭐ ใช้ relative URL → Next.js rewrites proxy ไป backend (same-origin สำหรับ httpOnly cookie)
+// dev: /api/v1 → Next.js rewrite → http://localhost:8082/api/v1
+// prod: /api/v1 → reverse proxy (nginx) → backend
+const API_BASE_URL = '/api/v1'
 
 /**
  * สร้าง Axios instance พร้อม JWT interceptor
