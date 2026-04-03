@@ -151,9 +151,7 @@
   background: rgba(28, 28, 30, 0.72);
 }
 
-[data-theme="dark"] .bottom-nav {
-  background: #1C1C1E;
-}
+/* bottom-nav dark mode handled inline */
 
 [data-theme="dark"] .menu-grid-item .icon {
   background: #2C2C2E;
@@ -218,52 +216,7 @@ body {
   min-height: calc(100dvh - var(--header-height));
 }
 
-/* ============================================================
- * Tab Bar — iOS HIG
- * rgba(249,249,249,0.94) + blur, 0.5px top border, 83px
- * active: systemGreen filled, inactive: #8E8E93 outline
- * ============================================================ */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-width: 480px;
-  margin: 0 auto;
-  height: var(--bottom-nav-height);
-  background: var(--ios-card);
-  border-top: 1px solid var(--ios-separator);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  z-index: 50;
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  color: var(--ios-secondary-label);
-  text-decoration: none;
-}
-
-.bottom-nav-item.active {
-  color: var(--ios-green);
-}
-
-.bottom-nav-item svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
-.bottom-nav-item span {
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
-  display: block;
-}
+/* Tab Bar — styles moved to inline in BottomNav.tsx */
 
 /* ============================================================
  * Card Styles
