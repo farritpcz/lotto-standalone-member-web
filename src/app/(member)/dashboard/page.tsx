@@ -28,22 +28,23 @@ const FALLBACK_BANNERS = [
   { image_url: '/images/banners/banner-default.png' },
 ]
 
-const lotteryIcons: Record<string, string> = {
-  THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
+// ── Category-based styling — ไม่ต้อง map ทุก code ──────────────────────────
+const categoryStyles: Record<string, { icon: string; gradient: string; glow: string; cardBg: string }> = {
+  thai:   { icon: '🇹🇭', gradient: 'linear-gradient(135deg, #f5a623, #d4820a)', glow: 'rgba(245,166,35,0.25)', cardBg: 'linear-gradient(135deg, rgba(245,166,35,0.08) 0%, transparent 100%)' },
+  yeekee: { icon: '🎯', gradient: 'linear-gradient(135deg, #0d6e6e, #34d399)', glow: 'rgba(45,212,191,0.25)', cardBg: 'linear-gradient(135deg, rgba(45,212,191,0.08) 0%, transparent 100%)' },
+  lao:    { icon: '🇱🇦', gradient: 'linear-gradient(135deg, #ef4444, #dc2626)', glow: 'rgba(239,68,68,0.25)', cardBg: 'linear-gradient(135deg, rgba(239,68,68,0.08) 0%, transparent 100%)' },
+  hanoi:  { icon: '🇻🇳', gradient: 'linear-gradient(135deg, #ec4899, #be185d)', glow: 'rgba(236,72,153,0.25)', cardBg: 'linear-gradient(135deg, rgba(236,72,153,0.08) 0%, transparent 100%)' },
+  malay:  { icon: '🇲🇾', gradient: 'linear-gradient(135deg, #14b8a6, #0d9488)', glow: 'rgba(20,184,166,0.25)', cardBg: 'linear-gradient(135deg, rgba(20,184,166,0.08) 0%, transparent 100%)' },
+  stock:  { icon: '📈', gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)', glow: 'rgba(59,130,246,0.25)', cardBg: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, transparent 100%)' },
 }
+const defaultStyle = categoryStyles.stock
 
-const lotteryBgColors: Record<string, string> = {
-  THAI: '#EFF6FF', LAO: '#FFF1F0', STOCK_TH: '#F0FFF4',
-  STOCK_FOREIGN: '#F5F0FF', YEEKEE: '#FFF8F0', CUSTOM: '#F5F5F5',
-}
+// Helper: ดึง style จาก category (ไม่ต้อง hardcode ทุก code)
+const getStyle = (category: string) => categoryStyles[category] || defaultStyle
 
-const lotteryGradients: Record<string, string> = {
-  THAI: 'linear-gradient(135deg, #f5a623, #d4820a)',
-  LAO: 'linear-gradient(135deg, #ef4444, #dc2626)',
-  STOCK_TH: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-  STOCK_FOREIGN: 'linear-gradient(135deg, #a855f7, #7c3aed)',
-  YEEKEE: 'linear-gradient(135deg, #0d6e6e, #34d399)',
-}
+// compat — ยังใช้ใน results section
+const lotteryIcons: Record<string, string> = { THAI_GOV: '🇹🇭', YEEKEE: '🎯' }
+const lotteryGradients: Record<string, string> = {}
 
 
 // ⭐ Default ticker — ดึงจาก agent config ถ้ามี
@@ -228,22 +229,9 @@ export default function DashboardPage() {
         {lotteries.length === 0 ? (
           <Loading />
         ) : (
-          lotteries.slice(0, 5).map((lottery, idx) => {
-            const gradient = lotteryGradients[lottery.code] || 'linear-gradient(135deg, #6b7280, #4b5563)'
-            const glowColor = {
-              THAI: 'rgba(245,166,35,0.25)',
-              LAO: 'rgba(239,68,68,0.25)',
-              STOCK_TH: 'rgba(59,130,246,0.25)',
-              STOCK_FOREIGN: 'rgba(168,85,247,0.25)',
-              YEEKEE: 'rgba(45,212,191,0.25)',
-            }[lottery.code] || 'rgba(107,114,128,0.2)'
-            const cardBg = {
-              THAI: 'linear-gradient(135deg, rgba(245,166,35,0.08) 0%, rgba(245,166,35,0.02) 60%, transparent 100%)',
-              LAO: 'linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 60%, transparent 100%)',
-              STOCK_TH: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.02) 60%, transparent 100%)',
-              STOCK_FOREIGN: 'linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(168,85,247,0.02) 60%, transparent 100%)',
-              YEEKEE: 'linear-gradient(135deg, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.02) 60%, transparent 100%)',
-            }[lottery.code] || 'linear-gradient(135deg, rgba(107,114,128,0.06), transparent)'
+          lotteries.slice(0, 8).map((lottery, idx) => {
+            const cat = (lottery as LotteryTypeInfo & { category?: string }).category || 'stock'
+            const style = getStyle(cat)
             const imageUrl = (lottery as LotteryTypeInfo & { image_url?: string }).image_url
             const isYeekee = lottery.code === 'YEEKEE'
             return (
@@ -253,9 +241,9 @@ export default function DashboardPage() {
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div
-                  className={`lottery-card ios-animate lottery-stagger-${idx + 1}`}
+                  className={`lottery-card ios-animate lottery-stagger-${Math.min(idx + 1, 5)}`}
                   style={{
-                    background: `${cardBg}, var(--ios-card)`,
+                    background: `${style.cardBg}, var(--ios-card)`,
                     border: isYeekee
                       ? '1px solid rgba(45,212,191,0.25)'
                       : '1px solid var(--ios-separator)',
@@ -270,22 +258,22 @@ export default function DashboardPage() {
                       {/* Glow behind icon */}
                       <div style={{
                         position: 'absolute', inset: -4,
-                        borderRadius: 18, background: glowColor,
+                        borderRadius: 18, background: style.glow,
                         filter: 'blur(10px)',
                         opacity: 0.6,
                       }} />
                       <div style={{
-                        width: 56, height: 56, borderRadius: 14, background: gradient,
+                        width: 56, height: 56, borderRadius: 14, background: style.gradient,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         overflow: 'hidden', position: 'relative',
-                        boxShadow: `0 4px 14px ${glowColor}`,
+                        boxShadow: `0 4px 14px ${style.glow}`,
                       }}>
                         {imageUrl ? (
                           <img src={imageUrl} alt={lottery.name} style={{ width: 56, height: 56, objectFit: 'cover' }}
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                         ) : (
                           <span style={{ fontSize: 28, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}>
-                            {lotteryIcons[lottery.code] || '🎲'}
+                            {lottery.icon || style.icon || '🎲'}
                           </span>
                         )}
                       </div>
@@ -379,7 +367,7 @@ export default function DashboardPage() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 18 }}>{lotteryIcons[round.lottery_type?.code] || '🎲'}</span>
+                    <span style={{ fontSize: 18 }}>{round.lottery_type?.icon || '🎲'}</span>
                     <span style={{ fontWeight: 600, fontSize: 15 }}>{round.lottery_type?.name}</span>
                   </div>
                   <span style={{ color: 'var(--ios-secondary-label)', fontSize: 13 }}>

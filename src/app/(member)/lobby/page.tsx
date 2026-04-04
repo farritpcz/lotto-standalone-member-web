@@ -11,23 +11,24 @@ import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo } from '@/types'
 
-// Gradient + สีแต่ละประเภท
-const lotteryStyles: Record<string, { gradient: string; accent: string; emoji: string }> = {
-  THAI:          { gradient: 'linear-gradient(135deg, #f5a623 0%, #d4820a 100%)', accent: '#d4820a', emoji: '🇹🇭' },
-  LAO:           { gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', accent: '#dc2626', emoji: '🇱🇦' },
-  STOCK_TH:      { gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', accent: '#2563eb', emoji: '📈' },
-  STOCK_FOREIGN: { gradient: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)', accent: '#7c3aed', emoji: '🌍' },
-  YEEKEE:        { gradient: 'linear-gradient(135deg, #0d6e6e 0%, #34d399 100%)', accent: '#0d6e6e', emoji: '🎯' },
-  HANOI:         { gradient: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', accent: '#be185d', emoji: '🇻🇳' },
-  MALAY:         { gradient: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', accent: '#0d9488', emoji: '🇲🇾' },
+// Category-based styling (ไม่ต้อง map ทุก code — ดึงจาก category ของ lottery)
+const catStyles: Record<string, { gradient: string; accent: string; emoji: string }> = {
+  thai:   { gradient: 'linear-gradient(135deg, #f5a623 0%, #d4820a 100%)', accent: '#d4820a', emoji: '🇹🇭' },
+  yeekee: { gradient: 'linear-gradient(135deg, #0d6e6e 0%, #34d399 100%)', accent: '#0d6e6e', emoji: '🎯' },
+  lao:    { gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', accent: '#dc2626', emoji: '🇱🇦' },
+  hanoi:  { gradient: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', accent: '#be185d', emoji: '🇻🇳' },
+  malay:  { gradient: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', accent: '#0d9488', emoji: '🇲🇾' },
+  stock:  { gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', accent: '#2563eb', emoji: '📈' },
 }
 
 const defaultStyle = { gradient: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)', accent: '#6b7280', emoji: '🎲' }
 
 const categories = [
   { key: 'all', label: 'ทั้งหมด' },
-  { key: 'government', label: 'หวยรัฐ' },
-  { key: 'foreign', label: 'ต่างประเทศ' },
+  { key: 'thai', label: 'หวยไทย' },
+  { key: 'lao', label: 'หวยลาว' },
+  { key: 'hanoi', label: 'หวยฮานอย' },
+  { key: 'malay', label: 'มาเลย์' },
   { key: 'stock', label: 'หวยหุ้น' },
   { key: 'yeekee', label: 'ยี่กี' },
 ]
@@ -45,11 +46,8 @@ export default function LobbyPage() {
   }, [])
 
   const filtered = selectedCat === 'all' ? lotteries : lotteries.filter(l => {
-    if (selectedCat === 'government') return ['THAI'].includes(l.code)
-    if (selectedCat === 'stock') return l.code.startsWith('STOCK')
-    if (selectedCat === 'yeekee') return l.code === 'YEEKEE'
-    if (selectedCat === 'foreign') return ['LAO', 'HANOI', 'MALAY'].includes(l.code)
-    return true
+    const cat = (l as LotteryTypeInfo & { category?: string }).category || ''
+    return cat === selectedCat
   })
 
   return (
@@ -85,7 +83,8 @@ export default function LobbyPage() {
               <p style={{ color: 'var(--ios-secondary-label)' }}>ไม่มีหวยในหมวดนี้</p>
             </div>
           ) : filtered.map(lottery => {
-            const style = lotteryStyles[lottery.code] || defaultStyle
+            const cat = (lottery as LotteryTypeInfo & { category?: string }).category || 'stock'
+            const style = catStyles[cat] || defaultStyle
             const isYeekee = lottery.code === 'YEEKEE'
             const href = isYeekee ? '/yeekee/room' : `/lottery/${lottery.code}`
             // รองรับรูปจาก API (image_url field) หรือ fallback เป็น emoji

@@ -13,8 +13,26 @@
 // Enums — ตรงกับ lotto-core/types/enums.go
 // =============================================================================
 
-/** ประเภทหวย */
-export type LotteryType = 'THAI' | 'LAO' | 'STOCK_TH' | 'STOCK_FOREIGN' | 'YEEKEE' | 'CUSTOM'
+/** ประเภทหวย (39 types) */
+export type LotteryType =
+  // หวยไทย
+  | 'THAI_GOV' | 'BAAC' | 'GSB'
+  // ยี่กี
+  | 'YEEKEE'
+  // หวยลาว
+  | 'LAO_VIP' | 'LAO_PATTANA' | 'LAO_STAR' | 'LAO_SAMAKKEE' | 'LAO_THAKHEK_VIP'
+  // หวยฮานอย
+  | 'HANOI' | 'HANOI_VIP' | 'HANOI_PATTANA'
+  // มาเลย์
+  | 'MALAY'
+  // หวยหุ้น (26 ตัว)
+  | 'STOCK_RUSSIA_VIP' | 'STOCK_DJ_VIP' | 'STOCK_HSI_VIP_AM' | 'STOCK_TAIWAN_VIP'
+  | 'STOCK_KOREA_VIP' | 'STOCK_HSI_VIP_PM' | 'STOCK_NIKKEI_AM' | 'STOCK_CHINA_AM'
+  | 'STOCK_HSI_AM' | 'STOCK_TAIWAN' | 'STOCK_NIKKEI_PM' | 'STOCK_KOREA'
+  | 'STOCK_CHINA_PM' | 'STOCK_HSI_PM' | 'STOCK_TH_PM' | 'STOCK_SINGAPORE'
+  | 'STOCK_INDIA' | 'STOCK_UK' | 'STOCK_GERMANY' | 'STOCK_RUSSIA' | 'STOCK_DJ'
+  | 'STOCK_GERMANY_VIP' | 'STOCK_UK_VIP' | 'STOCK_NIKKEI_VIP_PM'
+  | 'STOCK_NIKKEI_VIP_AM' | 'STOCK_CHINA_VIP_PM' | 'STOCK_CHINA_VIP_AM'
 
 /** ประเภทการแทง */
 export type BetType = '3TOP' | '3BOTTOM' | '3TOD' | '3FRONT' | '3TOD_FRONT' | 'PERM3'
