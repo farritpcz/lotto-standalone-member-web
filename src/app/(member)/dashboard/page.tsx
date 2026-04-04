@@ -219,17 +219,31 @@ export default function DashboardPage() {
       </div>
 
 
-      {/* ===== 5. หวยที่เปิดอยู่ ===== */}
+      {/* ===== 5. หวยที่เปิดอยู่ — Premium Glassmorphism Cards ===== */}
       <div className="section-title ios-animate ios-animate-4">
         <span>หวยที่เปิดอยู่</span>
         <Link href="/lobby" className="see-all">ดูทั้งหมด</Link>
       </div>
-      <div style={{ padding: '0 16px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 10 }} className="ios-animate ios-animate-4">
+      <div style={{ padding: '0 16px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 12 }} className="ios-animate ios-animate-4">
         {lotteries.length === 0 ? (
           <Loading />
         ) : (
-          lotteries.slice(0, 5).map((lottery) => {
+          lotteries.slice(0, 5).map((lottery, idx) => {
             const gradient = lotteryGradients[lottery.code] || 'linear-gradient(135deg, #6b7280, #4b5563)'
+            const glowColor = {
+              THAI: 'rgba(245,166,35,0.25)',
+              LAO: 'rgba(239,68,68,0.25)',
+              STOCK_TH: 'rgba(59,130,246,0.25)',
+              STOCK_FOREIGN: 'rgba(168,85,247,0.25)',
+              YEEKEE: 'rgba(45,212,191,0.25)',
+            }[lottery.code] || 'rgba(107,114,128,0.2)'
+            const cardBg = {
+              THAI: 'linear-gradient(135deg, rgba(245,166,35,0.08) 0%, rgba(245,166,35,0.02) 60%, transparent 100%)',
+              LAO: 'linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 60%, transparent 100%)',
+              STOCK_TH: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.02) 60%, transparent 100%)',
+              STOCK_FOREIGN: 'linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(168,85,247,0.02) 60%, transparent 100%)',
+              YEEKEE: 'linear-gradient(135deg, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.02) 60%, transparent 100%)',
+            }[lottery.code] || 'linear-gradient(135deg, rgba(107,114,128,0.06), transparent)'
             const imageUrl = (lottery as LotteryTypeInfo & { image_url?: string }).image_url
             const isYeekee = lottery.code === 'YEEKEE'
             return (
@@ -238,37 +252,95 @@ export default function DashboardPage() {
                 href={isYeekee ? '/yeekee/room' : `/lottery/${lottery.code}`}
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
-                <div style={{
-                  background: 'var(--ios-card)', borderRadius: 14, overflow: 'hidden',
-                  border: '1px solid var(--ios-separator)',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-                }}>
-                  <div style={{ height: 3, background: gradient }} />
-                  <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {/* Icon */}
-                    <div style={{
-                      width: 48, height: 48, borderRadius: 12, background: gradient,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0, overflow: 'hidden',
-                      boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
-                    }}>
-                      {imageUrl ? (
-                        <img src={imageUrl} alt={lottery.name} style={{ width: 48, height: 48, objectFit: 'cover' }}
-                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                      ) : (
-                        <span style={{ fontSize: 24 }}>{lotteryIcons[lottery.code] || '🎲'}</span>
+                <div
+                  className={`lottery-card ios-animate lottery-stagger-${idx + 1}`}
+                  style={{
+                    background: `${cardBg}, var(--ios-card)`,
+                    border: isYeekee
+                      ? '1px solid rgba(45,212,191,0.25)'
+                      : '1px solid var(--ios-separator)',
+                    boxShadow: isYeekee
+                      ? `0 2px 16px rgba(0,0,0,0.06), 0 0 20px rgba(45,212,191,0.08)`
+                      : '0 2px 16px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, position: 'relative', zIndex: 1 }}>
+                    {/* Icon — 56x56 with colored glow */}
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      {/* Glow behind icon */}
+                      <div style={{
+                        position: 'absolute', inset: -4,
+                        borderRadius: 18, background: glowColor,
+                        filter: 'blur(10px)',
+                        opacity: 0.6,
+                      }} />
+                      <div style={{
+                        width: 56, height: 56, borderRadius: 14, background: gradient,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        overflow: 'hidden', position: 'relative',
+                        boxShadow: `0 4px 14px ${glowColor}`,
+                      }}>
+                        {imageUrl ? (
+                          <img src={imageUrl} alt={lottery.name} style={{ width: 56, height: 56, objectFit: 'cover' }}
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                        ) : (
+                          <span style={{ fontSize: 28, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}>
+                            {lotteryIcons[lottery.code] || '🎲'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Text content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 16, fontWeight: 700, marginBottom: 3,
+                        color: 'var(--ios-label)',
+                      }}>
+                        {lottery.name}
+                      </div>
+                      <div style={{
+                        fontSize: 13, color: 'var(--ios-secondary-label)',
+                        lineHeight: 1.3, marginBottom: isYeekee ? 4 : 0,
+                      }}>
+                        {lottery.description}
+                      </div>
+                      {/* YEEKEE: live status line */}
+                      {isYeekee && (
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          fontSize: 12, fontWeight: 600,
+                          color: 'var(--accent-color)',
+                        }}>
+                          <span style={{
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: 'var(--accent-color)',
+                            display: 'inline-block',
+                            boxShadow: '0 0 6px var(--accent-color)',
+                          }} />
+                          กำลังเปิดรับ
+                        </div>
                       )}
                     </div>
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{lottery.name}</div>
-                      <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>{lottery.description}</div>
-                    </div>
-                    {/* Badge */}
+                    {/* Right — Live badge or Chevron */}
                     {isYeekee ? (
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 10, background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>Live</span>
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '4px 10px', borderRadius: 12,
+                        background: 'rgba(239,68,68,0.1)',
+                        border: '1px solid rgba(239,68,68,0.15)',
+                      }}>
+                        <span className="live-dot" />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', letterSpacing: 0.5 }}>LIVE</span>
+                      </div>
                     ) : (
-                      <ChevronRight size={16} color="var(--ios-tertiary-label)" />
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: 'var(--ios-bg)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <ChevronRight size={15} strokeWidth={2.5} color="var(--ios-secondary-label)" />
+                      </div>
                     )}
                   </div>
                 </div>

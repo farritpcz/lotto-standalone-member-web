@@ -564,6 +564,58 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--ios-tertiary-label); border-radius: 4px; }
 
 /* ============================================================
+ * Lottery Cards — Premium glassmorphism with glow
+ * ============================================================ */
+.lottery-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lottery-card:active {
+  transform: scale(0.97);
+}
+
+/* Decorative gradient orb — top-right corner */
+.lottery-card::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* YEEKEE Live badge — pulsing red dot */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50%      { opacity: 0.7; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  display: inline-block;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+/* Staggered card entrance */
+.lottery-stagger-1 { animation-delay: 0ms !important; }
+.lottery-stagger-2 { animation-delay: 50ms !important; }
+.lottery-stagger-3 { animation-delay: 100ms !important; }
+.lottery-stagger-4 { animation-delay: 150ms !important; }
+.lottery-stagger-5 { animation-delay: 200ms !important; }
+
+/* ============================================================
  * Utility Aliases (compat)
  * ============================================================ */
 .text-primary       { color: var(--ios-green); }
