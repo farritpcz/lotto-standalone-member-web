@@ -14,8 +14,13 @@ import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo, BetTypeInfo } from '@/types'
 
-const lotteryIcons: Record<string, string> = {
-  THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
+// Category-based icons — ไม่ hardcode lottery code เพราะ code เปลี่ยนได้
+const categoryIcons: Record<string, string> = {
+  thai: '🇹🇭', lao: '🇱🇦', hanoi: '🇻🇳', malay: '🇲🇾', stock: '📈', yeekee: '🎯', custom: '🎲',
+}
+const getIcon = (lt: LotteryTypeInfo) => {
+  const cat = (lt as LotteryTypeInfo & { category?: string }).category || ''
+  return categoryIcons[cat] || '🎲'
 }
 
 export default function RatesPage() {
@@ -66,7 +71,7 @@ export default function RatesPage() {
               boxShadow: selectedType?.id === lt.id ? 'none' : 'var(--shadow-card)',
             }}
           >
-            {lotteryIcons[lt.code] || ''} {lt.name}
+            {getIcon(lt)} {lt.name}
           </button>
         ))}
       </div>

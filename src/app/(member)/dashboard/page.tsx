@@ -42,24 +42,8 @@ const defaultStyle = categoryStyles.stock
 // Helper: ดึง style จาก category (ไม่ต้อง hardcode ทุก code)
 const getStyle = (category: string) => categoryStyles[category] || defaultStyle
 
-// compat — ยังใช้ใน results section
-const lotteryIcons: Record<string, string> = { THAI_GOV: '🇹🇭', YEEKEE: '🎯' }
-const lotteryGradients: Record<string, string> = {}
-
-
 // ⭐ Default ticker — ดึงจาก agent config ถ้ามี
 const defaultTicker = '🎉 ยินดีต้อนรับสู่ LOTTO · จ่ายจริง ถอนได้จริง · สมัครวันนี้รับโบนัส 100% · หวยรัฐบาลจ่ายบาทละ 900'
-
-// ⭐ Lottery images — ใช้รูป SVG จาก public/images/lottery/
-const lotteryImages: Record<string, string> = {
-  THAI: '/images/lottery/THAI.svg',
-  LAO: '/images/lottery/LAO.svg',
-  STOCK_TH: '/images/lottery/STOCK_TH.svg',
-  STOCK_FOREIGN: '/images/lottery/STOCK_FOREIGN.svg',
-  YEEKEE: '/images/lottery/YEEKEE.svg',
-  HANOI: '/images/lottery/HANOI.svg',
-  MALAY: '/images/lottery/MALAY.svg',
-}
 
 export default function DashboardPage() {
   const { member, updateBalance } = useAuthStore()

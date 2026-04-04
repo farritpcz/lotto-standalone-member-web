@@ -83,10 +83,11 @@ const REVIEWS = [
   { id: 4, name: '09182xxxxx', rating: 4, text: 'หวยครบทุกประเภท ทั้งไทย ลาว หุ้น ยี่กี เยี่ยม', date: '2026-03-05' },
 ]
 
-/* ─── Lottery display helpers ─── */
-const lotteryFlags: Record<string, string> = {
-  THAI: '🇹🇭', LAO: '🇱🇦', STOCK_TH: '📈', STOCK_FOREIGN: '🌍', YEEKEE: '🎯', CUSTOM: '🎲',
+/* ─── Lottery display helpers — category-based, ไม่ hardcode lottery code ─── */
+const categoryFlags: Record<string, string> = {
+  thai: '🇹🇭', lao: '🇱🇦', hanoi: '🇻🇳', malay: '🇲🇾', stock: '📈', yeekee: '🎯', custom: '🎲',
 }
+const getFlag = (lt: { category?: string }) => categoryFlags[lt.category || ''] || '🎲'
 
 export default function LoginPage() {
   const { setAuth } = useAuthStore()
@@ -255,7 +256,7 @@ export default function LoginPage() {
               <div key={round.id} className="login-result-card">
                 <div className="login-result-header">
                   <div className="login-result-name">
-                    <span>{lotteryFlags[round.lottery_type?.code] || '🎲'}</span>
+                    <span>{getFlag(round.lottery_type || {})}</span>
                     <span>{round.lottery_type?.name}</span>
                   </div>
                   <span className="login-result-date">

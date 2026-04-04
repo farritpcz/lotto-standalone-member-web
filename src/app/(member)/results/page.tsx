@@ -12,12 +12,18 @@ import Loading from '@/components/Loading'
 import { resultApi, lotteryApi } from '@/lib/api'
 import type { LotteryRound, LotteryTypeInfo } from '@/types'
 
-const lotteryGradients: Record<string, string> = {
-  THAI: 'linear-gradient(135deg, #f5a623, #d4820a)',
-  LAO: 'linear-gradient(135deg, #ef4444, #dc2626)',
-  STOCK_TH: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-  STOCK_FOREIGN: 'linear-gradient(135deg, #a855f7, #7c3aed)',
-  YEEKEE: 'linear-gradient(135deg, #0d6e6e, #34d399)',
+// Category-based gradients — ไม่ hardcode lottery code เพราะ code เปลี่ยนได้
+const categoryGradients: Record<string, string> = {
+  thai:   'linear-gradient(135deg, #f5a623, #d4820a)',
+  lao:    'linear-gradient(135deg, #ef4444, #dc2626)',
+  hanoi:  'linear-gradient(135deg, #ec4899, #be185d)',
+  malay:  'linear-gradient(135deg, #14b8a6, #0d9488)',
+  stock:  'linear-gradient(135deg, #3b82f6, #2563eb)',
+  yeekee: 'linear-gradient(135deg, #0d6e6e, #34d399)',
+}
+const getGradient = (lt: LotteryTypeInfo) => {
+  const cat = (lt as LotteryTypeInfo & { category?: string }).category || ''
+  return categoryGradients[cat] || 'linear-gradient(135deg, #6b7280, #4b5563)'
 }
 
 export default function ResultsPage() {
@@ -118,7 +124,7 @@ export default function ResultsPage() {
       {/* Results grouped by lottery type */}
       <div style={{ padding: '0 16px', paddingBottom: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {loading ? <Loading /> : grouped.map(group => {
-          const gradient = lotteryGradients[group.code] || 'linear-gradient(135deg, #6b7280, #4b5563)'
+          const gradient = getGradient(group)
 
           return (
             <div key={group.code} style={{
