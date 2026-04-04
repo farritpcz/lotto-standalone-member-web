@@ -48,10 +48,16 @@ export default function ProfilePage() {
     try {
       const { api } = await import('@/lib/api')
       await api.put('/member/password', { old_password: oldPw, new_password: newPw })
-      toast.success('เปลี่ยนรหัสผ่านสำเร็จ')
+      toast.success('เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่')
       setShowPwForm(false)
       setOldPw('')
       setNewPw('')
+      // ⭐ Force re-login: ลบ token + redirect ไปหน้า login
+      // รอ 1.5 วิให้ user เห็น toast ก่อน
+      setTimeout(() => {
+        fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
+        window.location.href = '/login'
+      }, 1500)
     } catch {
       toast.error('รหัสผ่านเดิมไม่ถูกต้อง')
     } finally {
