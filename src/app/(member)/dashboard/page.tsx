@@ -13,7 +13,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, ChevronRight, Ticket, Trophy, ClipboardList, Target, PlusCircle, ArrowDownToLine, Gift, User, Headphones } from 'lucide-react'
+import { RefreshCw, ChevronRight, Ticket, Trophy, ClipboardList, Target, Wallet, ArrowDownToLine, Gift, User, Headphones } from 'lucide-react'
 import Link from 'next/link'
 import Loading from '@/components/Loading'
 import { useAuthStore } from '@/store/auth-store'
@@ -186,25 +186,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ===== 3. Menu Grid — Lucide icons + gradient bg (ไม่ใช้ emoji) ===== */}
+      {/* ===== 3. Menu Grid — 3 กลุ่มสี: gold (เล่น) / green (เงิน) / teal (อื่นๆ) ===== */}
       <div className="ios-animate ios-animate-2" style={{ padding: '12px 16px 8px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {([
-          { href: '/lobby',        icon: <Ticket size={24} strokeWidth={1.8} />, label: 'แทงหวย',   gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-          { href: '/results',      icon: <Trophy size={24} strokeWidth={1.8} />, label: 'ผลรางวัล', gradient: 'linear-gradient(135deg, #ef4444, #dc2626)' },
-          { href: '/history',      icon: <ClipboardList size={24} strokeWidth={1.8} />, label: 'โพยหวย',   gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
-          { href: '/yeekee/room',  icon: <Target size={24} strokeWidth={1.8} />, label: 'ยี่กี',     gradient: 'linear-gradient(135deg, #ec4899, #db2777)' },
-          { href: '/wallet',              icon: <PlusCircle size={24} strokeWidth={1.8} />, label: 'เติมเงิน', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' },
-          { href: '/wallet?tab=withdraw', icon: <ArrowDownToLine size={24} strokeWidth={1.8} />, label: 'ถอนเงิน', gradient: 'linear-gradient(135deg, #a855f7, #7c3aed)' },
-          { href: '/referral',     icon: <Gift size={24} strokeWidth={1.8} />, label: 'แนะนำเพื่อน', gradient: 'linear-gradient(135deg, #f97316, #ea580c)' },
-          { href: '/profile',      icon: <User size={24} strokeWidth={1.8} />, label: 'บัญชี',     gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)' },
-        ] as const).map((item, i) => (
+          // ── กลุ่ม "เล่นหวย" — gold/amber family ──
+          { href: '/lobby',        icon: <Ticket size={24} strokeWidth={1.8} />,        label: 'แทงหวย',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', glow: true },
+          { href: '/results',      icon: <Trophy size={24} strokeWidth={1.8} />,        label: 'ผลรางวัล', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+          { href: '/history',      icon: <ClipboardList size={24} strokeWidth={1.8} />, label: 'โพยหวย',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+          { href: '/yeekee/room',  icon: <Target size={24} strokeWidth={1.8} />,        label: 'ยี่กี',     color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+          // ── กลุ่ม "กระเป๋าเงิน" — green family ──
+          { href: '/wallet',              icon: <Wallet size={24} strokeWidth={1.8} />,         label: 'เติมเงิน', color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
+          { href: '/wallet?tab=withdraw', icon: <ArrowDownToLine size={24} strokeWidth={1.8} />, label: 'ถอนเงิน', color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
+          // ── กลุ่ม "อื่นๆ" — teal family ──
+          { href: '/referral',     icon: <Gift size={24} strokeWidth={1.8} />, label: 'แนะนำเพื่อน', color: 'var(--accent-color)', bg: 'color-mix(in srgb, var(--accent-color) 12%, transparent)' },
+          { href: '/profile',      icon: <User size={24} strokeWidth={1.8} />, label: 'บัญชี',        color: 'var(--accent-color)', bg: 'color-mix(in srgb, var(--accent-color) 12%, transparent)' },
+        ] as { href: string; icon: React.ReactNode; label: string; color: string; bg: string; glow?: boolean }[]).map((item, i) => (
           <Link key={i} href={item.href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             <div style={{
               width: 52, height: 52, borderRadius: 16,
-              background: item.gradient,
+              background: item.bg,
+              border: item.glow ? `1.5px solid ${item.color}40` : '1.5px solid transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white',
-              boxShadow: '0 3px 12px rgba(0,0,0,0.15)',
+              color: item.color,
+              boxShadow: item.glow ? `0 0 16px ${item.color}25` : 'none',
               transition: 'transform 0.15s',
             }}>
               {item.icon}

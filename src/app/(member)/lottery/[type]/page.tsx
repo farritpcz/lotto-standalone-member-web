@@ -223,45 +223,6 @@ export default function LotteryBetPage() {
             <BetTypeSelector />
           </div>
 
-          {/* จำนวนเงิน + กลับตัวเลข */}
-          <div className="px-4 mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xs font-semibold text-muted uppercase tracking-wider">จำนวนเงิน (บาท)</h2>
-              {/* ปุ่มกลับตัวเลข */}
-              {betSlip.length > 0 && digitCount >= 2 && (
-                <button
-                  onClick={() => {
-                    const lastItem = betSlip[betSlip.length - 1]
-                    if (lastItem) handleReverse(lastItem.number)
-                  }}
-                  className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition active:scale-95"
-                  style={{ background: 'rgba(212,160,23,0.1)', color: 'var(--color-gold)' }}
-                >
-                  🔄 กลับตัวเลข
-                </button>
-              )}
-            </div>
-            <div className="quick-amount mb-2">
-              {[5, 10, 20, 50, 100].map(amt => (
-                <button
-                  key={amt}
-                  onClick={() => setBetAmount(amt)}
-                  className={betAmount === amt ? 'active' : ''}
-                >
-                  ฿{amt}
-                </button>
-              ))}
-            </div>
-            <input
-              type="number"
-              value={betAmount}
-              onChange={(e) => setBetAmount(Math.max(1, Number(e.target.value)))}
-              className="w-full rounded-lg px-4 py-2.5 text-center text-sm font-bold border border-gray-200 focus:border-teal-500 focus:outline-none"
-              style={{ background: 'var(--color-bg-card)' }}
-              min={1}
-            />
-          </div>
-
           {/* ===== 3 Tabs: กดเลขเอง / เลือกจากแผง / เลขวิน ===== */}
           <div className="px-4 mb-3">
             <div className="card p-1 flex gap-1 mb-3">

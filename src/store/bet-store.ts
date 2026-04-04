@@ -85,21 +85,37 @@ export const useBetStore = create<BetState>()(
       setBetTypes: (types) => set({ betTypes: types }),
 
       // Toggle bet type: เลือก/ยกเลิก
+      // ⭐ Conflict rules (ป้องกันเลือกซ้ำ/ขัดกัน):
+      //   - PERM3 (กลับ) ↔ 3TOP (บน) → เลือกได้แค่อันเดียว (กลับ expand เป็นบน)
+      //   - PERM2 (กลับ) ↔ 2TOP (บน) → เลือกได้แค่อันเดียว
+      //   - ข้าม digit group → auto-clear กลุ่มเดิม
       toggleBetType: (type) => {
         const state = get()
         const clickedGroup = getDigitGroup(type)
         const currentGroups = state.selectedBetTypes.map(t => getDigitGroup(t))
         const currentGroup = currentGroups.length > 0 ? currentGroups[0] : null
 
+        // ข้าม digit group → reset เลือกใหม่
         if (currentGroup !== null && currentGroup !== clickedGroup) {
           set({ selectedBetTypes: [type] })
+          return
+        }
+
+        const already = state.selectedBetTypes.includes(type)
+        if (already) {
+          // ยกเลิกตัวที่เลือกอยู่
+          set({ selectedBetTypes: state.selectedBetTypes.filter(t => t !== type) })
         } else {
-          const already = state.selectedBetTypes.includes(type)
-          if (already) {
-            set({ selectedBetTypes: state.selectedBetTypes.filter(t => t !== type) })
-          } else {
-            set({ selectedBetTypes: [...state.selectedBetTypes, type] })
+          // ⭐ Conflict: ตัดตัวที่ขัดกันออกก่อนเพิ่มตัวใหม่
+          const conflicts: Record<string, string[]> = {
+            'PERM3': ['3TOP'],     // กลับ3 ขัดกับ บน3 (กลับ expand เป็นบน)
+            '3TOP':  ['PERM3'],    // บน3 ขัดกับ กลับ3
+            'PERM2': ['2TOP'],     // กลับ2 ขัดกับ บน2
+            '2TOP':  ['PERM2'],    // บน2 ขัดกับ กลับ2
           }
+          const toRemove = new Set(conflicts[type] || [])
+          const cleaned = state.selectedBetTypes.filter(t => !toRemove.has(t))
+          set({ selectedBetTypes: [...cleaned, type] })
         }
       },
 
