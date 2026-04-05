@@ -1,0 +1,26 @@
+{
+  "name": "LOTTO 777",
+  "short_name": "LOTTO",
+  "description": "ระบบหวยออนไลน์",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#1a3d35",
+  "theme_color": "#1a3d35",
+  "icons": [
+    {
+      "src": "/images/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ import AppHeader from '@/components/layout/AppHeader'
 import BottomNav from '@/components/layout/BottomNav'
 import FloatingContact from '@/components/FloatingContact'
 import AuthGuard from '@/components/AuthGuard'
+import NotificationPoller from '@/components/NotificationPoller'
 
 export default function MemberLayout({
   children,
@@ -31,6 +32,7 @@ export default function MemberLayout({
       <div className="app-outer">
         <div className="app-container">
           <AppHeader />
+          <NotificationPoller />
           <main className="app-content">
             {children}
           </main>

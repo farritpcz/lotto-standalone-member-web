@@ -8,7 +8,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/auth-store'
+import { useNotificationStore } from '@/store/notification-store'
 import SideMenu from './SideMenu'
+import NotificationCenter from '../NotificationCenter'
 import { Wallet, RefreshCw, LogIn, Bell, Menu, Sun, Moon } from 'lucide-react'
 import { useThemeStore, resolveTheme } from '@/store/theme-store'
 
@@ -21,6 +23,8 @@ export default function AppHeader() {
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
   const { mode, setMode } = useThemeStore()
   const isDark = resolveTheme(mode) === 'dark'
+  // ⭐ Notification store — unread count สำหรับ badge + toggle panel
+  const { unreadCount, isOpen: notifOpen, toggle: toggleNotif } = useNotificationStore()
 
   const handleRefreshBalance = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -118,16 +122,25 @@ export default function AppHeader() {
         {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {isAuthenticated && (
-            <button style={{
+            <button onClick={toggleNotif} style={{
               width: 36, height: 36, background: 'transparent', border: 'none',
               cursor: 'pointer', position: 'relative',
               display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 18,
             }} aria-label="การแจ้งเตือน">
               <Bell size={22} stroke="rgba(255,255,255,0.8)" strokeWidth={1.8} />
-              <span style={{
-                position: 'absolute', top: 7, right: 7, width: 7, height: 7,
-                background: '#FF3B30', borderRadius: '50%', border: '1.5px solid #1a3d35',
-              }} />
+              {/* ⭐ Badge — แสดงจำนวน unread (ซ่อนถ้า 0) */}
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: 4, right: 2,
+                  minWidth: 16, height: 16, padding: '0 4px',
+                  background: '#FF3B30', borderRadius: 8,
+                  border: '1.5px solid #1a3d35',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 9, fontWeight: 700, color: 'white', lineHeight: 1,
+                }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
           )}
           <button onClick={() => setMode(isDark ? 'light' : 'dark')} style={{
@@ -149,6 +162,9 @@ export default function AppHeader() {
       </header>
 
       <SideMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      {/* ⭐ Notification Center panel — slide-in จากขวา */}
+      <NotificationCenter isOpen={notifOpen} onClose={() => useNotificationStore.getState().close()} />
 
       {/* ---- Shimmer + spin keyframes ---- */}
       <style>{`

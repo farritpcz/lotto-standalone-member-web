@@ -180,9 +180,9 @@ export const lotteryApi = {
   getTypes: () =>
     cachedGet<{ success: boolean; data: LotteryTypeInfo[] }>('/lotteries', CACHE_5MIN),
 
-  /** ดึงรอบที่เปิดรับแทง — ไม่ cache (เปลี่ยนตามเวลา) */
+  /** ดึงรอบที่เปิดรับแทง — ⭐ cache 2 นาที (รอบไม่เปลี่ยนบ่อย แต่ถูกเรียกถี่) */
   getOpenRounds: (lotteryTypeId: number) =>
-    api.get<{ success: boolean; data: LotteryRound[] }>(`/lotteries/${lotteryTypeId}/rounds`),
+    cachedGet<{ success: boolean; data: LotteryRound[] }>(`/lotteries/${lotteryTypeId}/rounds`, 2 * CACHE_1MIN),
 
   /** ดึงประเภทการแทง + rate — ⭐ cache 30 นาที (แทบไม่เปลี่ยน) */
   getBetTypes: (lotteryTypeId: number) =>
@@ -191,9 +191,12 @@ export const lotteryApi = {
 
 // === Betting ===
 export const betApi = {
-  /** วางเดิมพัน (ส่งหลายรายการพร้อมกันได้) */
-  placeBets: (bets: PlaceBetItem[]) =>
-    api.post<PlaceBetResponse>('/bets', { bets }),
+  /** วางเดิมพัน (ส่งหลายรายการพร้อมกันได้) — ⭐ ล้าง wallet cache หลังแทง */
+  placeBets: async (bets: PlaceBetItem[]) => {
+    const res = await api.post<PlaceBetResponse>('/bets', { bets })
+    invalidateCache('/wallet') // ยอดเงินเปลี่ยน → ล้าง cache balance + transactions
+    return res
+  },
 
   /** เช็คเลขก่อนแทง — ดูว่าโดนอั้น/ลดเรท/จำกัดยอดไหม */
   checkNumbers: (data: { lottery_round_id: number; items: { bet_type_code: string; number: string }[] }) =>
@@ -206,20 +209,20 @@ export const betApi = {
 
 // === Results ===
 export const resultApi = {
-  /** ตรวจผลรางวัล */
+  /** ตรวจผลรางวัล — ⭐ cache 30 นาที (ผลรางวัลเก่าไม่เปลี่ยน) */
   getResults: (params?: { lottery_type_id?: number; page?: number; per_page?: number }) =>
-    api.get<PaginatedResponse<LotteryRound>>('/results', { params }),
+    cachedGet<PaginatedResponse<LotteryRound>>('/results', CACHE_30MIN, params as Record<string, unknown>),
 }
 
 // === Wallet ===
 export const walletApi = {
-  /** ดูยอดเงิน */
+  /** ดูยอดเงิน — ⭐ cache 1 นาที (เปลี่ยนเฉพาะตอนแทง/ฝาก/ถอน) */
   getBalance: () =>
-    api.get<{ success: boolean; data: { balance: number } }>('/wallet/balance'),
+    cachedGet<{ success: boolean; data: { balance: number } }>('/wallet/balance', CACHE_1MIN),
 
-  /** ดูประวัติธุรกรรม */
+  /** ดูประวัติธุรกรรม — ⭐ cache 5 นาที (ข้อมูลย้อนหลัง ไม่เปลี่ยนบ่อย) */
   getTransactions: (params?: { type?: string; page?: number; per_page?: number }) =>
-    api.get<PaginatedResponse<Transaction>>('/wallet/transactions', { params }),
+    cachedGet<PaginatedResponse<Transaction>>('/wallet/transactions', CACHE_5MIN, params as Record<string, unknown>),
 }
 
 // === Yeekee ===
@@ -235,17 +238,21 @@ export const yeekeeApi = {
 
 // === Referral / Affiliate ===
 export const referralApi = {
-  /** ดึงข้อมูลครบสำหรับหน้า referral */
+  /** ดึงข้อมูลครบสำหรับหน้า referral — ⭐ cache 2 นาที (ลิงก์ไม่เปลี่ยน, stats ช้า) */
   getInfo: () =>
-    api.get<{ success: boolean; data: ReferralInfo }>('/referral/info'),
+    cachedGet<{ success: boolean; data: ReferralInfo }>('/referral/info', 2 * CACHE_1MIN),
 
   /** ดูรายการค่าคอม */
   getCommissions: (params?: { page?: number; per_page?: number; status?: string }) =>
     api.get<PaginatedResponse<ReferralCommission>>('/referral/commissions', { params }),
 
-  /** ถอนค่าคอมเข้า wallet */
-  withdraw: (amount: number) =>
-    api.post<{ success: boolean; message: string }>('/referral/withdraw', { amount }),
+  /** ถอนค่าคอมเข้า wallet — ⭐ ล้าง wallet + referral cache หลังถอน */
+  withdraw: async (amount: number) => {
+    const res = await api.post<{ success: boolean; message: string }>('/referral/withdraw', { amount })
+    invalidateCache('/wallet')   // ยอดเงินเปลี่ยน
+    invalidateCache('/referral') // สถิติ referral เปลี่ยน
+    return res
+  },
 
   /** ประวัติการถอนค่าคอม */
   getWithdrawals: (params?: { page?: number; per_page?: number }) =>
@@ -332,4 +339,50 @@ export interface ReferralNotificationsResponse {
 export interface ShareTemplate {
   id: number; name: string; content: string; platform: string
   sort_order: number; status: string
+}
+
+// =============================================================================
+// ⭐ Notification API — แจ้งเตือน In-App + Browser Push
+// =============================================================================
+
+export const notificationApi = {
+  /** รายการแจ้งเตือน (paginated) */
+  list: (params?: { page?: number; per_page?: number; is_read?: boolean }) =>
+    api.get<PaginatedResponse<AppNotification>>('/notifications', { params }),
+
+  /** จำนวน notification ที่ยังไม่อ่าน (สำหรับ badge ตัวเลข) */
+  getUnreadCount: () =>
+    api.get<{ success: boolean; data: { unread_count: number } }>('/notifications/unread-count'),
+
+  /** mark 1 notification ว่าอ่านแล้ว */
+  markAsRead: (id: number) =>
+    api.post<{ success: boolean }>(`/notifications/${id}/read`),
+
+  /** mark ทุก notification ว่าอ่านแล้ว */
+  markAllAsRead: () =>
+    api.post<{ success: boolean }>('/notifications/read-all'),
+
+  /** บันทึก browser push subscription */
+  subscribePush: (subscription: PushSubscriptionJSON) =>
+    api.post<{ success: boolean }>('/push/subscribe', subscription),
+
+  /** ลบ browser push subscription */
+  unsubscribePush: (endpoint: string) =>
+    api.delete<{ success: boolean }>('/push/subscribe', { data: { endpoint } }),
+
+  /** ดึง VAPID public key สำหรับ subscribe push */
+  getVAPIDKey: () =>
+    cachedGet<{ success: boolean; data: { vapid_public_key: string } }>('/push/vapid-key', CACHE_30MIN),
+}
+
+// Types สำหรับ notification
+export interface AppNotification {
+  id: number
+  type: string            // bet_won, deposit_approved, withdraw_approved, commission_earned, system
+  title: string
+  message: string
+  icon: string            // Lucide icon name: trophy, wallet, gift, percent, bell
+  is_read: boolean
+  data?: string           // JSON string สำหรับข้อมูลเพิ่มเติม
+  created_at: string
 }

@@ -397,13 +397,13 @@ export default function ReferralPage() {
                     style={{
                       padding: '10px 14px',
                       borderBottom: '0.5px solid var(--ios-separator)',
-                      background: n.is_read ? 'transparent' : 'rgba(52,199,89,0.04)',
+                      background: n.is_read ? 'transparent' : 'color-mix(in srgb, var(--accent-color) 4%, transparent)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                       {/* จุดสีเขียวถ้ายังไม่อ่าน */}
                       {!n.is_read && (
-                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--ios-green)', flexShrink: 0 }} />
+                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--accent-color)', flexShrink: 0 }} />
                       )}
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-label)' }}>{n.title}</span>
                     </div>
@@ -435,9 +435,9 @@ export default function ReferralPage() {
               style={{
                 flex: 1, padding: '9px 0', borderRadius: 8, fontSize: 14, fontWeight: 600,
                 border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                background: tab === t.key ? 'var(--ios-green)' : 'transparent',
+                background: tab === t.key ? 'var(--accent-color)' : 'transparent',
                 color: tab === t.key ? 'white' : 'var(--ios-secondary-label)',
-                boxShadow: tab === t.key ? '0 2px 8px rgba(52,199,89,0.35)' : 'none',
+                boxShadow: tab === t.key ? '0 2px 8px color-mix(in srgb, var(--accent-color) 35%, transparent)' : 'none',
               }}
             >
               {t.label}
@@ -462,14 +462,14 @@ export default function ReferralPage() {
                     <span style={{ fontSize: 14, color: 'var(--ios-label)' }}>{r.lottery_type || 'ทุกประเภทหวย'}</span>
                     <span style={{
                       fontSize: 14, fontWeight: 700,
-                      background: 'rgba(52,199,89,0.1)', color: 'var(--ios-green)',
+                      background: 'color-mix(in srgb, var(--accent-color) 10%, transparent)', color: 'var(--accent-color)',
                       padding: '2px 10px', borderRadius: 20,
                     }}>{r.rate}%</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ fontSize: 14, color: 'var(--ios-green)', fontWeight: 700 }}>0.5% (default)</p>
+              <p style={{ fontSize: 14, color: 'var(--accent-color)', fontWeight: 700 }}>0.5% (default)</p>
             )}
           </div>
 
@@ -477,7 +477,7 @@ export default function ReferralPage() {
           <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>ลิงก์เชิญเพื่อน</p>
-              <Link href="/referral/commissions" style={{ fontSize: 13, color: 'var(--ios-green)', textDecoration: 'none', fontWeight: 500 }}>
+              <Link href="/referral/commissions" style={{ fontSize: 13, color: 'var(--accent-color)', textDecoration: 'none', fontWeight: 500 }}>
                 เงื่อนไขรายได้
               </Link>
             </div>
@@ -503,7 +503,7 @@ export default function ReferralPage() {
                 onClick={handleCopy}
                 style={{
                   flex: 1, padding: '12px', borderRadius: 10,
-                  background: copied ? 'var(--ios-green)' : '#1a4a3a',
+                  background: copied ? 'var(--accent-color)' : 'var(--header-bg)',
                   color: 'white', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
@@ -539,7 +539,7 @@ export default function ReferralPage() {
               <>
                 {/* มี share templates จาก admin → แสดง templates พร้อมปุ่มคัดลอก */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                  <MessageSquare size={16} strokeWidth={2} style={{ color: 'var(--ios-green)' }} />
+                  <MessageSquare size={16} strokeWidth={2} style={{ color: 'var(--accent-color)' }} />
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>ข้อความสำเร็จรูป</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -553,7 +553,7 @@ export default function ReferralPage() {
                     >
                       {/* ชื่อ platform + เนื้อหา preview */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ios-green)', marginBottom: 3 }}>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-color)', marginBottom: 3 }}>
                           {tpl.name} {tpl.platform && `(${tpl.platform})`}
                         </p>
                         <p style={{
@@ -573,7 +573,7 @@ export default function ReferralPage() {
                       <button
                         onClick={() => handleCopyTemplate(tpl)}
                         style={{
-                          flexShrink: 0, background: templateCopied === tpl.id ? 'var(--ios-green)' : '#1a4a3a',
+                          flexShrink: 0, background: templateCopied === tpl.id ? 'var(--accent-color)' : 'var(--header-bg)',
                           color: 'white', border: 'none', borderRadius: 8,
                           padding: '8px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: 4,
@@ -615,7 +615,7 @@ export default function ReferralPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
                 { label: 'จำนวนสมาชิก', value: loading ? '...' : String(info?.stats.total_referred ?? 0), color: 'var(--ios-blue)' },
-                { label: 'สมาชิก Active', value: loading ? '...' : String(info?.stats.active_referred ?? 0), color: 'var(--ios-green)' },
+                { label: 'สมาชิก Active', value: loading ? '...' : String(info?.stats.active_referred ?? 0), color: 'var(--accent-color)' },
                 { label: 'รายได้ทั้งหมด', value: loading ? '...' : `฿${(info?.stats.total_comm ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`, color: 'var(--ios-orange)' },
                 { label: 'รอถอน', value: loading ? '...' : `฿${(info?.stats.pending_comm ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`, color: 'var(--ios-red)' },
               ].map(s => (
@@ -630,7 +630,7 @@ export default function ReferralPage() {
           {/* ===== Analytics Section — สถิติลิงก์ 7 วัน + bar chart ===== */}
           <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <BarChart3 size={16} strokeWidth={2} style={{ color: 'var(--ios-green)' }} />
+              <BarChart3 size={16} strokeWidth={2} style={{ color: 'var(--accent-color)' }} />
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>สถิติลิงก์ (7 วัน)</p>
             </div>
 
@@ -645,7 +645,7 @@ export default function ReferralPage() {
                     <div style={{ fontSize: 11, color: 'var(--ios-secondary-label)', marginTop: 2 }}>คลิกทั้งหมด</div>
                   </div>
                   <div style={{ background: 'var(--ios-bg)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-green)' }}>{analytics.summary.total_registrations}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent-color)' }}>{analytics.summary.total_registrations}</div>
                     <div style={{ fontSize: 11, color: 'var(--ios-secondary-label)', marginTop: 2 }}>สมัครแล้ว</div>
                   </div>
                   <div style={{ background: 'var(--ios-bg)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
@@ -686,7 +686,7 @@ export default function ReferralPage() {
                               <div style={{
                                 width: '100%', maxWidth: 36,
                                 height: h, borderRadius: 4,
-                                background: 'linear-gradient(180deg, var(--ios-green), rgba(52,199,89,0.5))',
+                                background: 'linear-gradient(180deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 50%, transparent))',
                                 transition: 'height 0.3s ease',
                               }} />
                               {/* วันที่ */}
@@ -711,15 +711,15 @@ export default function ReferralPage() {
           {/* ===== Custom Code Section — ตั้ง referral code เอง ===== */}
           <div style={{ background: 'var(--ios-card)', borderRadius: 16, padding: '14px 16px', boxShadow: 'var(--shadow-card)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <Edit3 size={16} strokeWidth={2} style={{ color: 'var(--ios-green)' }} />
+              <Edit3 size={16} strokeWidth={2} style={{ color: 'var(--accent-color)' }} />
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>ตั้งโค้ดแนะนำ</p>
             </div>
 
             {/* แสดงโค้ดปัจจุบัน (ถ้ามี) */}
             {info?.link.code && (
               <div style={{
-                background: 'rgba(52,199,89,0.08)', borderRadius: 8, padding: '8px 12px',
-                marginBottom: 10, fontSize: 13, color: 'var(--ios-green)',
+                background: 'color-mix(in srgb, var(--accent-color) 8%, transparent)', borderRadius: 8, padding: '8px 12px',
+                marginBottom: 10, fontSize: 13, color: 'var(--accent-color)',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
                 <Check size={14} />
@@ -750,7 +750,7 @@ export default function ReferralPage() {
                 disabled={customCodeSaving || !customCodeInput.trim()}
                 style={{
                   padding: '10px 16px', borderRadius: 10,
-                  background: customCodeSaving ? 'var(--ios-secondary-label)' : '#1a4a3a',
+                  background: customCodeSaving ? 'var(--ios-secondary-label)' : 'var(--header-bg)',
                   color: 'white', fontSize: 13, fontWeight: 600, border: 'none',
                   cursor: customCodeSaving ? 'not-allowed' : 'pointer',
                   whiteSpace: 'nowrap',
@@ -767,7 +767,7 @@ export default function ReferralPage() {
               </div>
             )}
             {customCodeMsg && (
-              <div style={{ background: 'rgba(52,199,89,0.08)', color: 'var(--ios-green)', padding: '8px 12px', borderRadius: 8, fontSize: 13, marginTop: 8 }}>
+              <div style={{ background: 'color-mix(in srgb, var(--accent-color) 8%, transparent)', color: 'var(--accent-color)', padding: '8px 12px', borderRadius: 8, fontSize: 13, marginTop: 8 }}>
                 {customCodeMsg}
               </div>
             )}
@@ -792,9 +792,9 @@ export default function ReferralPage() {
                 onClick={() => setLbPeriod(p.key)}
                 style={{
                   flex: 1, padding: '8px 0', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  border: lbPeriod === p.key ? '1.5px solid var(--ios-green)' : '1.5px solid var(--ios-separator)',
-                  background: lbPeriod === p.key ? 'rgba(52,199,89,0.08)' : 'var(--ios-card)',
-                  color: lbPeriod === p.key ? 'var(--ios-green)' : 'var(--ios-secondary-label)',
+                  border: lbPeriod === p.key ? '1.5px solid var(--accent-color)' : '1.5px solid var(--ios-separator)',
+                  background: lbPeriod === p.key ? 'color-mix(in srgb, var(--accent-color) 8%, transparent)' : 'var(--ios-card)',
+                  color: lbPeriod === p.key ? 'var(--accent-color)' : 'var(--ios-secondary-label)',
                   cursor: 'pointer', transition: 'all 0.2s',
                 }}
               >
@@ -838,7 +838,7 @@ export default function ReferralPage() {
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '12px 16px',
                       borderBottom: idx < leaderboard.length - 1 ? '0.5px solid var(--ios-separator)' : 'none',
-                      background: entry.is_me ? 'rgba(52,199,89,0.06)' : 'transparent',
+                      background: entry.is_me ? 'color-mix(in srgb, var(--accent-color) 6%, transparent)' : 'transparent',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -860,7 +860,7 @@ export default function ReferralPage() {
                       <div>
                         <p style={{
                           fontSize: 14, fontWeight: entry.is_me ? 700 : 500,
-                          color: entry.is_me ? 'var(--ios-green)' : 'var(--ios-label)',
+                          color: entry.is_me ? 'var(--accent-color)' : 'var(--ios-label)',
                         }}>
                           {entry.username} {entry.is_me && '(คุณ)'}
                         </p>
@@ -873,7 +873,7 @@ export default function ReferralPage() {
                     <div style={{ textAlign: 'right' }}>
                       <p style={{
                         fontSize: 16, fontWeight: 700,
-                        color: entry.rank <= 3 ? 'var(--ios-orange)' : 'var(--ios-green)',
+                        color: entry.rank <= 3 ? 'var(--ios-orange)' : 'var(--accent-color)',
                       }}>
                         ฿{entry.total_commission.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                       </p>
@@ -892,12 +892,12 @@ export default function ReferralPage() {
 
           {/* ===== ยอดค่าคอมคงเหลือ (แสดงเด่นชัด) ===== */}
           <div style={{
-            background: 'linear-gradient(135deg, #1a4a3a 0%, #0d2e24 100%)',
+            background: 'linear-gradient(135deg, var(--header-bg) 0%, var(--nav-bg) 100%)',
             borderRadius: 16, padding: '20px 16px', textAlign: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
           }}>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 6 }}>ค่าคอมรอถอน</p>
-            <p style={{ fontSize: 32, fontWeight: 800, color: '#34C759', letterSpacing: -1 }}>
+            <p style={{ fontSize: 32, fontWeight: 800, color: 'var(--accent-color)', letterSpacing: -1 }}>
               {loading ? '...' : `฿${(info?.stats.pending_comm ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}`}
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 12 }}>
@@ -923,7 +923,7 @@ export default function ReferralPage() {
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>ถอนรายได้</p>
               <button
                 onClick={() => setShowConditions(v => !v)}
-                style={{ fontSize: 13, color: 'var(--ios-green)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+                style={{ fontSize: 13, color: 'var(--accent-color)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
               >
                 เงื่อนไขการถอน
               </button>
@@ -932,13 +932,13 @@ export default function ReferralPage() {
             {/* Conditions popup */}
             {showConditions && (
               <div style={{
-                background: 'rgba(52,199,89,0.08)', border: '1px solid rgba(52,199,89,0.2)',
+                background: 'color-mix(in srgb, var(--accent-color) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent-color) 20%, transparent)',
                 borderRadius: 10, padding: '10px 12px', marginBottom: 12,
                 fontSize: 13, color: 'var(--ios-secondary-label)', lineHeight: 1.6,
               }}>
                 {loading ? 'กำลังโหลด...' : (
                   <>
-                    <p>• ถอนขั้นต่ำ <strong style={{ color: 'var(--ios-green)' }}>฿{(info?.withdrawal.min ?? 1).toFixed(2)}</strong></p>
+                    <p>• ถอนขั้นต่ำ <strong style={{ color: 'var(--accent-color)' }}>฿{(info?.withdrawal.min ?? 1).toFixed(2)}</strong></p>
                     {info?.withdrawal.note && <p>• {info.withdrawal.note}</p>}
                     <p>• ค่าคอมจ่ายหลังรอบหวยออกผลและคำนวณเสร็จสมบูรณ์</p>
                     <p>• รายได้จะเข้า wallet ทันทีหลังถอนสำเร็จ</p>
@@ -977,8 +977,8 @@ export default function ReferralPage() {
                 style={{
                   position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
                   padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
-                  border: '1px solid var(--ios-green)', background: 'rgba(52,199,89,0.08)',
-                  color: 'var(--ios-green)', cursor: 'pointer',
+                  border: '1px solid var(--accent-color)', background: 'color-mix(in srgb, var(--accent-color) 8%, transparent)',
+                  color: 'var(--accent-color)', cursor: 'pointer',
                 }}
               >
                 ทั้งหมด
@@ -991,7 +991,7 @@ export default function ReferralPage() {
               disabled={withdrawing || loading || cooldown > 0}
               style={{
                 width: '100%', padding: '13px', borderRadius: 10,
-                background: cooldown > 0 ? 'var(--ios-secondary-label)' : 'var(--ios-green)',
+                background: cooldown > 0 ? 'var(--ios-secondary-label)' : 'var(--accent-color)',
                 color: 'white', fontSize: 15, fontWeight: 700, border: 'none',
                 cursor: (withdrawing || cooldown > 0) ? 'not-allowed' : 'pointer',
                 opacity: (withdrawing || cooldown > 0) ? 0.7 : 1,
@@ -1027,7 +1027,7 @@ export default function ReferralPage() {
                       {new Date(w.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-green)' }}>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent-color)' }}>
                     +฿{w.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -1067,13 +1067,13 @@ export default function ReferralPage() {
                     </p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--ios-green)' }}>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent-color)' }}>
                       +฿{c.commission_amount.toFixed(2)}
                     </p>
                     <span style={{
                       fontSize: 11, padding: '2px 8px', borderRadius: 6,
-                      background: c.status === 'paid' ? 'rgba(52,199,89,0.1)' : 'rgba(255,159,10,0.1)',
-                      color: c.status === 'paid' ? 'var(--ios-green)' : 'var(--ios-orange)',
+                      background: c.status === 'paid' ? 'color-mix(in srgb, var(--accent-color) 10%, transparent)' : 'rgba(255,159,10,0.1)',
+                      color: c.status === 'paid' ? 'var(--accent-color)' : 'var(--ios-orange)',
                       fontWeight: 600,
                     }}>
                       {c.status === 'paid' ? 'จ่ายแล้ว' : 'รอถอน'}

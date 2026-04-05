@@ -128,7 +128,9 @@ function WalletContent() {
     if (amt > (member?.balance || 0)) { toast.error('ยอดเงินไม่เพียงพอ'); return }
     setLoading(true)
     try {
-      await (await import('@/lib/api')).api.post('/wallet/withdraw', { amount: amt })
+      const { api: apiClient, invalidateCache } = await import('@/lib/api')
+      await apiClient.post('/wallet/withdraw', { amount: amt })
+      invalidateCache('/wallet') // ⭐ ล้าง cache balance + transactions
       setAmount('')
       toast.success('แจ้งถอนเงินสำเร็จ รอแอดมินอนุมัติ')
       loadHistory()
@@ -142,7 +144,9 @@ function WalletContent() {
   const handleConfirmTransfer = async () => {
     setLoading(true)
     try {
-      await (await import('@/lib/api')).api.post('/wallet/deposit', { amount: depositAmount })
+      const { api: apiClient, invalidateCache } = await import('@/lib/api')
+      await apiClient.post('/wallet/deposit', { amount: depositAmount })
+      invalidateCache('/wallet') // ⭐ ล้าง cache balance + transactions
       setShowTransferModal(false)
       setDepositAlert('success')
       setAmount('')

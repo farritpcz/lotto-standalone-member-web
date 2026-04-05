@@ -44,6 +44,10 @@ export default function RootLayout({
       lang="th"
       className={`${geistSans.variable} ${geistMono.variable} ${sarabun.variable} h-full antialiased`}
     >
+      <head>
+        {/* PWA manifest สำหรับ Browser Push Notification + Add to Home Screen */}
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className="min-h-full" suppressHydrationWarning>
         <AgentConfigProvider>
           <ThemeProvider>
