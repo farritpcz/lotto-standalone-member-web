@@ -236,10 +236,9 @@ export default function DashboardPage() {
       </div>
 
 
-      {/* ===== 5. หวยที่เปิดอยู่ — Grid 2 คอลัมน์ (เหมือนหน้า lobby) ===== */}
-      <div className="section-title ios-animate ios-animate-4">
-        <span>หวยที่เปิดอยู่</span>
-        <Link href="/lobby" className="see-all">ดูทั้งหมด</Link>
+      {/* ===== 5. หวยแนะนำ — Grid 2 คอลัมน์ (เหมือนหน้า lobby) ===== */}
+      <div className="ios-animate ios-animate-4" style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 16px 6px' }}>
+        <Link href="/lobby" style={{ fontSize: 12, fontWeight: 500, color: 'var(--accent-color)', textDecoration: 'none' }}>ดูทั้งหมด</Link>
       </div>
       <div className="lobby-grid ios-animate ios-animate-4" style={{ padding: '0 12px', marginBottom: 24, display: 'grid', gap: 8 }}>
         {lotteries.length === 0 ? (
