@@ -120,6 +120,10 @@ function YeekeePlayContent() {
   const [shootResetKey, setShootResetKey] = useState(0)
   const [shootMessage, setShootMessage] = useState('')
   const [shootNumber, setShootNumber] = useState('') // เลขที่กดไว้ (ยังไม่ยิง)
+  // ⭐ Deferred onChange — ป้องกัน setState ระหว่าง render ของ NumberPad
+  const handleShootNumberChange = useCallback((val: string) => {
+    setTimeout(() => setShootNumber(val), 0)
+  }, [])
 
   // === Betting state ===
   const { member, updateBalance } = useAuthStore()
@@ -555,7 +559,7 @@ function YeekeePlayContent() {
           <NumberPad
             digitCount={5}
             onComplete={() => {}} // ไม่ auto-fire
-            onChange={useCallback((val: string) => { setTimeout(() => setShootNumber(val), 0) }, [])}
+            onChange={handleShootNumberChange}
             resetTrigger={shootResetKey}
           />
 
