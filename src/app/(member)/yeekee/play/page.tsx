@@ -33,6 +33,31 @@ import { lotteryApi, betApi, yeekeeApi } from '@/lib/api'
 import type { WSMessage, PlaceBetItem } from '@/types'
 
 // =============================================================================
+// Helpers
+// =============================================================================
+
+/**
+ * maskBotUsername — ถ้าชื่อเป็น bot (_system_bot_X) ให้แสดงเป็นเบอร์โทร mask
+ * เช่น "_system_bot_1" → "09x-xxx-1847"
+ * ถ้าเป็น user จริง → mask เบอร์โทรเช่น "0614797423" → "061-xxx-7423"
+ */
+function maskBotUsername(username: string): string {
+  // bot username → สร้างเบอร์ปลอมจาก hash ของ username
+  if (username.startsWith('_system_bot') || username === 'BOT') {
+    const hash = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+    const prefixes = ['06', '08', '09']
+    const prefix = prefixes[hash % 3]
+    const last4 = String(hash * 7 % 10000).padStart(4, '0')
+    return `${prefix}x-xxx-${last4}`
+  }
+  // user จริง → mask ตรงกลาง เช่น "0614797423" → "061-xxx-7423"
+  if (/^\d{10}$/.test(username)) {
+    return `${username.slice(0, 3)}-xxx-${username.slice(-4)}`
+  }
+  return username
+}
+
+// =============================================================================
 // Types
 // =============================================================================
 interface ShootItem {
@@ -565,7 +590,7 @@ function YeekeePlayContent() {
             <div className="text-muted text-center py-6 text-sm">ยังไม่มีคนยิง</div>
           ) : shoots.map((s, i) => (
             <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg mb-1" style={{ background: 'var(--color-bg-card-alt)' }}>
-              <span className="text-sm text-secondary">{s.member_username}</span>
+              <span className="text-sm text-secondary">{maskBotUsername(s.member_username)}</span>
               <span className="font-mono font-bold" style={{ color: 'var(--color-primary)' }}>{s.number}</span>
             </div>
           ))}
