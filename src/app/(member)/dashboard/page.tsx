@@ -13,7 +13,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, ChevronRight, Ticket, Trophy, ClipboardList, Target, Wallet, ArrowDownToLine, Gift, User, Headphones } from 'lucide-react'
+import { RefreshCw, ChevronRight, Ticket, Trophy, ClipboardList, Target, Wallet, ArrowDownToLine, Gift, User, Headphones, Zap, Clock, Timer } from 'lucide-react'
 import Link from 'next/link'
 import Loading from '@/components/Loading'
 import { useAuthStore } from '@/store/auth-store'
@@ -236,121 +236,86 @@ export default function DashboardPage() {
       </div>
 
 
-      {/* ===== 5. หวยที่เปิดอยู่ — Premium Glassmorphism Cards ===== */}
+      {/* ===== 5. หวยที่เปิดอยู่ — Grid 2 คอลัมน์ (เหมือนหน้า lobby) ===== */}
       <div className="section-title ios-animate ios-animate-4">
         <span>หวยที่เปิดอยู่</span>
         <Link href="/lobby" className="see-all">ดูทั้งหมด</Link>
       </div>
-      <div style={{ padding: '0 16px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 12 }} className="ios-animate ios-animate-4">
+      <div className="lobby-grid ios-animate ios-animate-4" style={{ padding: '0 12px', marginBottom: 24, display: 'grid', gap: 8 }}>
         {lotteries.length === 0 ? (
           <Loading />
         ) : (
-          lotteries.slice(0, 8).map((lottery, idx) => {
-            const cat = (lottery as LotteryTypeInfo & { category?: string }).category || 'stock'
-            const style = getStyle(cat)
-            const imageUrl = (lottery as LotteryTypeInfo & { image_url?: string }).image_url
-            const isYeekee = lottery.code === 'YEEKEE'
-            return (
-              <Link
-                key={lottery.id}
-                href={isYeekee ? '/yeekee/room' : `/lottery/${lottery.code}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                <div
-                  className={`lottery-card ios-animate lottery-stagger-${Math.min(idx + 1, 5)}`}
-                  style={{
-                    background: `${style.cardBg}, var(--ios-card)`,
-                    border: isYeekee
-                      ? '1px solid rgba(45,212,191,0.25)'
-                      : '1px solid var(--ios-separator)',
-                    boxShadow: isYeekee
-                      ? `0 2px 16px rgba(0,0,0,0.06), 0 0 20px rgba(45,212,191,0.08)`
-                      : '0 2px 16px rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, position: 'relative', zIndex: 1 }}>
-                    {/* Icon — 56x56 with colored glow */}
-                    <div style={{ position: 'relative', flexShrink: 0 }}>
-                      {/* Glow behind icon */}
-                      <div style={{
-                        position: 'absolute', inset: -4,
-                        borderRadius: 18, background: style.glow,
-                        filter: 'blur(10px)',
-                        opacity: 0.6,
-                      }} />
-                      <div style={{
-                        width: 56, height: 56, borderRadius: 14, background: style.gradient,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        overflow: 'hidden', position: 'relative',
-                        boxShadow: `0 4px 14px ${style.glow}`,
-                      }}>
-                        {imageUrl ? (
-                          <img src={imageUrl} alt={lottery.name} style={{ width: 56, height: 56, objectFit: 'cover' }}
-                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                        ) : (
-                          <span style={{ fontSize: 28, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))' }}>
-                            {lottery.icon || style.icon || '🎲'}
-                          </span>
-                        )}
-                      </div>
+          /* ⭐ แสดงเฉพาะ 6 ประเภท: THAI_GOV, GSB, YEEKEE, LAO_VIP, HANOI, MALAY */
+          (() => {
+            const featured = ['THAI_GOV', 'GSB', 'YEEKEE', 'LAO_VIP', 'HANOI', 'MALAY']
+            const filtered = featured
+              .map(code => lotteries.find(l => l.code === code))
+              .filter(Boolean) as LotteryTypeInfo[]
+
+            return filtered.map(lottery => {
+              const isYeekee = lottery.code === 'YEEKEE'
+              const href = isYeekee ? '/yeekee/room' : `/lottery/${lottery.code}`
+              const imageUrl = (lottery as LotteryTypeInfo & { image_url?: string }).image_url
+              const nextClose = lottery.next_close_time
+
+              return (
+                <Link key={lottery.id} href={href} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{
+                    borderRadius: 14, overflow: 'hidden', height: '100%',
+                    boxShadow: 'var(--shadow-card)', background: 'var(--ios-card)',
+                    display: 'flex', flexDirection: 'column',
+                  }}>
+                    {/* พื้นหลัง — รูปจาก DB (ธงชาติ/ลูกบิงโก) */}
+                    <div style={{
+                      width: '100%', height: 90, overflow: 'hidden',
+                      background: imageUrl ? '#f0f0f0' : 'var(--ios-fill)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={lottery.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
+                      ) : (
+                        <span style={{ fontSize: 36 }}>{lottery.icon || '🎲'}</span>
+                      )}
                     </div>
-                    {/* Text content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
+
+                    {/* ข้อมูล */}
+                    <div style={{ padding: '8px 8px 10px', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <div style={{
-                        fontSize: 16, fontWeight: 700, marginBottom: 3,
-                        color: 'var(--ios-label)',
+                        fontSize: 12, fontWeight: 700, color: 'var(--ios-label)',
+                        lineHeight: 1.3, marginBottom: 3,
                       }}>
                         {lottery.name}
                       </div>
                       <div style={{
-                        fontSize: 13, color: 'var(--ios-secondary-label)',
-                        lineHeight: 1.3, marginBottom: isYeekee ? 4 : 0,
+                        fontSize: 10, color: 'var(--ios-tertiary-label)',
+                        marginBottom: 8, lineHeight: 1.3, flex: 1,
                       }}>
-                        {lottery.description}
+                        {lottery.description || '-'}
                       </div>
-                      {/* YEEKEE: live status line */}
-                      {isYeekee && (
-                        <div style={{
-                          display: 'flex', alignItems: 'center', gap: 5,
-                          fontSize: 12, fontWeight: 600,
-                          color: 'var(--accent-color)',
-                        }}>
-                          <span style={{
-                            width: 6, height: 6, borderRadius: '50%',
-                            background: 'var(--accent-color)',
-                            display: 'inline-block',
-                            boxShadow: '0 0 6px var(--accent-color)',
-                          }} />
-                          กำลังเปิดรับ
-                        </div>
+
+                      {/* สถานะ */}
+                      <div style={{
+                        padding: '5px 0', borderRadius: 8, fontSize: 10, fontWeight: 700,
+                        background: isYeekee ? 'rgba(239,68,68,0.08)' : 'color-mix(in srgb, var(--accent-color) 12%, transparent)',
+                        color: isYeekee ? '#ef4444' : 'var(--accent-color)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+                      }}>
+                        {isYeekee ? <><Zap size={10} fill="#ef4444" /> Live</> : <><Clock size={10} strokeWidth={2.5} /> เปิดรับแทง</>}
+                      </div>
+
+                      {/* Countdown */}
+                      {nextClose && (
+                        <DashboardCountdown closeTime={nextClose} />
                       )}
                     </div>
-                    {/* Right — Live badge or Chevron */}
-                    {isYeekee ? (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        padding: '4px 10px', borderRadius: 12,
-                        background: 'rgba(239,68,68,0.1)',
-                        border: '1px solid rgba(239,68,68,0.15)',
-                      }}>
-                        <span className="live-dot" />
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', letterSpacing: 0.5 }}>LIVE</span>
-                      </div>
-                    ) : (
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: 'var(--ios-bg)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0,
-                      }}>
-                        <ChevronRight size={15} strokeWidth={2.5} color="var(--ios-secondary-label)" />
-                      </div>
-                    )}
                   </div>
-                </div>
-              </Link>
-            )
-          })
+                </Link>
+              )
+            })
+          })()
         )}
       </div>
 
@@ -407,6 +372,38 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Countdown component สำหรับ dashboard ────────────────────────
+function DashboardCountdown({ closeTime }: { closeTime: string }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  const diff = new Date(closeTime).getTime() - now
+  if (diff <= 0) return null
+
+  const d = Math.floor(diff / 86400000)
+  const h = Math.floor((diff % 86400000) / 3600000)
+  const m = Math.floor((diff % 3600000) / 60000)
+  const s = Math.floor((diff % 60000) / 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const text = d > 0 ? `${d} วัน ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`
+
+  return (
+    <div style={{
+      marginTop: 6, padding: '4px 6px', borderRadius: 8,
+      background: 'color-mix(in srgb, var(--header-bg) 10%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--header-bg) 15%, transparent)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+      fontSize: 9, fontWeight: 600, color: 'var(--ios-secondary-label)',
+    }}>
+      <Timer size={9} strokeWidth={2.5} />
+      {text}
     </div>
   )
 }
