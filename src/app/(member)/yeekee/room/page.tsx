@@ -34,7 +34,7 @@ const statusLabels: Record<string, string> = {
 // สีสถานะ
 const statusColors: Record<string, string> = {
   waiting: '#8E8E93',
-  shooting: '#34C759',
+  shooting: 'var(--accent-color)',
   calculating: '#FF9F0A',
   resulted: '#007AFF',
 }
@@ -115,7 +115,7 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
       <div
         className="relative p-3"
         style={{
-          background: 'linear-gradient(135deg, #0d6e6e 0%, #14956e 50%, #1a472a 100%)',
+          background: 'var(--card-gradient)',
           minHeight: '120px',
         }}
       >
@@ -176,11 +176,11 @@ function YeekeeRoundCard({ round }: { round: YeekeeRound }) {
         style={{ borderTop: '1px solid #E5E5EA' }}>
         {/* ไอคอนนาฬิกา */}
         <div className="w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: countdown.total > 0 ? '#E8F5E9' : '#FFF3E0' }}>
-          <Clock size={12} strokeWidth={2} color={countdown.total > 0 ? '#34C759' : '#FF9F0A'} />
+          style={{ backgroundColor: countdown.total > 0 ? 'color-mix(in srgb, var(--accent-color) 10%, transparent)' : '#FFF3E0' }}>
+          <Clock size={12} strokeWidth={2} style={{ color: countdown.total > 0 ? 'var(--accent-color)' : '#FF9F0A' }} />
         </div>
         <span className="text-xs font-semibold"
-          style={{ color: countdown.total > 0 ? '#34C759' : '#FF9F0A' }}>
+          style={{ color: countdown.total > 0 ? 'var(--accent-color)' : '#FF9F0A' }}>
           {countdown.total > 0 ? countdownStr : 'หมดเวลา'}
         </span>
       </div>
