@@ -171,36 +171,68 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ===== 3. Menu Grid — 3 กลุ่มสี: gold (เล่น) / green (เงิน) / teal (อื่นๆ) ===== */}
-      <div className="ios-animate ios-animate-2" style={{ padding: '12px 16px 8px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      {/* ===== 3. Menu Grid — ⭐ ใช้สี agent theme + gradient icon box ===== */}
+      <div className="ios-animate ios-animate-2" style={{ padding: '12px 16px 8px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
         {([
-          // ── กลุ่ม "เล่นหวย" — gold/amber family ──
-          { href: '/lobby',        icon: <Ticket size={24} strokeWidth={1.8} />,        label: 'แทงหวย',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', glow: true },
-          { href: '/results',      icon: <Trophy size={24} strokeWidth={1.8} />,        label: 'ผลรางวัล', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-          { href: '/history',      icon: <ClipboardList size={24} strokeWidth={1.8} />, label: 'โพยหวย',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-          { href: '/yeekee/room',  icon: <Target size={24} strokeWidth={1.8} />,        label: 'ยี่กี',     color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-          // ── กลุ่ม "กระเป๋าเงิน" — green family ──
-          { href: '/wallet',              icon: <Wallet size={24} strokeWidth={1.8} />,         label: 'เติมเงิน', color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
-          { href: '/wallet?tab=withdraw', icon: <ArrowDownToLine size={24} strokeWidth={1.8} />, label: 'ถอนเงิน', color: '#34d399', bg: 'rgba(52,211,153,0.12)' },
-          // ── กลุ่ม "อื่นๆ" — teal family ──
-          { href: '/referral',     icon: <Gift size={24} strokeWidth={1.8} />, label: 'แนะนำเพื่อน', color: 'var(--accent-color)', bg: 'color-mix(in srgb, var(--accent-color) 12%, transparent)' },
-          { href: '/profile',      icon: <User size={24} strokeWidth={1.8} />, label: 'บัญชี',        color: 'var(--accent-color)', bg: 'color-mix(in srgb, var(--accent-color) 12%, transparent)' },
-        ] as { href: string; icon: React.ReactNode; label: string; color: string; bg: string; glow?: boolean }[]).map((item, i) => (
-          <Link key={i} href={item.href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            <div style={{
-              width: 52, height: 52, borderRadius: 16,
-              background: item.bg,
-              border: item.glow ? `1.5px solid ${item.color}40` : '1.5px solid transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: item.color,
-              boxShadow: item.glow ? `0 0 16px ${item.color}25` : 'none',
-              transition: 'transform 0.15s',
-            }}>
-              {item.icon}
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--ios-secondary-label)', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
-          </Link>
-        ))}
+          // ── กลุ่ม "เล่นหวย" — ใช้ accent-color เป็นหลัก ──
+          { href: '/lobby',        icon: <Ticket size={22} strokeWidth={1.8} />,        label: 'แทงหวย',       group: 'primary', glow: true },
+          { href: '/results',      icon: <Trophy size={22} strokeWidth={1.8} />,        label: 'ผลรางวัล',     group: 'primary' },
+          { href: '/history',      icon: <ClipboardList size={22} strokeWidth={1.8} />, label: 'โพยหวย',       group: 'primary' },
+          { href: '/yeekee/room',  icon: <Target size={22} strokeWidth={1.8} />,        label: 'ยี่กี',         group: 'primary' },
+          // ── กลุ่ม "กระเป๋าเงิน" — ฝาก=accent / ถอน=header-bg (ตาม balance card buttons) ──
+          { href: '/wallet',              icon: <Wallet size={22} strokeWidth={1.8} />,         label: 'เติมเงิน',     group: 'deposit' },
+          { href: '/wallet?tab=withdraw', icon: <ArrowDownToLine size={22} strokeWidth={1.8} />, label: 'ถอนเงิน',     group: 'withdraw' },
+          // ── กลุ่ม "อื่นๆ" — subtle tint ──
+          { href: '/referral',     icon: <Gift size={22} strokeWidth={1.8} />, label: 'แนะนำเพื่อน', group: 'other' },
+          { href: '/profile',      icon: <User size={22} strokeWidth={1.8} />, label: 'บัญชี',        group: 'other' },
+        ] as { href: string; icon: React.ReactNode; label: string; group: string; glow?: boolean }[]).map((item, i) => {
+          // ⭐ สีแต่ละ group มาจาก CSS variable ของ agent theme
+          const groupStyles = {
+            primary: {
+              bg: 'color-mix(in srgb, var(--accent-color) 12%, transparent)',
+              border: 'color-mix(in srgb, var(--accent-color) 25%, transparent)',
+              color: 'var(--accent-color)',
+              shadow: 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
+            },
+            deposit: {
+              bg: 'linear-gradient(180deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 82%, black))',
+              border: 'transparent',
+              color: '#1a1a1a',
+              shadow: 'color-mix(in srgb, var(--accent-color) 30%, transparent)',
+              isGradient: true,
+            },
+            withdraw: {
+              bg: 'linear-gradient(180deg, color-mix(in srgb, var(--header-bg) 85%, white), var(--header-bg))',
+              border: 'transparent',
+              color: 'white',
+              shadow: 'color-mix(in srgb, var(--header-bg) 35%, transparent)',
+              isGradient: true,
+            },
+            other: {
+              bg: 'color-mix(in srgb, var(--accent-color) 8%, transparent)',
+              border: 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
+              color: 'color-mix(in srgb, var(--accent-color) 70%, var(--ios-secondary-label))',
+              shadow: 'transparent',
+            },
+          }[item.group] || { bg: 'var(--ios-fill)', border: 'transparent', color: 'var(--ios-label)', shadow: 'transparent', isGradient: false }
+
+          return (
+            <Link key={i} href={item.href} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                width: 54, height: 54, borderRadius: 16,
+                background: groupStyles.bg,
+                border: (groupStyles as Record<string, unknown>).isGradient ? 'none' : `1.5px solid ${groupStyles.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: groupStyles.color,
+                boxShadow: item.glow ? `0 4px 14px ${groupStyles.shadow}` : 'none',
+                transition: 'transform 0.15s, box-shadow 0.2s',
+              }}>
+                {item.icon}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--ios-secondary-label)', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
+            </Link>
+          )
+        })}
       </div>
 
 
