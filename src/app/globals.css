@@ -368,6 +368,25 @@ body {
 }
 
 /* ============================================================
+ * Lobby Grid — 2 คอลัมน์มือถือ / 3 คอลัมน์ PC
+ * ============================================================ */
+.lobby-grid {
+  grid-template-columns: repeat(2, 1fr);
+  align-items: stretch;
+}
+.lobby-grid > a {
+  height: 100%;
+}
+.lobby-grid > a > div {
+  height: 100%;
+}
+@media (min-width: 480px) {
+  .lobby-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================
  * Ticker Bar
  * ============================================================ */
 .ticker-bar {

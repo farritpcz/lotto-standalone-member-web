@@ -190,9 +190,9 @@ export default function LobbyPage() {
                 {catLabels[catKey] || catKey}
               </div>
               {/* Grid 3 คอลัมน์ */}
-              <div style={{
+              <div className="lobby-grid" style={{
                 padding: '0 12px',
-                display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+                display: 'grid', gap: 8,
               }}>
                 {items.map(lottery => (
                   <LotteryCard key={lottery.id} lottery={lottery} />
@@ -203,9 +203,9 @@ export default function LobbyPage() {
         })
       ) : (
         /* ── แสดงทั้งหมด (ไม่แยก section) ───────────────────── */
-        <div style={{
+        <div className="lobby-grid" style={{
           padding: '0 12px',
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+          display: 'grid', gap: 8,
         }}>
           {filtered.map(lottery => (
             <LotteryCard key={lottery.id} lottery={lottery} />
