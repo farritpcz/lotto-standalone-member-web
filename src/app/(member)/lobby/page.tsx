@@ -15,7 +15,7 @@
  */
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Zap, Clock, Ticket, Trophy, Target, TrendingUp, Globe, Sparkles, Timer } from 'lucide-react'
 import Loading from '@/components/Loading'
@@ -43,6 +43,29 @@ export default function LobbyPage() {
   const [lotteries, setLotteries] = useState<LotteryTypeInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCat, setSelectedCat] = useState('all')
+
+  // ─── Drag scroll สำหรับ category icons row ─────────────────
+  // ทำให้เลื่อนซ้ายขวาได้ทั้ง touch (มือถือ) และ mouse drag (PC)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true
+    startX.current = e.pageX - (scrollRef.current?.offsetLeft || 0)
+    scrollLeft.current = scrollRef.current?.scrollLeft || 0
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - (scrollRef.current.offsetLeft || 0)
+    const walk = (x - startX.current) * 1.5 // ความเร็วเลื่อน
+    scrollRef.current.scrollLeft = scrollLeft.current - walk
+  }, [])
+
+  const handleMouseUp = useCallback(() => { isDragging.current = false }, [])
 
   useEffect(() => {
     lotteryApi.getTypes()
@@ -98,11 +121,9 @@ export default function LobbyPage() {
           Category Icons Row — ธงชาติ/emoji วงกลม (เลื่อนได้)
           ⭐ default ของระบบ — agent เปลี่ยนเองไม่ได้
           ═══════════════════════════════════════════════════════════ */}
-      <div style={{
-        display: 'flex', gap: 8, padding: '8px 16px 14px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-      }}>
+      <div className="lobby-cat-scroll" ref={scrollRef}
+        onMouseDown={handleMouseDown} onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
         {categories.map(cat => {
           const isActive = selectedCat === cat.key
           return (

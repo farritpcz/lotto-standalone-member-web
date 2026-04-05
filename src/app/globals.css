@@ -368,6 +368,28 @@ body {
 }
 
 /* ============================================================
+ * Lobby Category Scroll — ให้ icon row เลื่อนซ้ายขวาได้
+ * ============================================================ */
+.lobby-cat-scroll {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* ทำให้ mouse drag เลื่อนได้บน desktop (ไม่ต้องใช้ scrollbar) */
+  cursor: grab;
+  user-select: none;
+}
+.lobby-cat-scroll:active {
+  cursor: grabbing;
+}
+.lobby-cat-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
  * Lobby Grid — 2 คอลัมน์มือถือ / 3 คอลัมน์ PC
  * ============================================================ */
 .lobby-grid {
