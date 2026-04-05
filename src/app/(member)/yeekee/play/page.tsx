@@ -530,7 +530,7 @@ function YeekeePlayContent() {
           <NumberPad
             digitCount={5}
             onComplete={() => {}} // ไม่ auto-fire
-            onChange={(val) => setShootNumber(val)}
+            onChange={useCallback((val: string) => { setTimeout(() => setShootNumber(val), 0) }, [])}
             resetTrigger={shootResetKey}
           />
 
