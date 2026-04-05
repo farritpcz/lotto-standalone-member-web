@@ -15,9 +15,9 @@
  */
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, Zap, Clock, Ticket, Trophy, Target, TrendingUp, Globe, Sparkles } from 'lucide-react'
+import { ChevronLeft, Zap, Clock, Ticket, Trophy, Target, TrendingUp, Globe, Sparkles, Timer } from 'lucide-react'
 import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
 import type { LotteryTypeInfo } from '@/types'
@@ -231,10 +231,12 @@ function LotteryCard({ lottery }: { lottery: LotteryTypeInfo }) {
   }
   const emoji = (lottery as LotteryTypeInfo & { icon?: string }).icon || catEmoji[cat] || '🎲'
 
-  // ─── สถานะ (สำหรับตอนนี้ทุกรอบเปิดรับ — อนาคตดูจาก open rounds) ──
+  // ─── สถานะ + countdown ──────────────────────────────────
+  const nextClose = lottery.next_close_time
+  const hasOpenRound = !!nextClose
   const status = isYeekee
     ? { bg: 'rgba(239,68,68,0.08)', color: '#ef4444', label: 'Live' }
-    : STATUS_OPEN
+    : hasOpenRound ? STATUS_OPEN : STATUS_CLOSED
 
   // ─── พื้นหลัง card ──────────────────────────────────────
   // ⭐ ถ้ามี image_url → ใช้รูปเป็น background / ถ้าไม่มี → SVG pattern + gradient
@@ -323,6 +325,9 @@ function LotteryCard({ lottery }: { lottery: LotteryTypeInfo }) {
             {isYeekee ? <Zap size={10} fill="#ef4444" /> : <Clock size={10} strokeWidth={2.5} />}
             {status.label}
           </div>
+
+          {/* ⭐ Countdown timer — เหลือเวลารับแทงอีก X วัน X:XX:XX */}
+          {nextClose && <CountdownTimer closeTime={nextClose} />}
         </div>
       </div>
     </Link>
@@ -396,4 +401,46 @@ function DefaultLotteryIcon({ cat, emoji }: { cat: string; emoji: string }) {
   }
 
   return svgIcons[cat] || <span style={{ fontSize: 24, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>{emoji}</span>
+}
+
+// =============================================================================
+// CountdownTimer — แสดง countdown ปิดรับแทง
+// =============================================================================
+
+/** แสดง countdown เวลาที่เหลือก่อนปิดรับ เช่น "2 วัน 05:30:12" */
+function CountdownTimer({ closeTime }: { closeTime: string }) {
+  const [now, setNow] = useState(Date.now())
+
+  // อัพเดททุก 1 วินาที
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const diff = new Date(closeTime).getTime() - now
+  if (diff <= 0) return null // หมดเวลาแล้ว
+
+  const days = Math.floor(diff / 86400000)
+  const hours = Math.floor((diff % 86400000) / 3600000)
+  const minutes = Math.floor((diff % 3600000) / 60000)
+  const seconds = Math.floor((diff % 60000) / 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+
+  // format: "2 วัน 05:30:12" หรือ "05:30:12" ถ้าไม่ถึงวัน
+  const timeStr = days > 0
+    ? `${days} วัน ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+
+  return (
+    <div style={{
+      marginTop: 6, padding: '4px 6px', borderRadius: 8,
+      background: 'color-mix(in srgb, var(--header-bg) 10%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--header-bg) 15%, transparent)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+      fontSize: 9, fontWeight: 600, color: 'var(--ios-secondary-label)',
+    }}>
+      <Timer size={9} strokeWidth={2.5} />
+      {timeStr}
+    </div>
+  )
 }

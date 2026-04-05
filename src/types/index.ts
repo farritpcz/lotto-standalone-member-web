@@ -78,8 +78,11 @@ export interface LotteryTypeInfo {
   code: LotteryType
   category: string
   description: string
+  image_url?: string
   icon: string
   status: 'active' | 'inactive'
+  /** ⭐ เวลาปิดรับรอบถัดไป (null=ไม่มีรอบเปิด) — ใช้แสดง countdown */
+  next_close_time?: string | null
 }
 
 /** รอบหวย */
