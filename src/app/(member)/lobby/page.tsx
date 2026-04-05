@@ -24,14 +24,15 @@ import type { LotteryTypeInfo } from '@/types'
 
 // ─── Category config ─────────────────────────────────────────────
 // สำหรับ section headers + icons
+// ⭐ Category config — ใช้รูปธงชาติ/emoji เป็น default (agent เปลี่ยนไม่ได้)
 const categories = [
-  { key: 'all',    label: 'ทั้งหมด', icon: Sparkles, emoji: '✨' },
-  { key: 'thai',   label: 'หวยไทย',  icon: Ticket,   emoji: '🇹🇭' },
-  { key: 'yeekee', label: 'ยี่กี',    icon: Target,   emoji: '🎯' },
-  { key: 'lao',    label: 'หวยลาว',  icon: Globe,    emoji: '🇱🇦' },
-  { key: 'hanoi',  label: 'ฮานอย',   icon: Globe,    emoji: '🇻🇳' },
-  { key: 'malay',  label: 'มาเลย์',  icon: Globe,    emoji: '🇲🇾' },
-  { key: 'stock',  label: 'หุ้น',     icon: TrendingUp, emoji: '📈' },
+  { key: 'all',    label: 'ทั้งหมด', img: null,                                emoji: '✨' },
+  { key: 'thai',   label: 'หวยไทย',  img: 'https://flagcdn.com/w80/th.png',   emoji: '🇹🇭' },
+  { key: 'yeekee', label: 'ยี่กี',    img: null,                                emoji: '🎯' },
+  { key: 'lao',    label: 'หวยลาว',  img: 'https://flagcdn.com/w80/la.png',   emoji: '🇱🇦' },
+  { key: 'hanoi',  label: 'ฮานอย',   img: 'https://flagcdn.com/w80/vn.png',   emoji: '🇻🇳' },
+  { key: 'malay',  label: 'มาเลย์',  img: 'https://flagcdn.com/w80/my.png',   emoji: '🇲🇾' },
+  { key: 'stock',  label: 'หุ้น',     img: null,                                emoji: '📈' },
 ]
 
 // สีแถบสถานะ (เปิดรับ/ปิดรับ)
@@ -94,11 +95,13 @@ export default function LobbyPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-          Category Icons Row — ไอคอนวงกลมด้านบน
+          Category Icons Row — ธงชาติ/emoji วงกลม (เลื่อนได้)
+          ⭐ default ของระบบ — agent เปลี่ยนเองไม่ได้
           ═══════════════════════════════════════════════════════════ */}
       <div style={{
-        display: 'flex', justifyContent: 'center', gap: 6, padding: '8px 12px 12px',
+        display: 'flex', gap: 8, padding: '8px 16px 14px',
         overflowX: 'auto', scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
       }}>
         {categories.map(cat => {
           const isActive = selectedCat === cat.key
@@ -106,24 +109,33 @@ export default function LobbyPage() {
             <button key={cat.key} onClick={() => setSelectedCat(cat.key)} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
               background: 'none', border: 'none', cursor: 'pointer',
-              padding: '4px 6px', flexShrink: 0, minWidth: 48,
+              padding: '4px 4px', flexShrink: 0, minWidth: 56,
             }}>
-              {/* ไอคอนวงกลม */}
+              {/* วงกลม — ธงชาติ หรือ emoji */}
               <div style={{
-                width: 46, height: 46, borderRadius: '50%',
-                background: isActive
-                  ? 'var(--accent-color)'
-                  : 'var(--ios-card)',
-                border: isActive ? 'none' : '1.5px solid var(--ios-separator)',
+                width: 50, height: 50, borderRadius: '50%',
+                background: isActive ? 'var(--accent-color)' : 'var(--ios-card)',
+                border: isActive ? '2.5px solid var(--accent-color)' : '2px solid var(--ios-separator)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden',
                 boxShadow: isActive
                   ? '0 4px 12px color-mix(in srgb, var(--accent-color) 35%, transparent)'
                   : 'var(--shadow-card)',
                 transition: 'all 0.2s',
               }}>
-                <cat.icon size={20} strokeWidth={1.8}
-                  style={{ color: isActive ? 'white' : 'var(--ios-secondary-label)' }}
-                />
+                {cat.img ? (
+                  /* ธงชาติจาก flagcdn.com */
+                  <img src={cat.img} alt={cat.label}
+                    style={{
+                      width: '110%', height: '110%', objectFit: 'cover',
+                      opacity: isActive ? 1 : 0.7,
+                      transition: 'opacity 0.2s',
+                    }}
+                  />
+                ) : (
+                  /* emoji สำหรับหมวดที่ไม่มีธง (ทั้งหมด, ยี่กี, หุ้น) */
+                  <span style={{ fontSize: 22 }}>{cat.emoji}</span>
+                )}
               </div>
               {/* label */}
               <span style={{
@@ -136,29 +148,6 @@ export default function LobbyPage() {
             </button>
           )
         })}
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════
-          Filter Tabs — แถบกรอง horizontal scroll
-          ═══════════════════════════════════════════════════════════ */}
-      <div style={{
-        display: 'flex', gap: 6, padding: '0 16px 14px',
-        overflowX: 'auto', scrollbarWidth: 'none',
-      }}>
-        {categories.map(cat => (
-          <button key={cat.key} onClick={() => setSelectedCat(cat.key)} style={{
-            padding: '7px 16px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-            whiteSpace: 'nowrap', border: 'none', cursor: 'pointer', flexShrink: 0,
-            background: selectedCat === cat.key ? 'var(--accent-color)' : 'var(--ios-card)',
-            color: selectedCat === cat.key ? 'white' : 'var(--ios-secondary-label)',
-            boxShadow: selectedCat === cat.key
-              ? '0 2px 8px color-mix(in srgb, var(--accent-color) 30%, transparent)'
-              : 'var(--shadow-card)',
-            transition: 'all 0.2s',
-          }}>
-            {cat.label}
-          </button>
-        ))}
       </div>
 
       {loading && <Loading />}
