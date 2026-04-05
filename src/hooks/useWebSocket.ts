@@ -89,9 +89,11 @@ export function useWebSocket({
   const connect = useCallback(() => {
     if (!roundId) return
 
-    // ⭐ WebSocket URL — ไม่ต้องส่ง token ใน query แล้ว
-    // httpOnly cookie (access_token) ถูกส่งอัตโนมัติใน WebSocket handshake
-    const wsUrl = `${WS_BASE_URL}/yeekee/ws/${roundId}`
+    // ⭐ WebSocket URL — ส่ง token ผ่าน query param (ws_token cookie)
+    // เพราะ WS ข้าม port (3001→8082) httpOnly cookie ไม่ถูกส่ง
+    // ws_token เป็น non-httpOnly cookie ที่ JS อ่านได้
+    const wsToken = document.cookie.match(/ws_token=([^;]*)/)?.[1] || ''
+    const wsUrl = `${WS_BASE_URL}/yeekee/ws/${roundId}${wsToken ? `?token=${wsToken}` : ''}`
 
     try {
       const ws = new WebSocket(wsUrl)
