@@ -28,11 +28,11 @@ import type { LotteryTypeInfo } from '@/types'
 const categories = [
   { key: 'all',    label: 'ทั้งหมด', img: null,                                emoji: '✨' },
   { key: 'thai',   label: 'หวยไทย',  img: 'https://flagcdn.com/w80/th.png',   emoji: '🇹🇭' },
-  { key: 'yeekee', label: 'ยี่กี',    img: null,                                emoji: '🎯' },
+  { key: 'yeekee', label: 'ยี่กี',    img: 'https://images.unsplash.com/photo-1518688248740-7c31f1a945c4?w=80&h=80&fit=crop&q=80', emoji: '🎯' },
   { key: 'lao',    label: 'หวยลาว',  img: 'https://flagcdn.com/w80/la.png',   emoji: '🇱🇦' },
   { key: 'hanoi',  label: 'ฮานอย',   img: 'https://flagcdn.com/w80/vn.png',   emoji: '🇻🇳' },
   { key: 'malay',  label: 'มาเลย์',  img: 'https://flagcdn.com/w80/my.png',   emoji: '🇲🇾' },
-  { key: 'stock',  label: 'หุ้น',     img: null,                                emoji: '📈' },
+  { key: 'stock',  label: 'หุ้น',     img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=80&h=80&fit=crop&q=80', emoji: '📈' },
 ]
 
 // สีแถบสถานะ (เปิดรับ/ปิดรับ)
