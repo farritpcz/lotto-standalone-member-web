@@ -239,7 +239,7 @@ function WalletContent() {
               padding: '3px 10px', borderRadius: 20,
               border: '1px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
             }}>
-              {isDeposit ? 'ใช้บัญชีนี้โอนเท่านั้น' : 'บัญชีรับเงินถอน'}
+              {isDeposit ? 'บัญชีของคุณ' : 'บัญชีรับเงินถอน'}
             </span>
           </div>
 
@@ -479,6 +479,7 @@ function WalletContent() {
       {showTransferModal && <TransferModal
         depositAmount={depositAmount}
         agentBanks={agentBanks}
+        memberBank={{ bank_code: bankCode, bank_name: bankName, account_number: bankNumber, account_name: bankAccountName }}
         loading={loading}
         onConfirm={handleConfirmTransfer}
         onClose={() => setShowTransferModal(false)}
@@ -532,9 +533,10 @@ function WalletContent() {
 //   5. ข้อความ "ยอดไม่เข้าภายใน 2 นาที กรุณาแนบสลิป"
 //   6. ปุ่ม "โอนแล้ว ยืนยัน"
 // =============================================================================
-function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose, toast }: {
+function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfirm, onClose, toast }: {
   depositAmount: number
   agentBanks: AgentBank[]
+  memberBank: { bank_code: string; bank_name: string; account_number: string; account_name: string }
   loading: boolean
   onConfirm: () => void
   onClose: () => void
@@ -580,15 +582,39 @@ function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose,
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
 
-        {/* ===== 1. Warning banner สีเหลือง ===== */}
+        {/* ===== 1. บัญชีของคุณ (ผู้โอน) ===== */}
+        {memberBank.account_number && (
+          <div style={{
+            margin: '12px 16px', background: 'var(--ios-card)', borderRadius: 16,
+            padding: '14px 16px', boxShadow: 'var(--shadow-card)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>บัญชีของคุณ (ผู้โอน)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BankIcon code={memberBank.bank_code} size={28} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>
+                  {memberBank.bank_name}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--ios-label)', letterSpacing: 1 }}>
+                {memberBank.account_number}
+              </span>
+              <span style={{ fontSize: 13, color: 'var(--ios-secondary-label)' }}>{memberBank.account_name}</span>
+            </div>
+          </div>
+        )}
+
+        {/* ===== 2. Warning + บัญชีเว็บ (โอนเข้า) ===== */}
         <div style={{
-          margin: '12px 16px', padding: '10px 14px', borderRadius: 10,
+          margin: '0 16px 12px', padding: '10px 14px', borderRadius: 10,
           background: 'rgba(255,204,0,0.12)', border: '1px solid rgba(255,204,0,0.3)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
           <span style={{ fontSize: 20 }}>⚠️</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#cc9900' }}>
-            ใช้บัญชีนี้โอนเท่านั้น!!
+            โอนเข้าบัญชีนี้เท่านั้น!!
           </span>
         </div>
 
@@ -597,14 +623,15 @@ function TransferModal({ depositAmount, agentBanks, loading, onConfirm, onClose,
 
         {/* Left column */}
         <div>
-        {/* ===== 2. บัญชีเว็บ + bank icon ===== */}
+        {/* ===== บัญชีเว็บ (ปลายทาง) ===== */}
         {bank && (
           <div style={{
             margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
             padding: '14px 16px', boxShadow: 'var(--shadow-card)',
+            border: '2px solid var(--ios-green)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>ใช้บัญชีนี้โอน</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ios-green)' }}>โอนเข้าบัญชีนี้</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <BankIcon code={bank.bank_code} size={28} />
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>
