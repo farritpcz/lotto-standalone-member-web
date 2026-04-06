@@ -554,7 +554,7 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
 
   // Slip upload state
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [showSlipUpload, setShowSlipUpload] = useState(false)
+  const [showSlipUpload, setShowSlipUpload] = useState(true)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -667,67 +667,90 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
       {/* ── Content ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '12px 16px', gap: 10, overflowY: 'auto' }}>
 
-        {/* ===== 1. บัญชีของคุณ (compact) ===== */}
+        {/* ===== 1. บัญชีของคุณ (compact + corner glow) ===== */}
         {memberBank.account_number && (
           <div style={{
             background: 'linear-gradient(145deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
-            borderRadius: 14, padding: '12px 16px', position: 'relative', overflow: 'hidden', color: 'white',
+            borderRadius: 16, padding: '14px 16px', position: 'relative', overflow: 'hidden', color: 'white',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
           }}>
             <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-color) 20%, transparent) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>บัญชีของคุณ</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--accent-color)', background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: 8 }}>ผู้โอน</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>บัญชีของคุณ</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--accent-color)', background: 'rgba(0,0,0,0.35)', padding: '2px 8px', borderRadius: 10, border: '1px solid color-mix(in srgb, var(--accent-color) 25%, transparent)' }}>ผู้โอน</span>
                 </div>
-                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent-color)', letterSpacing: 1.5, margin: '0 0 2px', fontVariantNumeric: 'tabular-nums' }}>{memberBank.account_number}</p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>{memberBank.bank_name} · {memberBank.account_name}</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-color)', letterSpacing: 2, margin: '0 0 4px', fontVariantNumeric: 'tabular-nums', textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>{memberBank.account_number}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>{memberBank.bank_name} · {memberBank.account_name}</p>
               </div>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <BankIcon code={memberBank.bank_code} size={30} />
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                <BankIcon code={memberBank.bank_code} size={32} />
               </div>
             </div>
           </div>
         )}
 
-        {/* ===== Arrow ===== */}
-        <div style={{ textAlign: 'center', color: 'var(--ios-secondary-label)', fontSize: 18, lineHeight: 1, margin: '-2px 0' }}>↓</div>
+        {/* ===== Arrow — animated bounce ===== */}
+        <div style={{ textAlign: 'center', margin: '-4px 0', position: 'relative' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 32, height: 32, borderRadius: 16,
+            background: 'linear-gradient(135deg, var(--ios-green) 0%, #28a745 100%)',
+            boxShadow: '0 2px 10px rgba(52,199,89,0.4)',
+            animation: 'bounceArrow 1.5s ease-in-out infinite',
+          }}>
+            <ChevronDown size={18} color="white" strokeWidth={3} />
+          </div>
+          <style>{`@keyframes bounceArrow { 0%,100% { transform: translateY(0) } 50% { transform: translateY(4px) } }`}</style>
+        </div>
 
-        {/* ===== 2. โอนเข้าบัญชีนี้ (เด่น + ขอบเขียว) ===== */}
+        {/* ===== 2. โอนเข้าบัญชีนี้ (เด่น + glow border) ===== */}
         {bank && (
           <div style={{
             background: 'linear-gradient(145deg, #1a5c2a 0%, #0d3318 100%)',
-            borderRadius: 14, padding: '12px 16px', position: 'relative', overflow: 'hidden',
-            color: 'white', border: '2px solid rgba(52,199,89,0.4)',
+            borderRadius: 16, padding: '14px 16px', position: 'relative', overflow: 'hidden',
+            color: 'white', border: '2px solid rgba(52,199,89,0.5)',
+            boxShadow: '0 4px 16px rgba(52,199,89,0.15), 0 0 20px rgba(52,199,89,0.08)',
           }}>
-            <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, background: 'radial-gradient(circle, rgba(52,199,89,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>โอนเข้าบัญชีนี้</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#34C759', background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: 8 }}>บัญชีเว็บ</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>โอนเข้าบัญชีนี้</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#34C759', background: 'rgba(0,0,0,0.35)', padding: '2px 8px', borderRadius: 10, border: '1px solid rgba(52,199,89,0.3)' }}>บัญชีเว็บ</span>
                 </div>
-                <p style={{ fontSize: 20, fontWeight: 800, color: '#34C759', letterSpacing: 1.5, margin: '0 0 2px', fontVariantNumeric: 'tabular-nums' }}>{bank.account_number}</p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>{BANK_NAMES[bank.bank_code] || bank.bank_name} · {bank.account_name}</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: '#34C759', letterSpacing: 2, margin: '0 0 4px', fontVariantNumeric: 'tabular-nums', textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>{bank.account_number}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>{BANK_NAMES[bank.bank_code] || bank.bank_name} · {bank.account_name}</p>
               </div>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <BankIcon code={bank.bank_code} size={30} />
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                <BankIcon code={bank.bank_code} size={32} />
               </div>
             </div>
           </div>
         )}
 
-        {/* ===== 3. ยอดเงิน + countdown (แถวเดียว) ===== */}
+        {/* ===== 3. ยอดเงิน + countdown (gradient cards) ===== */}
         <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1, background: 'var(--ios-card)', borderRadius: 14, padding: '12px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
+          <div style={{
+            flex: 1, borderRadius: 14, padding: '14px', textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(52,199,89,0.08) 0%, var(--ios-card) 100%)',
+            boxShadow: 'var(--shadow-card)', border: '1px solid rgba(52,199,89,0.12)',
+          }}>
             <p style={{ fontSize: 11, color: 'var(--ios-secondary-label)', margin: 0 }}>จำนวนเงิน</p>
-            <p style={{ fontSize: 26, fontWeight: 800, color: 'var(--ios-green)', margin: '4px 0 0' }}>
+            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--ios-green)', margin: '4px 0 0', textShadow: '0 0 20px rgba(52,199,89,0.3)' }}>
               ฿{depositAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <div style={{ flex: 1, background: 'var(--ios-card)', borderRadius: 14, padding: '12px', textAlign: 'center', boxShadow: 'var(--shadow-card)' }}>
+          <div style={{
+            flex: 1, borderRadius: 14, padding: '14px', textAlign: 'center',
+            background: seconds < 60 ? 'linear-gradient(135deg, rgba(255,69,58,0.08) 0%, var(--ios-card) 100%)' : 'var(--ios-card)',
+            boxShadow: 'var(--shadow-card)', border: seconds < 60 ? '1px solid rgba(255,69,58,0.15)' : '1px solid transparent',
+          }}>
             <p style={{ fontSize: 11, color: 'var(--ios-secondary-label)', margin: 0 }}>โอนภายใน</p>
-            <p style={{ fontSize: 26, fontWeight: 800, fontFamily: 'monospace', letterSpacing: 2, color: seconds < 60 ? 'var(--ios-red)' : 'var(--ios-green)', margin: '4px 0 0' }}>
+            <p style={{ fontSize: 28, fontWeight: 800, fontFamily: 'monospace', letterSpacing: 2, color: seconds < 60 ? 'var(--ios-red)' : 'var(--ios-green)', margin: '4px 0 0' }}>
               {mm}:{ss}
             </p>
           </div>
@@ -803,25 +826,14 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
         borderTop: '0.5px solid var(--ios-separator)',
         paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
       }}>
-        {/* ปุ่มแนบสลิป */}
-        {!showSlipUpload && (
-          <button onClick={() => setShowSlipUpload(true)} style={{
-            width: '100%', padding: '13px', borderRadius: 12, marginBottom: 8,
-            fontSize: 15, fontWeight: 700, color: '#007AFF', border: '2px solid #007AFF',
-            background: 'rgba(0,122,255,0.06)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}>
-            <Upload size={18} /> แนบสลิป (ตรวจอัตโนมัติ)
-          </button>
-        )}
-
         {/* ปุ่มโอนแล้ว */}
         <button onClick={onConfirm} disabled={loading || seconds === 0} style={{
-          width: '100%', padding: '13px', borderRadius: 12,
+          width: '100%', padding: '14px', borderRadius: 14,
           fontSize: 15, fontWeight: 700, color: 'white', border: 'none',
           cursor: (loading || seconds === 0) ? 'not-allowed' : 'pointer',
-          background: seconds === 0 ? 'var(--ios-secondary-label)' : 'var(--ios-green)',
+          background: seconds === 0 ? 'var(--ios-secondary-label)' : 'linear-gradient(135deg, #34C759 0%, #28a745 100%)',
           opacity: (loading || seconds === 0) ? 0.5 : 1, marginBottom: 6,
+          boxShadow: seconds === 0 ? 'none' : '0 4px 14px rgba(52,199,89,0.3)',
         }}>
           {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา' : 'โอนแล้ว ยืนยัน (รอตรวจ)'}
         </button>
