@@ -158,9 +158,24 @@ function WalletContent() {
     } finally { setLoading(false) }
   }
 
-  // ===== กำหนด deposit mode จากบัญชีเว็บ =====
-  // ⭐ ใช้ transfer_mode ของบัญชี default (ตัวแรก) กำหนดว่าแสดง UI แบบไหน
-  const depositMode = agentBanks[0]?.transfer_mode || 'manual'
+  // ===== กำหนด available deposit modes จากบัญชีเว็บ =====
+  // ⭐ ดูจาก transfer_mode ของบัญชีฝากทั้งหมด
+  const hasAutoOrManual = agentBanks.some(b => b.transfer_mode === 'manual' || b.transfer_mode === 'auto')
+  const hasEasySlip = agentBanks.some(b => b.transfer_mode === 'easyslip')
+
+  const availableModes: { key: string; label: string; desc: string; icon: string }[] = []
+  if (hasAutoOrManual) availableModes.push({ key: 'auto', label: 'ฝากอัตโนมัติ', desc: 'โอนแล้วรอระบบตรวจ', icon: '⚡' })
+  if (hasEasySlip) availableModes.push({ key: 'easyslip', label: 'ฝากแนบสลิป', desc: 'เครดิตเข้าทันที', icon: '📎' })
+  // อนาคต: availableModes.push({ key: 'qrcode', label: 'สแกน QR', desc: 'สแกนจ่ายทันที', icon: '📱' })
+
+  // ลูกค้าเลือกโหมด — default เป็นตัวแรกที่ available
+  const [selectedDepositMode, setSelectedDepositMode] = useState('')
+  const depositMode = selectedDepositMode || availableModes[0]?.key || 'manual'
+
+  // บัญชีเว็บที่ตรงกับโหมดที่เลือก
+  const agentBankForMode = depositMode === 'easyslip'
+    ? agentBanks.find(b => b.transfer_mode === 'easyslip') || agentBanks[0]
+    : agentBanks.find(b => b.transfer_mode === 'manual' || b.transfer_mode === 'auto') || agentBanks[0]
 
   // ===== หาข้อมูลบัญชีที่จะแสดง =====
   const isDeposit = action === 'deposit'
@@ -294,6 +309,36 @@ function WalletContent() {
           )}
         </div>
       </div>
+
+      {/* ===== Section 1.5: เลือกช่องทางฝากเงิน (แสดงเมื่อมีหลายโหมด) ===== */}
+      {isDeposit && availableModes.length > 1 && (
+        <div style={{ padding: '0 16px 12px' }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {availableModes.map(mode => {
+              const isActive = depositMode === mode.key
+              const color = mode.key === 'easyslip' ? '#007AFF' : mode.key === 'qrcode' ? '#AF52DE' : '#34C759'
+              return (
+                <button
+                  key={mode.key}
+                  onClick={() => setSelectedDepositMode(mode.key)}
+                  style={{
+                    flex: 1, padding: '14px 12px', borderRadius: 14,
+                    border: `2px solid ${isActive ? color : 'var(--ios-separator)'}`,
+                    background: isActive ? `${color}0D` : 'var(--ios-card)',
+                    cursor: 'pointer', textAlign: 'center',
+                    boxShadow: isActive ? `0 2px 12px ${color}20` : 'var(--shadow-card)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ fontSize: 24, marginBottom: 6 }}>{mode.icon}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: isActive ? color : 'var(--ios-label)' }}>{mode.label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--ios-secondary-label)', marginTop: 2 }}>{mode.desc}</div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ===== PC: 2 columns / Mobile: 1 column ===== */}
       <div className="wallet-grid">
@@ -493,7 +538,7 @@ function WalletContent() {
       {showTransferModal && <TransferModal
         depositAmount={depositAmount}
         depositMode={depositMode}
-        agentBanks={agentBanks}
+        agentBanks={agentBankForMode ? [agentBankForMode] : agentBanks}
         memberBank={{ bank_code: bankCode, bank_name: bankName, account_number: bankNumber, account_name: bankAccountName }}
         loading={loading}
         onConfirm={handleConfirmTransfer}
