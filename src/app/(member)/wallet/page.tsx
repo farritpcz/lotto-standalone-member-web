@@ -916,8 +916,8 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
         borderTop: '0.5px solid var(--ios-separator)',
         paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
       }}>
-        {/* ปุ่มโอนแล้ว — แสดงทุกโหมด */}
-        <button onClick={onConfirm} disabled={loading || seconds === 0} style={{
+        {/* ปุ่มโอนแล้ว — ซ่อนในโหมด easyslip (บังคับแนบสลิป) */}
+        {depositMode !== 'easyslip' && <button onClick={onConfirm} disabled={loading || seconds === 0} style={{
           width: '100%', padding: '14px', borderRadius: 14,
           fontSize: 15, fontWeight: 700, color: 'white', border: 'none',
           cursor: (loading || seconds === 0) ? 'not-allowed' : 'pointer',
@@ -926,7 +926,7 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
           boxShadow: seconds === 0 ? 'none' : '0 4px 14px rgba(52,199,89,0.3)',
         }}>
           {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา' : 'โอนแล้ว ยืนยัน'}
-        </button>
+        </button>}
 
         {/* ย้อนกลับ */}
         <button onClick={onClose} style={{
