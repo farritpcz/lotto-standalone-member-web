@@ -630,7 +630,7 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 4 * 1024 * 1024) { toast.error('ไฟล์ใหญ่เกินไป (สูงสุด 4MB)'); return }
+    if (file.size > 1 * 1024 * 1024) { toast.error('ไฟล์ใหญ่เกินไป (สูงสุด 1MB)'); return }
     if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) { toast.error('รองรับเฉพาะ JPEG, PNG, WebP'); return }
     setSelectedFile(file)
     setVerifyResult(null)
@@ -849,7 +849,7 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
                     <Upload size={20} /> แนบสลิปโอนเงิน
                   </button>
                   <p style={{ fontSize: 10, color: 'var(--ios-tertiary-label)', textAlign: 'center', marginTop: 6 }}>
-                    JPEG, PNG, WebP (สูงสุด 4MB)
+                    JPEG, PNG, WebP (สูงสุด 1MB)
                   </p>
                 </div>
               ) : (
