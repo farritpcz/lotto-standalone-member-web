@@ -925,9 +925,7 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
           opacity: (loading || seconds === 0) ? 0.5 : 1, marginBottom: 6,
           boxShadow: seconds === 0 ? 'none' : '0 4px 14px rgba(52,199,89,0.3)',
         }}>
-          {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา' :
-           depositMode === 'easyslip' ? 'โอนแล้ว ยืนยัน (ไม่แนบสลิป)' :
-           depositMode === 'auto' ? 'โอนแล้ว ยืนยัน' : 'โอนแล้ว ยืนยัน'}
+          {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา' : 'โอนแล้ว ยืนยัน'}
         </button>
 
         {/* ย้อนกลับ */}
