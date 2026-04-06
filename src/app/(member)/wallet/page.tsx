@@ -767,23 +767,35 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
           <style>{`@keyframes bounceArrow { 0%,100% { transform: translateY(0) } 50% { transform: translateY(4px) } }`}</style>
         </div>
 
-        {/* ===== 2. โอนเข้าบัญชีนี้ (เด่น + glow border) ===== */}
-        {bank && (
+        {/* ===== 2. โอนเข้าบัญชีนี้ (สีตามธนาคาร + glow border) ===== */}
+        {bank && (() => {
+          // ⭐ สีตามธนาคาร — gradient + accent + glow
+          const bankThemes: Record<string, { gradient: string; accent: string; glow: string }> = {
+            KBANK: { gradient: 'linear-gradient(145deg, #1a5c2a 0%, #0d3318 100%)', accent: '#34C759', glow: 'rgba(52,199,89,0.15)' },
+            SCB:   { gradient: 'linear-gradient(145deg, #3d1f6e 0%, #1e0f3d 100%)', accent: '#9b59f0', glow: 'rgba(155,89,240,0.15)' },
+            BBL:   { gradient: 'linear-gradient(145deg, #1e3a7a 0%, #0f1d3d 100%)', accent: '#5b9cff', glow: 'rgba(91,156,255,0.15)' },
+            KTB:   { gradient: 'linear-gradient(145deg, #1565a8 0%, #0a3358 100%)', accent: '#4fc3f7', glow: 'rgba(79,195,247,0.15)' },
+            BAY:   { gradient: 'linear-gradient(145deg, #8a6d1b 0%, #4a3a0e 100%)', accent: '#ffd54f', glow: 'rgba(255,213,79,0.15)' },
+            TTB:   { gradient: 'linear-gradient(145deg, #8c2f0e 0%, #4a1807 100%)', accent: '#ff8a65', glow: 'rgba(255,138,101,0.15)' },
+            GSB:   { gradient: 'linear-gradient(145deg, #7a1050 0%, #3d0828 100%)', accent: '#f06292', glow: 'rgba(240,98,146,0.15)' },
+          }
+          const theme = bankThemes[bank.bank_code?.toUpperCase()] || bankThemes.KBANK
+          return (
           <div style={{
-            background: 'linear-gradient(145deg, #1a5c2a 0%, #0d3318 100%)',
+            background: theme.gradient,
             borderRadius: 16, padding: '14px 16px', position: 'relative', overflow: 'hidden',
-            color: 'white', border: '2px solid rgba(52,199,89,0.5)',
-            boxShadow: '0 4px 16px rgba(52,199,89,0.15), 0 0 20px rgba(52,199,89,0.08)',
+            color: 'white', border: `2px solid ${theme.accent}66`,
+            boxShadow: `0 4px 16px ${theme.glow}, 0 0 20px ${theme.glow}`,
           }}>
             <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`, pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, background: 'radial-gradient(circle, rgba(52,199,89,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`, pointerEvents: 'none' }} />
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                   <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}>โอนเข้าบัญชีนี้</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#34C759', background: 'rgba(0,0,0,0.35)', padding: '2px 8px', borderRadius: 10, border: '1px solid rgba(52,199,89,0.3)' }}>บัญชีเว็บ</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: theme.accent, background: 'rgba(0,0,0,0.35)', padding: '2px 8px', borderRadius: 10, border: `1px solid ${theme.accent}44` }}>บัญชีเว็บ</span>
                 </div>
-                <p style={{ fontSize: 22, fontWeight: 800, color: '#34C759', letterSpacing: 2, margin: '0 0 4px', fontVariantNumeric: 'tabular-nums', textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>{bank.account_number}</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: theme.accent, letterSpacing: 2, margin: '0 0 4px', fontVariantNumeric: 'tabular-nums', textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>{bank.account_number}</p>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>{BANK_NAMES[bank.bank_code] || bank.bank_name} · {bank.account_name}</p>
               </div>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
@@ -791,7 +803,8 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
               </div>
             </div>
           </div>
-        )}
+          )
+        })()}
 
         {/* ===== 3. ยอดเงิน + countdown (gradient cards) ===== */}
         <div style={{ display: 'flex', gap: 10 }}>
