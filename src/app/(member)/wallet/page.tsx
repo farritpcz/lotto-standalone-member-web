@@ -29,7 +29,8 @@ import { useToast } from '@/components/Toast'
 import Link from 'next/link'
 
 // ข้อมูลบัญชี agent สำหรับรับโอน
-interface AgentBank { bank_code: string; bank_name: string; account_number: string; account_name: string }
+// transfer_mode: 'manual' = แอดมินตรวจ, 'easyslip' = แนบสลิปตรวจอัตโนมัติ, 'auto' = RKAUTO ตรวจจับยอดเข้า
+interface AgentBank { bank_code: string; bank_name: string; account_number: string; account_name: string; transfer_mode?: string }
 
 export default function WalletPage() {
   return (
@@ -157,6 +158,10 @@ function WalletContent() {
     } finally { setLoading(false) }
   }
 
+  // ===== กำหนด deposit mode จากบัญชีเว็บ =====
+  // ⭐ ใช้ transfer_mode ของบัญชี default (ตัวแรก) กำหนดว่าแสดง UI แบบไหน
+  const depositMode = agentBanks[0]?.transfer_mode || 'manual'
+
   // ===== หาข้อมูลบัญชีที่จะแสดง =====
   const isDeposit = action === 'deposit'
   let bankCode = member?.bank_code || ''
@@ -229,9 +234,18 @@ function WalletContent() {
             pointerEvents: 'none',
           }} />
 
-          {/* Top row: label + badge */}
+          {/* Top row: label + badge + deposit mode badge */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>บัญชีผู้ใช้</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>บัญชีผู้ใช้</span>
+              {/* ⭐ Badge โหมดฝากเงิน */}
+              {isDeposit && depositMode === 'easyslip' && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: '#007AFF', background: 'rgba(0,122,255,0.15)', padding: '2px 7px', borderRadius: 10, border: '1px solid rgba(0,122,255,0.25)' }}>แนบสลิปอัตโนมัติ</span>
+              )}
+              {isDeposit && depositMode === 'auto' && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: '#FF9F0A', background: 'rgba(255,159,10,0.15)', padding: '2px 7px', borderRadius: 10, border: '1px solid rgba(255,159,10,0.25)' }}>ตรวจจับอัตโนมัติ</span>
+              )}
+            </div>
             <span style={{
               fontSize: 10, fontWeight: 700, letterSpacing: 0.3,
               color: 'var(--accent-color)',
@@ -478,6 +492,7 @@ function WalletContent() {
       {/* ===== Transfer Modal — ตามแบบเจริญดี88 ===== */}
       {showTransferModal && <TransferModal
         depositAmount={depositAmount}
+        depositMode={depositMode}
         agentBanks={agentBanks}
         memberBank={{ bank_code: bankCode, bank_name: bankName, account_number: bankNumber, account_name: bankAccountName }}
         loading={loading}
@@ -534,8 +549,9 @@ function WalletContent() {
 //   4. แนบสลิป / โอนแล้วยืนยัน (2 ปุ่ม)
 //   5. Slip upload area (แสดงเมื่อกด)
 // =============================================================================
-function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfirm, onClose, onSlipSuccess, toast }: {
+function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loading, onConfirm, onClose, onSlipSuccess, toast }: {
   depositAmount: number
+  depositMode: string // 'manual' | 'easyslip' | 'auto'
   agentBanks: AgentBank[]
   memberBank: { bank_code: string; bank_name: string; account_number: string; account_name: string }
   loading: boolean
@@ -554,7 +570,7 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
 
   // Slip upload state
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [showSlipUpload, setShowSlipUpload] = useState(true)
+  const [showSlipUpload] = useState(true) // ใช้ depositMode กำหนดแทน
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -756,77 +772,106 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
           </div>
         </div>
 
-        {/* ===== 3. Slip upload area (toggle) ===== */}
-        <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFileSelect} style={{ display: 'none' }} />
-
-        {showSlipUpload && (
-          <div style={{ background: 'var(--ios-card)', borderRadius: 14, padding: '14px', boxShadow: 'var(--shadow-card)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <Upload size={14} color="#007AFF" />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ios-label)' }}>แนบสลิป</span>
-              <span style={{ fontSize: 9, fontWeight: 600, color: '#007AFF', background: 'rgba(0,122,255,0.1)', padding: '2px 6px', borderRadius: 8 }}>ตรวจอัตโนมัติ</span>
-            </div>
-
-            {!selectedFile ? (
-              <button onClick={() => fileInputRef.current?.click()} style={{
-                width: '100%', padding: '20px', borderRadius: 10, border: '2px dashed var(--ios-separator)',
-                background: 'var(--ios-bg)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-              }}>
-                <Upload size={24} color="var(--ios-secondary-label)" />
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-label)' }}>กดเพื่อเลือกสลิป</span>
-                <span style={{ fontSize: 10, color: 'var(--ios-tertiary-label)' }}>JPEG, PNG, WebP (สูงสุด 4MB)</span>
-              </button>
-            ) : (
-              <div>
-                {/* Preview */}
-                <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', marginBottom: 10, border: '1px solid var(--ios-separator)' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {preview && <img src={preview} alt="สลิป" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', display: 'block', background: '#f5f5f5' }} />}
-                  <button onClick={() => { setSelectedFile(null); setPreview(null); setVerifyResult(null) }}
-                    style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', color: 'white', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-                </div>
-
-                {/* Verify result */}
-                {verifyResult && (
-                  <div style={{
-                    padding: '10px 12px', borderRadius: 10, marginBottom: 10,
-                    background: verifyResult.auto_matched ? 'rgba(52,199,89,0.08)' : verifyResult.verify_status === 'duplicate' ? 'rgba(255,69,58,0.08)' : 'rgba(255,159,10,0.08)',
-                    border: `1px solid ${verifyResult.auto_matched ? 'rgba(52,199,89,0.3)' : verifyResult.verify_status === 'duplicate' ? 'rgba(255,69,58,0.3)' : 'rgba(255,159,10,0.3)'}`,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {verifyResult.auto_matched ? <CheckCircle size={16} color="#34C759" /> : verifyResult.verify_status === 'duplicate' ? <XCircle size={16} color="#FF453A" /> : <AlertTriangle size={16} color="#FF9F0A" />}
-                      <span style={{ fontSize: 13, fontWeight: 700, color: verifyResult.auto_matched ? '#34C759' : verifyResult.verify_status === 'duplicate' ? '#FF453A' : '#FF9F0A' }}>
-                        {verifyResult.auto_matched ? 'สำเร็จ! เครดิตเข้าแล้ว' : verifyResult.verify_status === 'duplicate' ? 'สลิปนี้เคยใช้แล้ว' : 'แจ้งฝากสำเร็จ รอตรวจสอบ'}
-                      </span>
-                    </div>
-                    {verifyResult.slip_amount && <p style={{ fontSize: 11, color: 'var(--ios-secondary-label)', margin: '4px 0 0' }}>ยอดในสลิป: ฿{verifyResult.slip_amount.toLocaleString()}{verifyResult.sender_bank ? ` · ${verifyResult.sender_bank}` : ''}</p>}
-                  </div>
-                )}
-
-                {/* Submit button */}
-                {!verifyResult && (
-                  <button onClick={handleUploadSlip} disabled={uploading} style={{
-                    width: '100%', padding: '11px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                    color: 'white', border: 'none', cursor: uploading ? 'not-allowed' : 'pointer',
-                    background: '#007AFF', opacity: uploading ? 0.6 : 1,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  }}>
-                    {uploading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> กำลังตรวจสอบ...</> : <><Upload size={16} /> ส่งสลิปตรวจสอบ</>}
-                  </button>
-                )}
+        {/* ===== MODE: EasySlip — แนบสลิปตรวจอัตโนมัติ ===== */}
+        {depositMode === 'easyslip' && (
+          <>
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFileSelect} style={{ display: 'none' }} />
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(0,122,255,0.06) 0%, var(--ios-card) 100%)',
+              borderRadius: 14, padding: '14px', boxShadow: 'var(--shadow-card)',
+              border: '1px solid rgba(0,122,255,0.15)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <Upload size={14} color="#007AFF" />
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ios-label)' }}>แนบสลิปโอนเงิน</span>
+                <span style={{ fontSize: 9, fontWeight: 600, color: '#007AFF', background: 'rgba(0,122,255,0.1)', padding: '2px 6px', borderRadius: 8 }}>ตรวจอัตโนมัติ</span>
               </div>
-            )}
+
+              {!selectedFile ? (
+                <button onClick={() => fileInputRef.current?.click()} style={{
+                  width: '100%', padding: '20px', borderRadius: 10, border: '2px dashed rgba(0,122,255,0.3)',
+                  background: 'rgba(0,122,255,0.03)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                }}>
+                  <Upload size={24} color="#007AFF" />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-label)' }}>กดเพื่อเลือกสลิป</span>
+                  <span style={{ fontSize: 10, color: 'var(--ios-tertiary-label)' }}>JPEG, PNG, WebP (สูงสุด 4MB)</span>
+                </button>
+              ) : (
+                <div>
+                  <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', marginBottom: 10, border: '1px solid var(--ios-separator)' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {preview && <img src={preview} alt="สลิป" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', display: 'block', background: '#f5f5f5' }} />}
+                    <button onClick={() => { setSelectedFile(null); setPreview(null); setVerifyResult(null) }}
+                      style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', color: 'white', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  </div>
+                  {verifyResult && (
+                    <div style={{
+                      padding: '10px 12px', borderRadius: 10, marginBottom: 10,
+                      background: verifyResult.auto_matched ? 'rgba(52,199,89,0.08)' : verifyResult.verify_status === 'duplicate' ? 'rgba(255,69,58,0.08)' : 'rgba(255,159,10,0.08)',
+                      border: `1px solid ${verifyResult.auto_matched ? 'rgba(52,199,89,0.3)' : verifyResult.verify_status === 'duplicate' ? 'rgba(255,69,58,0.3)' : 'rgba(255,159,10,0.3)'}`,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {verifyResult.auto_matched ? <CheckCircle size={16} color="#34C759" /> : verifyResult.verify_status === 'duplicate' ? <XCircle size={16} color="#FF453A" /> : <AlertTriangle size={16} color="#FF9F0A" />}
+                        <span style={{ fontSize: 13, fontWeight: 700, color: verifyResult.auto_matched ? '#34C759' : verifyResult.verify_status === 'duplicate' ? '#FF453A' : '#FF9F0A' }}>
+                          {verifyResult.auto_matched ? 'สำเร็จ! เครดิตเข้าแล้ว' : verifyResult.verify_status === 'duplicate' ? 'สลิปนี้เคยใช้แล้ว' : 'แจ้งฝากสำเร็จ รอตรวจสอบ'}
+                        </span>
+                      </div>
+                      {verifyResult.slip_amount && <p style={{ fontSize: 11, color: 'var(--ios-secondary-label)', margin: '4px 0 0' }}>ยอดในสลิป: ฿{verifyResult.slip_amount.toLocaleString()}{verifyResult.sender_bank ? ` · ${verifyResult.sender_bank}` : ''}</p>}
+                    </div>
+                  )}
+                  {!verifyResult && (
+                    <button onClick={handleUploadSlip} disabled={uploading} style={{
+                      width: '100%', padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                      color: 'white', border: 'none', cursor: uploading ? 'not-allowed' : 'pointer',
+                      background: 'linear-gradient(135deg, #007AFF 0%, #0055CC 100%)', opacity: uploading ? 0.6 : 1,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      boxShadow: '0 4px 14px rgba(0,122,255,0.3)',
+                    }}>
+                      {uploading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> กำลังตรวจสอบ...</> : <><Upload size={16} /> ส่งสลิปตรวจสอบ</>}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ===== MODE: RKAUTO — ข้อความตรวจจับอัตโนมัติ ===== */}
+        {depositMode === 'auto' && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(255,159,10,0.06) 0%, var(--ios-card) 100%)',
+            borderRadius: 14, padding: '16px', boxShadow: 'var(--shadow-card)',
+            border: '1px solid rgba(255,159,10,0.15)', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>⚡</div>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#FF9F0A', marginBottom: 4 }}>ระบบตรวจจับอัตโนมัติ</p>
+            <p style={{ fontSize: 12, color: 'var(--ios-secondary-label)', lineHeight: 1.6, margin: 0 }}>
+              โอนเงินเข้าบัญชีเว็บด้านบน<br />ระบบจะตรวจจับยอดโอนและเติมเครดิตให้อัตโนมัติ
+            </p>
+          </div>
+        )}
+
+        {/* ===== MODE: Manual — ข้อความรอตรวจ ===== */}
+        {depositMode === 'manual' && (
+          <div style={{
+            background: 'var(--ios-card)', borderRadius: 14, padding: '14px 16px',
+            boxShadow: 'var(--shadow-card)', textAlign: 'center',
+          }}>
+            <p style={{ fontSize: 12, color: 'var(--ios-secondary-label)', margin: 0, lineHeight: 1.6 }}>
+              โอนเงินเข้าบัญชีเว็บด้านบน แล้วกด <strong style={{ color: 'var(--ios-green)' }}>"โอนแล้ว ยืนยัน"</strong><br />
+              แอดมินจะตรวจสอบและเติมเครดิตให้ภายใน 1-5 นาที
+            </p>
           </div>
         )}
       </div>
 
-      {/* ── Footer: 2 ปุ่มหลัก ── */}
+      {/* ── Footer ── */}
       <div style={{
         padding: '12px 16px', flexShrink: 0, background: 'var(--ios-card)',
         borderTop: '0.5px solid var(--ios-separator)',
         paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
       }}>
-        {/* ปุ่มโอนแล้ว */}
+        {/* ปุ่มโอนแล้ว — แสดงทุกโหมด */}
         <button onClick={onConfirm} disabled={loading || seconds === 0} style={{
           width: '100%', padding: '14px', borderRadius: 14,
           fontSize: 15, fontWeight: 700, color: 'white', border: 'none',
@@ -835,7 +880,9 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
           opacity: (loading || seconds === 0) ? 0.5 : 1, marginBottom: 6,
           boxShadow: seconds === 0 ? 'none' : '0 4px 14px rgba(52,199,89,0.3)',
         }}>
-          {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา' : 'โอนแล้ว ยืนยัน (รอตรวจ)'}
+          {loading ? 'กำลังตรวจสอบ...' : seconds === 0 ? 'หมดเวลา' :
+           depositMode === 'easyslip' ? 'โอนแล้ว ยืนยัน (ไม่แนบสลิป)' :
+           depositMode === 'auto' ? 'โอนแล้ว ยืนยัน' : 'โอนแล้ว ยืนยัน'}
         </button>
 
         {/* ย้อนกลับ */}
