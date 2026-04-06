@@ -582,26 +582,71 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
 
-        {/* ===== 1. บัญชีของคุณ (ผู้โอน) ===== */}
+        {/* ===== 1. บัญชีของคุณ (ผู้โอน) — Credit Card Style ===== */}
         {memberBank.account_number && (
           <div style={{
-            margin: '12px 16px', background: 'var(--ios-card)', borderRadius: 16,
-            padding: '14px 16px', boxShadow: 'var(--shadow-card)',
+            margin: '12px 16px',
+            background: 'linear-gradient(145deg, var(--header-bg) 0%, color-mix(in srgb, var(--header-bg) 70%, black) 100%)',
+            borderRadius: 18, padding: '18px 20px',
+            position: 'relative', overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+            color: 'white',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)' }}>บัญชีของคุณ (ผู้โอน)</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <BankIcon code={memberBank.bank_code} size={28} />
-                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>
-                  {memberBank.bank_name}
-                </span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--ios-label)', letterSpacing: 1 }}>
-                {memberBank.account_number}
+            {/* SVG pattern */}
+            <div style={{
+              position: 'absolute', inset: 0, opacity: 0.04,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+              pointerEvents: 'none',
+            }} />
+            {/* Corner glow */}
+            <div style={{
+              position: 'absolute', top: -30, right: -30, width: 140, height: 140,
+              background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-color) 15%, transparent) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }} />
+
+            {/* Top row: label + badge */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>บัญชีผู้ใช้</span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: 0.3,
+                color: 'var(--accent-color)',
+                background: 'rgba(0,0,0,0.3)',
+                padding: '3px 10px', borderRadius: 20,
+                border: '1px solid color-mix(in srgb, var(--accent-color) 30%, transparent)',
+              }}>
+                บัญชีของคุณ
               </span>
-              <span style={{ fontSize: 13, color: 'var(--ios-secondary-label)' }}>{memberBank.account_name}</span>
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Bank icon — floating ขวาบน */}
+              <div style={{
+                position: 'absolute', top: -8, right: 0,
+                width: 48, height: 48, borderRadius: 12,
+                background: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              }}>
+                <BankIcon code={memberBank.bank_code} size={36} />
+              </div>
+
+              {/* Bank name */}
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 6 }}>{memberBank.bank_name}</p>
+
+              {/* Account number — hero */}
+              <p style={{
+                fontSize: 22, fontWeight: 800, color: 'var(--accent-color)',
+                letterSpacing: 2, fontVariantNumeric: 'tabular-nums',
+                margin: '0 0 12px', textShadow: '0 1px 8px rgba(0,0,0,0.3)',
+              }}>
+                {memberBank.account_number}
+              </p>
+
+              {/* Account holder name */}
+              <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)', margin: 0, letterSpacing: 0.5 }}>
+                {memberBank.account_name}
+              </p>
             </div>
           </div>
         )}
@@ -623,27 +668,60 @@ function TransferModal({ depositAmount, agentBanks, memberBank, loading, onConfi
 
         {/* Left column */}
         <div>
-        {/* ===== บัญชีเว็บ (ปลายทาง) ===== */}
+        {/* ===== บัญชีเว็บ (ปลายทาง) — Credit Card Style สีเขียว ===== */}
         {bank && (
           <div style={{
-            margin: '0 16px 12px', background: 'var(--ios-card)', borderRadius: 16,
-            padding: '14px 16px', boxShadow: 'var(--shadow-card)',
-            border: '2px solid var(--ios-green)',
+            margin: '0 16px 12px',
+            background: 'linear-gradient(145deg, #1a5c2a 0%, #0d3318 100%)',
+            borderRadius: 18, padding: '18px 20px',
+            position: 'relative', overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+            color: 'white', border: '2px solid rgba(52,199,89,0.4)',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ios-green)' }}>โอนเข้าบัญชีนี้</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <BankIcon code={bank.bank_code} size={28} />
-                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ios-label)' }}>
-                  {BANK_NAMES[bank.bank_code] || bank.bank_name}
-                </span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--ios-green)', letterSpacing: 1 }}>
-                {bank.account_number}
+            {/* SVG pattern */}
+            <div style={{
+              position: 'absolute', inset: 0, opacity: 0.04,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20.5z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+              pointerEvents: 'none',
+            }} />
+
+            {/* Top row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>โอนเข้าบัญชีนี้</span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: 0.3,
+                color: '#34C759',
+                background: 'rgba(0,0,0,0.3)',
+                padding: '3px 10px', borderRadius: 20,
+                border: '1px solid rgba(52,199,89,0.4)',
+              }}>
+                บัญชีเว็บ
               </span>
-              <span style={{ fontSize: 13, color: 'var(--ios-secondary-label)' }}>{bank.account_name}</span>
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Bank icon */}
+              <div style={{
+                position: 'absolute', top: -8, right: 0,
+                width: 48, height: 48, borderRadius: 12,
+                background: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              }}>
+                <BankIcon code={bank.bank_code} size={36} />
+              </div>
+
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 6 }}>{BANK_NAMES[bank.bank_code] || bank.bank_name}</p>
+              <p style={{
+                fontSize: 22, fontWeight: 800, color: '#34C759',
+                letterSpacing: 2, fontVariantNumeric: 'tabular-nums',
+                margin: '0 0 12px', textShadow: '0 1px 8px rgba(0,0,0,0.3)',
+              }}>
+                {bank.account_number}
+              </p>
+              <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)', margin: 0, letterSpacing: 0.5 }}>
+                {bank.account_name}
+              </p>
             </div>
           </div>
         )}
