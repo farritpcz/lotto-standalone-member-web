@@ -833,14 +833,25 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
               </div>
 
               {!selectedFile ? (
-                <button onClick={() => fileInputRef.current?.click()} style={{
-                  width: '100%', padding: '20px', borderRadius: 10, border: '2px dashed rgba(0,122,255,0.3)',
-                  background: 'rgba(0,122,255,0.03)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                }}>
-                  <Upload size={24} color="#007AFF" />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ios-label)' }}>กดเพื่อเลือกสลิป</span>
-                  <span style={{ fontSize: 10, color: 'var(--ios-tertiary-label)' }}>JPEG, PNG, WebP (สูงสุด 4MB)</span>
-                </button>
+                <div>
+                  <p style={{ fontSize: 12, color: 'var(--ios-secondary-label)', textAlign: 'center', marginBottom: 10, lineHeight: 1.5 }}>
+                    โอนเงินเข้าบัญชีเว็บด้านบนแล้ว<br />
+                    <strong style={{ color: '#007AFF' }}>กดแนบสลิปเพื่อรับเครดิตทันที</strong>
+                  </p>
+                  <button onClick={() => fileInputRef.current?.click()} style={{
+                    width: '100%', padding: '16px', borderRadius: 14,
+                    border: 'none', cursor: 'pointer',
+                    background: 'linear-gradient(135deg, #007AFF 0%, #0055CC 100%)',
+                    boxShadow: '0 4px 14px rgba(0,122,255,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    color: 'white', fontSize: 16, fontWeight: 700,
+                  }}>
+                    <Upload size={20} /> แนบสลิปโอนเงิน
+                  </button>
+                  <p style={{ fontSize: 10, color: 'var(--ios-tertiary-label)', textAlign: 'center', marginTop: 6 }}>
+                    JPEG, PNG, WebP (สูงสุด 4MB)
+                  </p>
+                </div>
               ) : (
                 <div>
                   <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', marginBottom: 10, border: '1px solid var(--ios-separator)' }}>
