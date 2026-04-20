@@ -1,7 +1,13 @@
 # Member Dashboard
 
-> Last updated: 2026-04-20
-> Related code: `src/app/(member)/dashboard/page.tsx:1`, `src/components/layout/AppHeader.tsx:1`, `src/components/layout/BottomNav.tsx:1`
+> Last updated: 2026-04-21 (v2 — refactor: page split into components/dashboard/*)
+> Related code:
+>   - `src/app/(member)/dashboard/page.tsx` (107 LOC — orchestrator)
+>   - `src/components/dashboard/BalanceCard.tsx` — hero balance card + refresh + ฝาก/ถอน
+>   - `src/components/dashboard/MenuGrid.tsx` — 4×2 menu circles (grouped: primary/deposit/withdraw/other)
+>   - `src/components/dashboard/FeaturedLotteries.tsx` — 6 featured lotteries + DashboardCountdown
+>   - `src/components/dashboard/LatestResults.tsx` — 3 ผลรางวัลล่าสุด (cards)
+>   - `src/components/layout/AppHeader.tsx`, `BottomNav.tsx`
 
 ## 🎯 Purpose
 หน้าหลักหลัง login — โชว์ยอดเงิน, quick actions (ฝาก/ถอน/แทง), หวยที่กำลังเปิด, และ promo banner
@@ -51,5 +57,14 @@
 - ContactFloat: `src/components/ContactFloat.tsx`
 - API: `../../../lotto-standalone-member-api/docs/rules/wallet.md`
 
+## 🧱 File structure (post-refactor, Tier A)
+- `page.tsx` = orchestrator — state (lotteries/results/banners/refreshing) + fetch + compose sections
+- Each section is a standalone component — `BalanceCard` / `MenuGrid` / `FeaturedLotteries` / `LatestResults`
+- `MenuGrid` = static config (items + group-styles mapping inside); no data fetching
+- `FeaturedLotteries` = receives `lotteries[]`, filters by `FEATURED_CODES` locally; includes its own `DashboardCountdown` helper
+
+> **Rule**: page.tsx ต้อง ≤ 300 LOC. Section ใหม่ → สร้าง component ใน `components/dashboard/`, import เข้า page
+
 ## 📝 Change Log
 - 2026-04-20: Initial — บันทึก layout, quick actions, refresh policy
+- 2026-04-21: v2 refactor — split page (408→107 LOC) + extract BalanceCard / MenuGrid / FeaturedLotteries / LatestResults
