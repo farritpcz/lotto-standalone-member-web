@@ -20,6 +20,7 @@ import Link from 'next/link'
 import { ChevronLeft, Zap, Clock, Ticket, Trophy, Target, TrendingUp, Globe, Sparkles, Timer } from 'lucide-react'
 import Loading from '@/components/Loading'
 import { lotteryApi } from '@/lib/api'
+import { resolveImageUrl } from '@/lib/imageUrl'
 import type { LotteryTypeInfo } from '@/types'
 
 // ─── Category config ─────────────────────────────────────────────
@@ -271,7 +272,7 @@ function LotteryCard({ lottery }: { lottery: LotteryTypeInfo }) {
         }}>
           {imageUrl ? (
             /* ── รูปจาก admin ─────────────────────────────── */
-            <img src={imageUrl} alt={lottery.name}
+            <img src={resolveImageUrl(imageUrl)} alt={lottery.name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => {
                 // รูปโหลดไม่ได้ → fallback เป็น gradient + SVG

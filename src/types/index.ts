@@ -68,6 +68,8 @@ export interface Member {
   // Referral
   referred_by?: number | null
   referral_code?: string
+  // ⭐ Avatar (R2 URL) — optional
+  avatar_url?: string
   created_at: string
 }
 

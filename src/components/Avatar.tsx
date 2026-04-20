@@ -15,6 +15,7 @@
 'use client'
 
 import React from 'react'
+import { resolveImageUrl } from '@/lib/imageUrl'
 
 /* ─── Gradient map ตามตัวอักษรแรก ─── */
 const gradientMap: Record<string, [string, string]> = {
@@ -50,16 +51,20 @@ const sizeMap = {
 interface AvatarProps {
   /** ชื่อผู้ใช้ — ใช้ตัวแรกแสดงบน avatar */
   name: string
+  /** ⭐ URL รูปโปรไฟล์ (optional) — ถ้ามีจะแสดงแทน initial */
+  url?: string | null
   /** ขนาด: sm (32px), md (44px), lg (64px) */
   size?: 'sm' | 'md' | 'lg'
   /** className สำหรับ override style เพิ่มเติม */
   className?: string
 }
 
-export default function Avatar({ name, size = 'md', className }: AvatarProps) {
+export default function Avatar({ name, url, size = 'md', className }: AvatarProps) {
   const firstChar = (name || 'U').charAt(0).toUpperCase()
   const [from, to] = gradientMap[firstChar] || ['#6b7280', '#9ca3af']
   const { box, font } = sizeMap[size]
+
+  const resolvedUrl = resolveImageUrl(url)
 
   return (
     <div
@@ -79,10 +84,19 @@ export default function Avatar({ name, size = 'md', className }: AvatarProps) {
         boxShadow: `0 4px 14px ${from}44`,
         letterSpacing: 0,
         userSelect: 'none',
+        overflow: 'hidden',
       }}
       aria-label={`Avatar: ${firstChar}`}
     >
-      {firstChar}
+      {resolvedUrl ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={resolvedUrl}
+          alt=""
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+        />
+      ) : firstChar}
     </div>
   )
 }

@@ -23,6 +23,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronDown, ChevronUp, QrCode, Upload, CheckCircle, XCircle, AlertTriangle, Loader2 } from 'lucide-react'
 import { walletApi } from '@/lib/api'
+import { resolveImageUrl } from '@/lib/imageUrl'
 import { useAuthStore } from '@/store/auth-store'
 import BankIcon, { BANK_NAMES } from '@/components/BankIcon'
 import { useToast } from '@/components/Toast'
@@ -30,7 +31,7 @@ import Link from 'next/link'
 
 // ข้อมูลบัญชี agent สำหรับรับโอน
 // transfer_mode: 'manual' = แอดมินตรวจ, 'easyslip' = แนบสลิปตรวจอัตโนมัติ, 'auto' = RKAUTO ตรวจจับยอดเข้า
-interface AgentBank { bank_code: string; bank_name: string; account_number: string; account_name: string; transfer_mode?: string }
+interface AgentBank { bank_code: string; bank_name: string; account_number: string; account_name: string; transfer_mode?: string; qr_code_url?: string }
 
 export default function WalletPage() {
   return (
@@ -805,6 +806,34 @@ function TransferModal({ depositAmount, depositMode, agentBanks, memberBank, loa
           </div>
           )
         })()}
+
+        {/* ⭐ QR Code — แสดงเฉพาะถ้า admin ตั้งไว้ (conditional) */}
+        {bank?.qr_code_url && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+            background: 'var(--ios-card)', borderRadius: 16, padding: '16px',
+            boxShadow: 'var(--shadow-card)', border: '1px solid var(--ios-separator)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ios-secondary-label)', textTransform: 'uppercase', letterSpacing: 1 }}>
+              หรือสแกน QR พร้อมเพย์
+            </div>
+            {/* ใช้ img tag + resolveImageUrl (รองรับทั้ง R2 และ legacy /uploads) */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={resolveImageUrl(bank.qr_code_url)}
+              alt="QR พร้อมเพย์"
+              style={{
+                width: 220, height: 220, objectFit: 'contain',
+                background: 'white', borderRadius: 12, padding: 12,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              }}
+              onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none' }}
+            />
+            <div style={{ fontSize: 11, color: 'var(--ios-tertiary-label)' }}>
+              เปิดแอปธนาคาร → สแกน QR → กรอกยอด
+            </div>
+          </div>
+        )}
 
         {/* ===== 3. ยอดเงิน + countdown (gradient cards) ===== */}
         <div style={{ display: 'flex', gap: 10 }}>

@@ -30,7 +30,8 @@ import { useAuthStore } from '@/store/auth-store'
 import { useThemeStore } from '@/store/theme-store'
 import BankIcon from '@/components/BankIcon'
 import { useToast } from '@/components/Toast'
-import { memberApi } from '@/lib/api'
+import { memberApi, api as apiClient } from '@/lib/api'
+import { resolveImageUrl } from '@/lib/imageUrl'
 import { usePushNotification } from '@/hooks/usePushNotification'
 
 export default function ProfilePage() {
@@ -49,9 +50,47 @@ export default function ProfilePage() {
   const [oldPw, setOldPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [mounted, setMounted] = useState(false)
+  // ⭐ Avatar upload
+  const avatarUrl = member?.avatar_url || ''
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   // ─── Mount animation ───────────────────────────────────────
   useEffect(() => { setMounted(true) }, [])
+
+  // ─── Avatar Upload Handler ─────────────────────────────────
+  // ⚠️ [Security] client-side validate: jpeg/png/webp/gif, <500KB
+  // backend enforce อีกที (imageguard)
+  const handleAvatarFile = async (file: File) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowed.includes(file.type)) {
+      toast.error('รองรับ jpg, png, gif, webp เท่านั้น')
+      return
+    }
+    if (file.size > 500 * 1024) {
+      toast.error('ไฟล์ใหญ่เกิน 500KB')
+      return
+    }
+    setAvatarUploading(true)
+    try {
+      // [1] upload ไป R2 → ได้ URL
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'avatar')
+      const upRes = await apiClient.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const url = upRes.data?.data?.url
+      if (!url) throw new Error('no url')
+
+      // [2] บันทึก URL ไป profile
+      await memberApi.updateProfile({ avatar_url: url })
+      updateMember({ avatar_url: url })
+      toast.success('อัพโหลดรูปโปรไฟล์สำเร็จ')
+    } catch (err) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'อัพโหลดไม่สำเร็จ'
+      toast.error(msg)
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   // ─── Handlers ──────────────────────────────────────────────
   const handleSaveProfile = async () => {
@@ -127,22 +166,69 @@ export default function ProfilePage() {
 
           {/* Avatar + Info row */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Avatar — gradient ring + initial */}
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
-              background: `linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 60%, #5AC8FA))`,
-              padding: 3, boxShadow: '0 4px 20px color-mix(in srgb, var(--accent-color) 30%, transparent)',
-            }}>
+            {/* Avatar — gradient ring + initial/image + upload button */}
+            <label
+              htmlFor="avatar-upload-input"
+              style={{
+                width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
+                background: `linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 60%, #5AC8FA))`,
+                padding: 3, boxShadow: '0 4px 20px color-mix(in srgb, var(--accent-color) 30%, transparent)',
+                cursor: avatarUploading ? 'wait' : 'pointer',
+                position: 'relative', display: 'block',
+              }}
+              title="คลิกเพื่อเปลี่ยนรูปโปรไฟล์"
+            >
               <div style={{
                 width: '100%', height: '100%', borderRadius: '50%',
                 background: 'var(--nav-bg)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--accent-color)', fontSize: 28, fontWeight: 800,
                 fontFamily: 'var(--font-geist-sans), sans-serif',
+                overflow: 'hidden', position: 'relative',
               }}>
-                {initial}
+                {avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={resolveImageUrl(avatarUrl)}
+                    alt="avatar"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                  />
+                ) : initial}
+                {/* overlay เวลา upload */}
+                {avatarUploading && (
+                  <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, color: 'white',
+                  }}>
+                    กำลังอัพ...
+                  </div>
+                )}
               </div>
-            </div>
+              {/* camera badge */}
+              <div style={{
+                position: 'absolute', bottom: 0, right: 0,
+                width: 22, height: 22, borderRadius: '50%',
+                background: 'var(--accent-color)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid var(--nav-bg)', fontSize: 11, color: 'white',
+              }}>
+                ✎
+              </div>
+              <input
+                id="avatar-upload-input"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                style={{ display: 'none' }}
+                disabled={avatarUploading}
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) handleAvatarFile(f)
+                  e.target.value = ''
+                }}
+              />
+            </label>
 
             {/* User info */}
             <div style={{ flex: 1, minWidth: 0 }}>

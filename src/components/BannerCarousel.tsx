@@ -17,6 +17,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { resolveImageUrl } from '@/lib/imageUrl'
 
 interface Banner {
   image_url: string
@@ -147,7 +148,7 @@ export default function BannerCarousel({ banners, interval = 4000, height = 120 
   const renderSlide = (banner: Banner, idx: number) => {
     const content = (
       <img
-        src={banner.image_url}
+        src={resolveImageUrl(banner.image_url)}
         alt=""
         draggable={false}
         style={{

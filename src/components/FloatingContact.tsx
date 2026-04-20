@@ -9,8 +9,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Headphones, X, MessageCircle, Send, Phone, Globe, Mail, ExternalLink } from 'lucide-react'
+import { Headphones, X, MessageCircle, Send, Phone, Globe, Mail, ExternalLink, QrCode } from 'lucide-react'
 import { api } from '@/lib/api'
+import { resolveImageUrl } from '@/lib/imageUrl'
 
 // ⭐ Module-level cache — ช่องทางติดต่อแทบไม่เปลี่ยน cache ไว้จนกว่ารีเฟรช
 let channelsCache: ContactChannel[] | null = null
@@ -29,13 +30,15 @@ const PLATFORM_CONFIG: Record<string, { icon: typeof MessageCircle; color: strin
 
 interface ContactChannel {
   id: number; platform: string; name: string; value: string
-  link_url: string; icon_url: string; sort_order: number
+  link_url: string; icon_url: string; qr_code_url: string; sort_order: number
 }
 
 export default function FloatingContact({ bottom = 80 }: { bottom?: number } = {}) {
   const [open, setOpen] = useState(false)
   const [channels, setChannels] = useState<ContactChannel[]>([])
   const [loaded, setLoaded] = useState(false)
+  // ⭐ QR modal — แสดงรูป QR ขนาดใหญ่เมื่อกดปุ่ม QR
+  const [qrView, setQrView] = useState<ContactChannel | null>(null)
 
   // โหลดช่องทางติดต่อเมื่อเปิด popup ครั้งแรก (lazy load + module cache)
   useEffect(() => {
@@ -166,6 +169,22 @@ export default function FloatingContact({ bottom = 80 }: { bottom?: number } = {
                         </p>
                       </div>
 
+                      {/* ⭐ ปุ่ม QR — แสดงเฉพาะถ้ามี QR (conditional) */}
+                      {ch.qr_code_url && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQrView(ch) }}
+                          style={{
+                            width: 32, height: 32, borderRadius: 8,
+                            background: 'var(--ios-fill)', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                          aria-label="ดู QR Code"
+                        >
+                          <QrCode size={16} strokeWidth={2} />
+                        </button>
+                      )}
+
                       <ExternalLink size={14} strokeWidth={2} style={{ color: 'var(--ios-tertiary-label)', flexShrink: 0 }} />
                     </a>
                   )
@@ -174,6 +193,48 @@ export default function FloatingContact({ bottom = 80 }: { bottom?: number } = {
             </div>
           </div>
         </>
+      )}
+
+      {/* ⭐ QR Code modal — แสดงรูป QR ขนาดใหญ่ สแกนจากมือถือได้ */}
+      {qrView && (
+        <div
+          onClick={() => setQrView(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 24, animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white', borderRadius: 20, padding: 24,
+              maxWidth: 340, width: '100%',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{qrView.name}</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={resolveImageUrl(qrView.qr_code_url)}
+              alt={`QR ${qrView.name}`}
+              style={{ width: 260, height: 260, objectFit: 'contain' }}
+            />
+            <div style={{ fontSize: 12, color: '#666' }}>{qrView.value}</div>
+            <button
+              onClick={() => setQrView(null)}
+              style={{
+                marginTop: 8, width: '100%', height: 40, borderRadius: 10,
+                background: '#0d6e6e', color: 'white', border: 'none', cursor: 'pointer',
+                fontSize: 14, fontWeight: 600,
+              }}
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Animation keyframes */}
