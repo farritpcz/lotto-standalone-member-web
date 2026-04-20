@@ -176,7 +176,7 @@ export default function LoginPage() {
     <div className="auth-page">
       {/* ===== Banner Slider ===== */}
       <div className="auth-banner">
-        <BannerCarousel banners={banners} height={160} interval={4000} />
+        <BannerCarousel banners={banners} aspectRatio="16/5" interval={5000} />
       </div>
 
       <div className="auth-card">

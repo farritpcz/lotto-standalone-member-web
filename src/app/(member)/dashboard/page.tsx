@@ -90,7 +90,7 @@ export default function DashboardPage() {
 
       {/* ===== 2. Banner Slider — ดึงจาก API, fallback เป็น default ===== */}
       <div style={{ padding: '12px 16px 0' }}>
-        <BannerCarousel banners={banners} height={140} interval={4000} />
+        <BannerCarousel banners={banners} aspectRatio="16/5" interval={5000} />
       </div>
 
       {/* ===== 3. Balance Card ===== */}
