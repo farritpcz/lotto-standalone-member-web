@@ -27,14 +27,17 @@
 - **Disabled/ปิดอั้น**: gray out + tooltip
 
 ## 🔄 User Flow
-1. เข้า `/lottery/[type]` → ดึง `lotteryApi.getOpenRounds(type_id)` + `getBetTypes`
+1. เข้า `/lottery/[type]` → ดึง `lotteryApi.getCurrentRound(type_id)` + `getBetTypes`
+   - ⭐ **แสดงรอบเดียว** (รอบใกล้ถึงที่สุด) ไม่ใช่ list — 2026-04-20 เปลี่ยนจาก `getOpenRounds`
+   - Backend priority: open ใกล้ปิด → fallback upcoming ใกล้เปิด
+   - 404 จาก API → empty state "ยังไม่มีรอบให้แทง"
 2. เลือก bet type → เลือกเลข (tap/long-press) → popup ใส่จำนวน
 3. เลขเข้า BetSlip → แก้/ลบได้
 4. กด "ส่งบิล" → `betApi.checkNumbers` → ถ้า OK เปิด confirm modal
 5. ยืนยัน → `betApi.placeBets` → `resultAlert({type:'success'})` → clear slip → update balance
 
 ## 🌐 API Calls
-- `GET /api/v1/lotteries/:id/rounds`
+- `GET /api/v1/lotteries/:id/current-round` ⭐ (1 รอบ — priority open→upcoming)
 - `GET /api/v1/lotteries/:id/bet-types`
 - `POST /api/v1/bets/check` — เช็คก่อนส่ง
 - `POST /api/v1/bets` — ส่งจริง

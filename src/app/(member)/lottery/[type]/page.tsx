@@ -58,11 +58,19 @@ export default function LotteryBetPage() {
         const lt = typesRes.data.data.find((t: { code: string }) => t.code === lotteryCode)
         if (!lt) { setMessage('ไม่พบประเภทหวย'); setLoading(false); return }
 
-        const roundsRes = await lotteryApi.getOpenRounds(lt.id)
-        setRounds(roundsRes.data.data || [])
-        if (roundsRes.data.data?.length > 0) {
-          setSelectedRound(roundsRes.data.data[0])
-          setCurrentRound(roundsRes.data.data[0])
+        // ⭐ ใช้ getCurrentRound — คืนรอบใกล้ถึงที่สุด 1 รอบ
+        //   (open ใกล้ปิด → upcoming ใกล้เปิด) 404 ถ้าไม่มีรอบ
+        try {
+          const currentRes = await lotteryApi.getCurrentRound(lt.id)
+          const round = currentRes.data.data
+          if (round) {
+            setRounds([round])
+            setSelectedRound(round)
+            setCurrentRound(round)
+          }
+        } catch {
+          // ไม่มีรอบให้แทง → UI แสดง empty state
+          setRounds([])
         }
 
         const btRes = await lotteryApi.getBetTypes(lt.id)

@@ -42,10 +42,18 @@ const createApiClient = (): AxiosInstance => {
   })
 
   // ⭐ CSRF: อ่าน csrf_token cookie → ส่งกลับใน X-CSRF-Token header
+  // ⭐ Agent Domain: ส่ง X-Agent-Domain header บอก member-api ว่าเป็นเว็บไหน
+  //    ตั้งค่าผ่าน env NEXT_PUBLIC_AGENT_DOMAIN (เช่น "jrd88.com")
+  //    ถ้าไม่ตั้ง → member-api จะ detect จาก Host header อัตโนมัติ
   client.interceptors.request.use((config) => {
     const csrfToken = getCookie('csrf_token')
     if (csrfToken && config.headers) {
       config.headers['X-CSRF-Token'] = csrfToken
+    }
+    // ⭐ บอก backend ว่าเป็นเว็บไหน (สำหรับ multi-agent 300+ เว็บ)
+    const agentDomain = process.env.NEXT_PUBLIC_AGENT_DOMAIN
+    if (agentDomain && config.headers) {
+      config.headers['X-Agent-Domain'] = agentDomain
     }
     return config
   })
@@ -183,6 +191,13 @@ export const lotteryApi = {
   /** ดึงรอบที่เปิดรับแทง — ⭐ cache 2 นาที (รอบไม่เปลี่ยนบ่อย แต่ถูกเรียกถี่) */
   getOpenRounds: (lotteryTypeId: number) =>
     cachedGet<{ success: boolean; data: LotteryRound[] }>(`/lotteries/${lotteryTypeId}/rounds`, 2 * CACHE_1MIN),
+
+  /** ⭐ ดึง "รอบใกล้ถึงที่สุด" 1 รอบ (open ใกล้ปิด → หรือ upcoming ใกล้เปิด)
+   *  ใช้ในหน้าแทง: แสดงรอบเดียว ไม่ให้ user งงกับ list รอบล่วงหน้า 30 วัน
+   *  404 ถ้าไม่มีรอบ (UI แสดง empty state "ยังไม่มีรอบให้แทง")
+   */
+  getCurrentRound: (lotteryTypeId: number) =>
+    cachedGet<{ success: boolean; data: LotteryRound }>(`/lotteries/${lotteryTypeId}/current-round`, 2 * CACHE_1MIN),
 
   /** ดึงประเภทการแทง + rate — ⭐ cache 30 นาที (แทบไม่เปลี่ยน) */
   getBetTypes: (lotteryTypeId: number) =>
