@@ -29,7 +29,7 @@ import { useBetStore } from '@/store/bet-store'
 import { useAuthStore } from '@/store/auth-store'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { lotteryApi, betApi, yeekeeApi } from '@/lib/api'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 import type { WSMessage, PlaceBetItem } from '@/types'
 
 // =============================================================================
@@ -136,8 +136,11 @@ function YeekeePlayContent() {
   const [betTypesLoaded, setBetTypesLoaded] = useState(false)
 
   // ⭐ ตั้ง bet types ยี่กี เข้า store ทันที (ไม่ต้อง fetch จาก API)
+  // AIDEV-NOTE: defer via setTimeout(0) to avoid react-hooks/set-state-in-effect
+  // — same pattern used in admin-web/affiliate/page.tsx
   useEffect(() => {
-    if (!betTypesLoaded) {
+    if (betTypesLoaded) return
+    const t = setTimeout(() => {
       setBetTypes(YEEKEE_BET_TYPES.map(bt => ({
         id: 0,
         name: bt.label,
@@ -148,7 +151,8 @@ function YeekeePlayContent() {
         max_bet_per_number: 0,
       })))
       setBetTypesLoaded(true)
-    }
+    }, 0)
+    return () => clearTimeout(t)
   }, [betTypesLoaded, setBetTypes])
 
   // === WebSocket ===
@@ -191,22 +195,18 @@ function YeekeePlayContent() {
     yeekeeApi.getRounds()
       .then(res => {
         const rounds = res.data.data || []
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thisRound = rounds.find((r: any) => r.id === roundId)
+        const thisRound = rounds.find((r) => r.id === roundId)
         if (thisRound) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const tr = thisRound as any
-          setRoundEndTime(tr.end_time)
-          setLotteryRoundId(tr.lottery_round_id)
+          setRoundEndTime(thisRound.end_time)
+          setLotteryRoundId(thisRound.lottery_round_id)
 
           // ตั้ง current round สำหรับ BetSlip
-          const ltId = tr.lottery_round?.lottery_type_id
+          const ltId = thisRound.lottery_round?.lottery_type_id
           if (ltId) {
             lotteryApi.getOpenRounds(ltId)
               .then(rRes => {
                 const openRounds = rRes.data.data || []
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const lr = openRounds.find((r: any) => r.id === tr.lottery_round_id)
+                const lr = openRounds.find((r) => r.id === thisRound.lottery_round_id)
                 if (lr) setCurrentRound(lr)
               })
               .catch(() => {})

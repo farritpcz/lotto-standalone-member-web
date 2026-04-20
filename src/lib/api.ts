@@ -154,6 +154,7 @@ import type {
   Transaction,
   Member,
   YeekeeRound,
+  BetCheckResult,
   PaginatedResponse,
 } from '@/types'
 
@@ -243,7 +244,7 @@ export const betApi = {
 
   /** เช็คเลขก่อนแทง — ดูว่าโดนอั้น/ลดเรท/จำกัดยอดไหม */
   checkNumbers: (data: { lottery_round_id: number; items: { bet_type_code: string; number: string }[] }) =>
-    api.post('/bets/check', data),
+    api.post<{ success: boolean; data: BetCheckResult[] }>('/bets/check', data),
 
   /** ดู bets ของฉัน */
   getMyBets: (params?: { status?: string; round_id?: number; page?: number; per_page?: number }) =>

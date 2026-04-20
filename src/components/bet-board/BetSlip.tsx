@@ -27,7 +27,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
   const [showFull, setShowFull] = useState(false)
   const [resultAlert, setResultAlert] = useState<{ type: 'success' | 'error'; message: string; closeFull?: boolean } | null>(null)
   const [bulkAmount, setBulkAmount] = useState('')
-  const [numberWarnings, setNumberWarnings] = useState<Record<string, { status: string; message: string; reduced_rate?: number }>>({})
+  const [numberWarnings, setNumberWarnings] = useState<Record<string, { status: string; message?: string; reduced_rate?: number }>>({})
   const currentRound = useBetStore(s => s.currentRound)
 
   // ─── Check เลขอั้น ──────────────────────────────────────
@@ -39,8 +39,7 @@ export default function BetSlip({ onConfirm, loading }: BetSlipProps) {
       const res = await betApi.checkNumbers({ lottery_round_id: currentRound.id, items: unique })
       const results = res.data?.data || []
       const warnings: typeof numberWarnings = {}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      results.forEach((r: any) => {
+      results.forEach((r) => {
         if (r.status !== 'ok') warnings[`${r.bet_type}-${r.number}`] = { status: r.status, message: r.message, reduced_rate: r.reduced_rate }
       })
       setNumberWarnings(warnings)

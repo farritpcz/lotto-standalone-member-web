@@ -140,6 +140,17 @@ export interface Transaction {
   created_at: string
 }
 
+/** ผลการเช็คเลขก่อนแทง (POST /bets/check)
+ *  — backend คืนสถานะต่อ (bet_type × number) ว่าแทงได้มั้ย
+ */
+export interface BetCheckResult {
+  bet_type: string
+  number: string
+  status: 'ok' | 'full_ban' | 'reduced_rate' | 'capital_exceeded' | string
+  message?: string
+  reduced_rate?: number
+}
+
 /** รอบยี่กี */
 export interface YeekeeRound {
   id: number
@@ -149,6 +160,13 @@ export interface YeekeeRound {
   status: YeekeeStatus
   result_number?: string
   shoot_count: number
+  // ─── FK + join (จาก member-api /yeekee/rounds handler) ──────────────
+  lottery_round_id: number
+  lottery_round?: {
+    lottery_type_id: number
+    round_number: string
+    status: RoundStatus
+  }
 }
 
 /** เลขที่ยิง (ยี่กี) */
