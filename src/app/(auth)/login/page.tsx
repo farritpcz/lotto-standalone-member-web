@@ -112,7 +112,7 @@ export default function LoginPage() {
 
   // โหลด banners จาก API — ถ้าไม่มีใช้ fallback
   useEffect(() => {
-    api.get('/banners').then(res => {
+    api.get('/agent/banners').then(res => {
       const data = res.data.data || []
       if (data.length > 0) setBanners(data)
     }).catch(() => {}) // ใช้ fallback ถ้า API ยังไม่พร้อม

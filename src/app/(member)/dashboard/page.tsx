@@ -72,7 +72,7 @@ export default function DashboardPage() {
       .catch(() => {})
 
     // โหลด banners จาก API — ถ้าไม่มีใช้ fallback
-    api.get('/banners').then(res => {
+    api.get('/agent/banners').then(res => {
       const data = res.data.data || []
       if (data.length > 0) setBanners(data)
     }).catch(() => {})
