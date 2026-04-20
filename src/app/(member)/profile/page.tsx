@@ -1,29 +1,21 @@
-/**
- * =============================================================================
- * หน้า Profile — Premium Design (เจริญดี88 / luxury lotto style)
- * =============================================================================
- *
- * โครงสร้าง:
- * - Profile Header: avatar gradient + ชื่อ + level badge + balance
- * - Quick Stats: ยอดแทงรวม / รอบที่เล่น / แนะนำเพื่อน
- * - ข้อมูลบัญชี: card แบบ iOS grouped (แก้ไขได้)
- * - บัญชีธนาคาร: card แสดงข้อมูลธนาคาร
- * - การตั้งค่า: ธีม + push notification toggle
- * - เมนู: ประวัติ / อัตราจ่าย / กฎกติกา / แนะนำเพื่อน
- * - เปลี่ยนรหัสผ่าน + ออกจากระบบ
- *
- * ใช้โดย: BottomNav tab "บัญชี"
- * =============================================================================
- */
+// Page: /profile (member) — Premium design (เจริญดี88 / luxury lotto style)
+// Related: components/profile/*
+//
+// โครงสร้าง:
+// - Profile Header: avatar gradient + ชื่อ + level badge + balance
+// - Level progress card (rolling 30d)
+// - ข้อมูลบัญชี: card แบบ iOS grouped (แก้ไขได้)
+// - บัญชีธนาคาร
+// - การตั้งค่า: ธีม + push notification toggle
+// - เมนู: ประวัติ / อัตราจ่าย / กฎกติกา / แนะนำเพื่อน
+// - เปลี่ยนรหัสผ่าน + ออกจากระบบ
 
 'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ChevronDown, ChevronRight, Sun, Moon, Monitor,
-  Shield, Clock, Users, TrendingUp, CreditCard,
-  KeyRound, LogOut, Bell, BellOff,
+  ChevronRight, Shield, CreditCard, LogOut,
   History, Percent, BookOpen, UserPlus,
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth-store'
@@ -31,18 +23,23 @@ import { useThemeStore } from '@/store/theme-store'
 import BankIcon from '@/components/BankIcon'
 import { useToast } from '@/components/Toast'
 import { memberApi, api as apiClient, type MemberLevelInfo } from '@/lib/api'
-import { resolveImageUrl } from '@/lib/imageUrl'
 import { usePushNotification } from '@/hooks/usePushNotification'
+
+import { SectionCard, InfoRow } from '@/components/profile/SectionCard'
+import { LevelProgressCard } from '@/components/profile/LevelProgressCard'
+import { ProfileHeaderCard } from '@/components/profile/ProfileHeaderCard'
+import { SettingsCard } from '@/components/profile/SettingsCard'
+import { PasswordChangeForm } from '@/components/profile/PasswordChangeForm'
 
 export default function ProfilePage() {
   const router = useRouter()
+  void router
   const { member, updateMember } = useAuthStore()
   const { mode: themeMode, setMode: setThemeMode } = useThemeStore()
   const { toast } = useToast()
   const push = usePushNotification()
 
   // ─── State ──────────────────────────────────────────────────
-  const [phone, setPhone] = useState(member?.phone || '')
   const [email, setEmail] = useState(member?.email || '')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -109,8 +106,8 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setSaving(true)
     try {
-      await memberApi.updateProfile({ phone, email })
-      updateMember({ phone, email })
+      await memberApi.updateProfile({ email })
+      updateMember({ email })
       toast.success('บันทึกข้อมูลสำเร็จ')
       setEditing(false)
     } catch {
@@ -142,9 +139,6 @@ export default function ProfilePage() {
     window.location.href = '/login'
   }
 
-  // ─── สร้าง initials สำหรับ avatar ─────────────────────────
-  const initial = member?.username?.charAt(0).toUpperCase() || 'U'
-
   // ─── วันที่สมัคร format ──────────────────────────────────
   const joinDate = member?.created_at
     ? new Date(member.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -161,166 +155,27 @@ export default function ProfilePage() {
   return (
     <div style={{ paddingBottom: 32, opacity: mounted ? 1 : 0, transition: 'opacity 0.3s ease' }}>
 
-      {/* ═══════════════════════════════════════════════════════════
-          Profile Header — Premium gradient card + avatar
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── Profile Header — avatar + level + balance ─── */}
       <div style={{ padding: '12px 16px 0' }}>
-        <div style={{
-          position: 'relative', overflow: 'hidden', borderRadius: 20,
-          background: 'var(--card-gradient)',
-          padding: '24px 20px 20px',
-        }}>
-          {/* ลายพื้นหลัง premium */}
-          <div style={{
-            position: 'absolute', inset: 0, opacity: 0.06,
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '30px 30px',
-          }} />
-
-          {/* Avatar + Info row */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Avatar — gradient ring + initial/image + upload button */}
-            <label
-              htmlFor="avatar-upload-input"
-              style={{
-                width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
-                background: `linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 60%, #5AC8FA))`,
-                padding: 3, boxShadow: '0 4px 20px color-mix(in srgb, var(--accent-color) 30%, transparent)',
-                cursor: avatarUploading ? 'wait' : 'pointer',
-                position: 'relative', display: 'block',
-              }}
-              title="คลิกเพื่อเปลี่ยนรูปโปรไฟล์"
-            >
-              <div style={{
-                width: '100%', height: '100%', borderRadius: '50%',
-                background: 'var(--nav-bg)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--accent-color)', fontSize: 28, fontWeight: 800,
-                fontFamily: 'var(--font-geist-sans), sans-serif',
-                overflow: 'hidden', position: 'relative',
-              }}>
-                {avatarUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={resolveImageUrl(avatarUrl)}
-                    alt="avatar"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-                  />
-                ) : initial}
-                {/* overlay เวลา upload */}
-                {avatarUploading && (
-                  <div style={{
-                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, color: 'white',
-                  }}>
-                    กำลังอัพ...
-                  </div>
-                )}
-              </div>
-              {/* camera badge */}
-              <div style={{
-                position: 'absolute', bottom: 0, right: 0,
-                width: 22, height: 22, borderRadius: '50%',
-                background: 'var(--accent-color)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid var(--nav-bg)', fontSize: 11, color: 'white',
-              }}>
-                ✎
-              </div>
-              <input
-                id="avatar-upload-input"
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                style={{ display: 'none' }}
-                disabled={avatarUploading}
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) handleAvatarFile(f)
-                  e.target.value = ''
-                }}
-              />
-            </label>
-
-            {/* User info */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                color: 'white', fontWeight: 700, fontSize: 20, lineHeight: 1.2,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {member?.username || 'สมาชิก'}
-              </div>
-              {/* ⭐ Dynamic Level Badge (v3) — fallback เป็น "MEMBER" ถ้ายังไม่ถูกจัดระดับ */}
-              {(() => {
-                const lv = levelInfo?.current_level
-                const badgeColor = lv?.color || 'var(--accent-color)'
-                const badgeName = lv?.name?.toUpperCase() || 'MEMBER'
-                return (
-                  <div
-                    title={levelInfo?.locked ? 'ระดับถูกตั้งโดยแอดมิน (ไม่เปลี่ยนอัตโนมัติ)' : 'ระดับคำนวณจากยอดฝาก 30 วันล่าสุด'}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
-                      marginTop: 6, padding: '3px 10px', borderRadius: 20,
-                      background: `color-mix(in srgb, ${badgeColor} 15%, transparent)`,
-                      border: `1px solid color-mix(in srgb, ${badgeColor} 40%, transparent)`,
-                    }}
-                  >
-                    <Shield size={11} strokeWidth={2.5} style={{ color: badgeColor }} />
-                    <span style={{ fontSize: 11, fontWeight: 700, color: badgeColor, letterSpacing: 0.3 }}>
-                      {badgeName}
-                    </span>
-                    {levelInfo?.locked && (
-                      <span style={{ fontSize: 9, opacity: 0.7, marginLeft: 2 }}>🔒</span>
-                    )}
-                  </div>
-                )
-              })()}
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Clock size={11} strokeWidth={2} />
-                สมาชิกตั้งแต่ {joinDate}
-              </div>
-            </div>
-          </div>
-
-          {/* Balance row */}
-          <div style={{
-            marginTop: 16, padding: '12px 16px', borderRadius: 14,
-            background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(10px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginBottom: 2 }}>
-                ยอดเงินคงเหลือ
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent-color)', fontFamily: 'var(--font-geist-mono), monospace' }}>
-                ฿{(member?.balance || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-              </div>
-            </div>
-            <div style={{
-              width: 44, height: 44, borderRadius: 12,
-              background: 'color-mix(in srgb, var(--accent-color) 15%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--accent-color) 20%, transparent)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <TrendingUp size={22} strokeWidth={2} style={{ color: 'var(--accent-color)' }} />
-            </div>
-          </div>
-        </div>
+        <ProfileHeaderCard
+          username={member?.username}
+          avatarUrl={avatarUrl}
+          balance={member?.balance || 0}
+          joinDate={joinDate}
+          levelInfo={levelInfo}
+          avatarUploading={avatarUploading}
+          onAvatarFileSelect={handleAvatarFile}
+        />
       </div>
 
-      {/* ⭐ Member Level v3 — ระดับสมาชิก + Progress bar + คำอธิบาย rolling 30d
-          อ้างอิง: docs/rules/profile_level.md
-          แสดงเมื่อ levelInfo โหลดเสร็จ + มีอย่างน้อย 1 ระดับในระบบ (current หรือ next) */}
+      {/* ⭐ Member Level v3 — progress + rolling 30d explanation */}
       {levelInfo && (levelInfo.current_level || levelInfo.next_level) && (
         <div style={{ padding: '12px 16px 0' }}>
           <LevelProgressCard info={levelInfo} />
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════
-          ข้อมูลบัญชี — iOS grouped card style
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── ข้อมูลบัญชี ─── */}
       <div style={{ padding: '12px 16px 0' }}>
         <SectionCard
           title="ข้อมูลบัญชี"
@@ -367,9 +222,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          บัญชีธนาคาร
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── บัญชีธนาคาร ─── */}
       <div style={{ padding: '12px 16px 0' }}>
         <SectionCard title="บัญชีธนาคาร" titleIcon={<CreditCard size={16} strokeWidth={2} />}>
           <InfoRow label="ธนาคาร" icon="🏦"
@@ -394,85 +247,12 @@ export default function ProfilePage() {
         </SectionCard>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          การตั้งค่า — ธีม + Push Notification
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── การตั้งค่า ─── */}
       <div style={{ padding: '12px 16px 0' }}>
-        <SectionCard title="การตั้งค่า">
-          {/* Theme selector */}
-          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--ios-separator)' }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ios-secondary-label)', marginBottom: 8 }}>ธีม</div>
-            <div style={{ display: 'flex', gap: 0, background: 'var(--ios-bg)', borderRadius: 10, padding: 3 }}>
-              {([
-                { value: 'light' as const, icon: Sun, label: 'สว่าง' },
-                { value: 'dark' as const, icon: Moon, label: 'มืด' },
-                { value: 'system' as const, icon: Monitor, label: 'ระบบ' },
-              ]).map(({ value, icon: Icon, label }) => (
-                <button key={value} onClick={() => setThemeMode(value)} style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                  padding: '9px 4px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
-                  fontWeight: themeMode === value ? 600 : 400,
-                  color: themeMode === value ? 'var(--ios-label)' : 'var(--ios-secondary-label)',
-                  background: themeMode === value ? 'var(--ios-card)' : 'transparent',
-                  boxShadow: themeMode === value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.2s',
-                }}>
-                  <Icon size={14} strokeWidth={2} />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Push notification toggle */}
-          {push.isSupported && (
-            <button onClick={() => push.isSubscribed ? push.unsubscribe() : push.subscribe()}
-              disabled={push.loading || push.permission === 'denied'}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 15, color: 'var(--ios-label)', textAlign: 'left',
-              }}
-            >
-              <div style={{
-                width: 34, height: 34, borderRadius: 8,
-                background: push.isSubscribed ? 'color-mix(in srgb, var(--accent-color) 12%, transparent)' : 'rgba(142,142,147,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {push.isSubscribed
-                  ? <Bell size={17} strokeWidth={2} style={{ color: 'var(--accent-color)' }} />
-                  : <BellOff size={17} strokeWidth={2} color="#8E8E93" />
-                }
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500 }}>แจ้งเตือน Push</div>
-                <div style={{ fontSize: 12, color: 'var(--ios-secondary-label)', marginTop: 1 }}>
-                  {push.permission === 'denied' ? 'ถูกบล็อก (เปิดใน browser settings)'
-                    : push.isSubscribed ? 'เปิดอยู่ — รับแจ้งเตือนแม้ปิดเว็บ'
-                    : 'ปิดอยู่ — กดเพื่อเปิดรับแจ้งเตือน'}
-                </div>
-              </div>
-              {/* Toggle indicator */}
-              <div style={{
-                width: 44, height: 26, borderRadius: 13, padding: 2,
-                background: push.isSubscribed ? 'var(--accent-color)' : 'var(--ios-fill)',
-                transition: 'background 0.25s',
-              }}>
-                <div style={{
-                  width: 22, height: 22, borderRadius: '50%', background: 'white',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                  transform: push.isSubscribed ? 'translateX(18px)' : 'translateX(0)',
-                  transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                }} />
-              </div>
-            </button>
-          )}
-        </SectionCard>
+        <SettingsCard themeMode={themeMode} setThemeMode={setThemeMode} push={push} />
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          เมนู — icon + label + chevron
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── เมนู ─── */}
       <div style={{ padding: '12px 16px 0' }}>
         <SectionCard>
           {[
@@ -501,63 +281,21 @@ export default function ProfilePage() {
         </SectionCard>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          เปลี่ยนรหัสผ่าน
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── เปลี่ยนรหัสผ่าน ─── */}
       <div style={{ padding: '12px 16px 0' }}>
-        <SectionCard>
-          <button onClick={() => setShowPwForm(!showPwForm)} style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-            padding: '13px 16px', background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 15, fontWeight: 500, color: 'var(--ios-label)', textAlign: 'left',
-          }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 8, background: 'rgba(255,159,10,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <KeyRound size={17} strokeWidth={2} color="#FF9F0A" />
-            </div>
-            <span style={{ flex: 1 }}>เปลี่ยนรหัสผ่าน</span>
-            <ChevronDown size={16} strokeWidth={2} style={{
-              color: 'var(--ios-tertiary-label)', transition: 'transform 0.25s',
-              transform: showPwForm ? 'rotate(180deg)' : 'none',
-            }} />
-          </button>
-
-          {showPwForm && (
-            <div style={{ borderTop: '0.5px solid var(--ios-separator)', padding: '16px' }}>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 6, fontWeight: 500 }}>
-                  รหัสผ่านเดิม
-                </label>
-                <input type="password" value={oldPw} onChange={e => setOldPw(e.target.value)}
-                  placeholder="กรอกรหัสผ่านเดิม" style={inputStyle} />
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, color: 'var(--ios-secondary-label)', marginBottom: 6, fontWeight: 500 }}>
-                  รหัสผ่านใหม่
-                </label>
-                <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
-                  placeholder="กรอกรหัสผ่านใหม่ (อย่างน้อย 6 ตัว)" style={inputStyle} />
-              </div>
-              <button onClick={handleChangePw} disabled={saving || !oldPw || !newPw} style={{
-                display: 'block', width: '100%', padding: '14px', borderRadius: 14,
-                fontSize: 15, fontWeight: 700, color: 'white',
-                background: (saving || !oldPw || !newPw) ? 'var(--ios-fill)' : 'linear-gradient(135deg, #FF9F0A, #FF6B00)',
-                border: 'none', cursor: (saving || !oldPw || !newPw) ? 'not-allowed' : 'pointer',
-                boxShadow: (saving || !oldPw || !newPw) ? 'none' : '0 4px 14px rgba(255,159,10,0.3)',
-                transition: 'all 0.2s',
-              }}>
-                {saving ? 'กำลังเปลี่ยน...' : 'เปลี่ยนรหัสผ่าน'}
-              </button>
-            </div>
-          )}
-        </SectionCard>
+        <PasswordChangeForm
+          show={showPwForm}
+          setShow={setShowPwForm}
+          oldPw={oldPw}
+          setOldPw={setOldPw}
+          newPw={newPw}
+          setNewPw={setNewPw}
+          saving={saving}
+          onSubmit={handleChangePw}
+        />
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          ออกจากระบบ
-          ═══════════════════════════════════════════════════════════ */}
+      {/* ─── ออกจากระบบ ─── */}
       <div style={{ padding: '12px 16px 24px' }}>
         <div style={{
           background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden',
@@ -571,216 +309,6 @@ export default function ProfilePage() {
             <LogOut size={17} strokeWidth={2} />
             ออกจากระบบ
           </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// =============================================================================
-// Sub-components — SectionCard + InfoRow
-// =============================================================================
-
-/** SectionCard — iOS grouped card wrapper */
-function SectionCard({ title, titleIcon, action, children }: {
-  title?: string
-  titleIcon?: React.ReactNode
-  action?: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <div style={{
-      background: 'var(--ios-card)', borderRadius: 16, overflow: 'hidden',
-      boxShadow: 'var(--shadow-card)',
-    }}>
-      {title && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '13px 16px', borderBottom: '0.5px solid var(--ios-separator)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {titleIcon}
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--ios-label)' }}>{title}</span>
-          </div>
-          {action}
-        </div>
-      )}
-      {children}
-    </div>
-  )
-}
-
-/** InfoRow — แถวแสดงข้อมูล (label + value) */
-function InfoRow({ label, value, icon, dimmed, mono, noBorder, input }: {
-  label: string
-  value?: string
-  icon?: string
-  dimmed?: boolean
-  mono?: boolean
-  noBorder?: boolean
-  input?: React.ReactNode
-}) {
-  return (
-    <div style={{
-      padding: '10px 16px',
-      borderBottom: noBorder ? 'none' : '0.5px solid var(--ios-separator)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-        {icon && <span style={{ fontSize: 13 }}>{icon}</span>}
-        <span style={{ fontSize: 12, color: 'var(--ios-secondary-label)', fontWeight: 500 }}>{label}</span>
-      </div>
-      {input || (
-        <div style={{
-          fontSize: 15, color: 'var(--ios-label)',
-          opacity: dimmed ? 0.6 : 1,
-          fontFamily: mono ? 'var(--font-geist-mono), monospace' : 'inherit',
-          letterSpacing: mono ? 1 : 0,
-          fontWeight: 500,
-        }}>
-          {value}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ═════════════════════════════════════════════════════════════════════════
-// LevelProgressCard — ระดับสมาชิก + progress ไปยังระดับถัดไป (v3)
-// ═════════════════════════════════════════════════════════════════════════
-//
-// แสดง:
-//   - Badge ระดับปัจจุบัน (หรือ "ยังไม่ถูกจัดระดับ" + next tier)
-//   - Progress bar ไปยังระดับถัดไป (0-100%)
-//   - ยอดฝาก 30 วันล่าสุด (สด — cache จาก cron)
-//   - ยอดที่ต้องฝากเพิ่มเพื่อขึ้นระดับถัดไป
-//   - คำอธิบาย rolling 30d (สำคัญ — user ต้องเข้าใจว่าตกได้)
-//   - 🔒 ถ้า level ถูก admin lock
-//
-// ⭐ Design note:
-//   การสื่อสารชัดเจนสำคัญมาก — user ต้องรู้ว่า "ตกระดับได้"
-//   เพื่อไม่เสียใจเวลาถูกปรับลงโดยอัตโนมัติ
-//
-function LevelProgressCard({ info }: { info: MemberLevelInfo }) {
-  const cur = info.current_level
-  const nxt = info.next_level
-  const accent = cur?.color || '#6b7280'
-
-  return (
-    <div
-      style={{
-        background: 'var(--bg-elevated, #1a1a1a)',
-        borderRadius: 16,
-        padding: 16,
-        border: `1px solid color-mix(in srgb, ${accent} 20%, transparent)`,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* subtle bg gradient จากสี accent ของระดับปัจจุบัน */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `linear-gradient(135deg, color-mix(in srgb, ${accent} 8%, transparent), transparent 60%)`,
-        }}
-      />
-
-      <div style={{ position: 'relative' }}>
-        {/* Header — ชื่อระดับ + ยอดฝาก 30d */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary, #888)', fontWeight: 600, letterSpacing: 0.3, marginBottom: 2 }}>
-              ระดับสมาชิก {info.locked && <span title="ถูกแอดมินล็อกไว้">🔒</span>}
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: accent, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              {cur?.name || 'ยังไม่ถูกจัดระดับ'}
-            </div>
-            {cur?.description && (
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary, #666)', marginTop: 2 }}>
-                {cur.description}
-              </div>
-            )}
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: 'var(--text-secondary, #888)', fontWeight: 500 }}>
-              ยอดฝาก 30 วันล่าสุด
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-geist-mono), monospace', color: 'var(--text-primary)' }}>
-              ฿{info.deposit_30d.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress bar ไป next level */}
-        {nxt ? (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 11, marginBottom: 6 }}>
-              <span style={{ color: 'var(--text-secondary, #888)' }}>
-                ความคืบหน้าไป <strong style={{ color: nxt.color }}>{nxt.name}</strong>
-              </span>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                {info.progress_pct}%
-              </span>
-            </div>
-
-            {/* bar */}
-            <div style={{
-              height: 10, borderRadius: 5, overflow: 'hidden',
-              background: 'var(--bg-secondary, rgba(255,255,255,0.05))',
-              marginBottom: 8,
-            }}>
-              <div
-                style={{
-                  width: `${info.progress_pct}%`,
-                  height: '100%',
-                  background: `linear-gradient(90deg, ${accent}, ${nxt.color})`,
-                  borderRadius: 5,
-                  transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-              />
-            </div>
-
-            {/* ยังขาดอีกเท่าไหร่ */}
-            <div style={{ fontSize: 11, color: 'var(--text-secondary, #888)', marginBottom: 12 }}>
-              ฝากเพิ่มอีก <strong style={{ color: nxt.color, fontFamily: 'var(--font-geist-mono), monospace' }}>
-                ฿{info.amount_to_next.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </strong> ภายใน 30 วัน เพื่อขึ้นระดับ {nxt.name}
-            </div>
-          </>
-        ) : cur ? (
-          <div style={{
-            padding: '10px 12px', marginBottom: 10,
-            background: `color-mix(in srgb, ${accent} 10%, transparent)`,
-            borderRadius: 10,
-            fontSize: 12, color: accent, fontWeight: 600,
-            textAlign: 'center',
-          }}>
-            ✨ คุณอยู่ที่ระดับสูงสุดแล้ว
-          </div>
-        ) : null}
-
-        {/* คำอธิบาย rolling 30d — สำคัญมาก! user ต้องรู้ว่าตกได้ */}
-        <div style={{
-          fontSize: 10, color: 'var(--text-tertiary, #666)',
-          lineHeight: 1.6,
-          padding: '8px 10px',
-          background: 'color-mix(in srgb, currentColor 4%, transparent)',
-          borderRadius: 8,
-          borderLeft: '2px solid var(--text-tertiary, #666)',
-        }}>
-          <div style={{ fontWeight: 700, color: 'var(--text-secondary, #888)', marginBottom: 2 }}>
-            ℹ️ วิธีคำนวณระดับ
-          </div>
-          ระดับสมาชิกคำนวณจาก<strong>ยอดฝากสะสมย้อนหลัง 30 วันล่าสุด</strong> (ไม่ใช่ยอดตลอดชีพ) —
-          ระบบตรวจสอบและอัปเดตทุกวัน เวลา 02:00 น.
-          หากช่วง 30 วันที่ผ่านมาคุณฝากน้อยลงต่ำกว่าเกณฑ์ <strong>ระดับอาจถูกปรับลงได้</strong>
-          {info.locked && (
-            <>
-              <br /><span style={{ color: 'var(--accent-color)' }}>
-                🔒 หมายเหตุ: ระดับของคุณถูกตั้งโดยแอดมิน — จะไม่เปลี่ยนตามระบบอัตโนมัติ
-              </span>
-            </>
-          )}
         </div>
       </div>
     </div>

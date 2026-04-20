@@ -122,9 +122,11 @@ export function usePushNotification(): PushNotificationState {
       const applicationServerKey = urlBase64ToUint8Array(vapidKey)
 
       // 3. Subscribe → browser จะขอ permission ถ้ายังไม่เคยขอ
+      // AIDEV-NOTE: cast needed — TS lib.dom types ArrayBufferLike ≠ strict ArrayBuffer
+      // (runtime is fine; it's a typings gap in @types/web around Uint8Array<ArrayBufferLike>)
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,              // ต้อง true (Chrome บังคับ)
-        applicationServerKey,
+        applicationServerKey: applicationServerKey as unknown as BufferSource,
       })
 
       // 4. ส่ง subscription ไปเก็บใน DB
