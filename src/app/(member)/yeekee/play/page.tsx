@@ -11,8 +11,9 @@
  * ⭐ ยิงเลข ≠ แทงหวย
  *   - ยิงเลข = ส่งเลข 5 หลักเพื่อร่วมคำนวณผล (ไม่เสียเงิน)
  *   - แทงหวย = เดิมพันว่าผลจะออกเลขอะไร (เสียเงิน ถ้าถูกได้เงิน)
+ *
+ * Split 2026-04-21 — UI sub-components + config ย้ายออก (ดู src/components/yeekee/*, ./_config.ts)
  */
-
 'use client'
 
 import { useState, useCallback, useEffect, Suspense } from 'react'
@@ -20,86 +21,22 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import Loading from '@/components/Loading'
-import NumberPad from '@/components/number-pad/NumberPad'
-import BetTypeSelector from '@/components/bet-board/BetTypeSelector'
-import BetSlip from '@/components/bet-board/BetSlip'
-import NumberGrid from '@/components/bet-board/NumberGrid'
-import LuckyNumbers from '@/components/bet-board/LuckyNumbers'
+import ResultCard from '@/components/yeekee/ResultCard'
+import CountdownCard from '@/components/yeekee/CountdownCard'
+import LiveShootsList from '@/components/yeekee/LiveShootsList'
+import ShootTab from '@/components/yeekee/ShootTab'
+import BetTab from '@/components/yeekee/BetTab'
 import { useBetStore } from '@/store/bet-store'
 import { useAuthStore } from '@/store/auth-store'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { lotteryApi, betApi, yeekeeApi } from '@/lib/api'
- 
 import type { WSMessage, PlaceBetItem } from '@/types'
-
-// =============================================================================
-// Helpers
-// =============================================================================
-
-/**
- * maskBotUsername — ถ้าชื่อเป็น bot (_system_bot_X) ให้แสดงเป็นเบอร์โทร mask
- * เช่น "_system_bot_1" → "09x-xxx-1847"
- * ถ้าเป็น user จริง → mask เบอร์โทรเช่น "0614797423" → "061-xxx-7423"
- */
-function maskBotUsername(username: string): string {
-  // bot username → สร้างเบอร์ปลอมจาก hash ของ username
-  if (username.startsWith('_system_bot') || username === 'BOT') {
-    const hash = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-    const prefixes = ['06', '08', '09']
-    const prefix = prefixes[hash % 3]
-    const last4 = String(hash * 7 % 10000).padStart(4, '0')
-    return `${prefix}x-xxx-${last4}`
-  }
-  // user จริง → mask ตรงกลาง เช่น "0614797423" → "061-xxx-7423"
-  if (/^\d{10}$/.test(username)) {
-    return `${username.slice(0, 3)}-xxx-${username.slice(-4)}`
-  }
-  return username
-}
-
-// =============================================================================
-// Types
-// =============================================================================
-interface ShootItem {
-  member_username: string
-  number: string
-  shot_at: string
-}
-
-interface ResultInfo {
-  result_number: string
-  top3: string
-  top2: string
-  bottom2: string
-}
-
-type MainTab = 'bet' | 'shoot'
-type BetSubTab = 'keypad' | 'grid' | 'lucky'
-
-const betSubTabs: { key: BetSubTab; label: string }[] = [
-  { key: 'keypad', label: 'กดเลขเอง' },
-  { key: 'grid', label: 'เลือกจากแผง' },
-  { key: 'lucky', label: 'เลขวิน' },
-]
-
-// =============================================================================
-// ⭐ ยี่กี Bet Types — 6 ประเภทเท่านั้น (ตามรูปตัวอย่างเจริญดี88)
-// =============================================================================
-interface YeekeeBetType {
-  code: string
-  label: string
-  rate: number
-  digitCount: number
-}
-
-const YEEKEE_BET_TYPES: YeekeeBetType[] = [
-  { code: '3TOP',    label: 'สามตัวบน',   rate: 1000, digitCount: 3 },
-  { code: '3TOD',    label: 'สามตัวโต๊ด', rate: 150,  digitCount: 3 },
-  { code: '2TOP',    label: 'สองตัวบน',   rate: 100,  digitCount: 2 },
-  { code: '2BOTTOM', label: 'สองตัวล่าง', rate: 100,  digitCount: 2 },
-  { code: 'RUN_TOP', label: 'วิ่งบน',     rate: 4,    digitCount: 1 },
-  { code: 'RUN_BOT', label: 'วิ่งล่าง',   rate: 5,    digitCount: 1 },
-]
+import {
+  yeekeeBetTypesForStore,
+  translateBetReason,
+  type MainTab, type BetSubTab,
+  type ShootItem, type ResultInfo,
+} from './_config'
 
 // =============================================================================
 // Main Component
@@ -137,19 +74,10 @@ function YeekeePlayContent() {
 
   // ⭐ ตั้ง bet types ยี่กี เข้า store ทันที (ไม่ต้อง fetch จาก API)
   // AIDEV-NOTE: defer via setTimeout(0) to avoid react-hooks/set-state-in-effect
-  // — same pattern used in admin-web/affiliate/page.tsx
   useEffect(() => {
     if (betTypesLoaded) return
     const t = setTimeout(() => {
-      setBetTypes(YEEKEE_BET_TYPES.map(bt => ({
-        id: 0,
-        name: bt.label,
-        code: bt.code as import('@/types').BetType,
-        description: '',
-        digit_count: bt.digitCount,
-        rate: bt.rate,
-        max_bet_per_number: 0,
-      })))
+      setBetTypes(yeekeeBetTypesForStore())
       setBetTypesLoaded(true)
     }, 0)
     return () => clearTimeout(t)
@@ -247,7 +175,7 @@ function YeekeePlayContent() {
       setShootMessage('กรุณารอสักครู่ก่อนยิงใหม่')
       setTimeout(() => setShootMessage(''), 1500)
     }
-  }, [shootNumber, shoot, member])
+  }, [shootNumber, shoot])
 
   // === Betting handlers ===
   const handleAddNumber = useCallback((number: string) => {
@@ -262,7 +190,10 @@ function YeekeePlayContent() {
   }, [selectedBetTypes, betAmount, addToBetSlip])
 
   // กลับตัวเลข (permutation) — เช่น 123 → 132, 213, 231, 312, 321
-  const handleReverse = useCallback((number: string) => {
+  const handleReverseLast = useCallback(() => {
+    const lastItem = betSlip[betSlip.length - 1]
+    if (!lastItem) return
+    const number = lastItem.number
     const perms = new Set<string>()
     const chars = number.split('')
     const permute = (arr: string[], start: number) => {
@@ -275,7 +206,7 @@ function YeekeePlayContent() {
     permute(chars, 0)
     perms.delete(number)
     perms.forEach(perm => addToBetSlip(perm, betAmount))
-  }, [betAmount, addToBetSlip])
+  }, [betSlip, betAmount, addToBetSlip])
 
   // ยืนยันแทง — return true = สำเร็จ, string = error message
   const handleConfirm = useCallback(async (): Promise<boolean | string> => {
@@ -304,16 +235,8 @@ function YeekeePlayContent() {
       }
 
       if (data.errors && data.errors.length > 0) {
-        const translateReason = (r: string) => {
-          if (r.includes('auto-ban') || r.includes('อั้นอัตโนมัติ')) return 'เลขอั้น (ยอดรวมเกินที่กำหนด)'
-          if (r.includes('banned') || r.includes('อั้น')) return 'เลขอั้น'
-          if (r.includes('insufficient') || r.includes('เครดิต')) return 'เครดิตไม่พอ'
-          if (r.includes('closed') || r.includes('ปิดรับ')) return 'ปิดรับแล้ว'
-          if (r.includes('limit') || r.includes('จำกัดยอด')) return 'เกินวงเงิน'
-          return r
-        }
         const errMsgs = data.errors.map((e: { number: string; bet_type?: string; BetType?: string; reason?: string; Reason?: string }) =>
-          `เลข ${e.number}: ${translateReason(e.Reason || e.reason || '')}`
+          `เลข ${e.number}: ${translateBetReason(e.Reason || e.reason || '')}`
         ).join('\n')
         setBetMessage(errMsgs)
         setSubmitting(false)
@@ -341,9 +264,8 @@ function YeekeePlayContent() {
     )
   }
 
-  const minutes = Math.floor(countdown / 60)
-  const seconds = countdown % 60
   const digitCount = getSelectedDigitCount() || 3
+  const hasReversible = betSlip.length > 0 && digitCount >= 2
 
   return (
     <div>
@@ -368,40 +290,10 @@ function YeekeePlayContent() {
       </div>
 
       {/* ผลยี่กี (ถ้าออกแล้ว) */}
-      {result && (
-        <div className="px-4 mb-3">
-          <div className="card p-5 text-center border-2 border-amber-300">
-            <div className="text-sm font-bold mb-2" style={{ color: 'var(--color-gold)' }}>ผลยี่กี</div>
-            <div className="text-4xl font-bold font-mono mb-3">{result.result_number}</div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="bg-amber-50 rounded-lg p-2">
-                <div className="text-muted text-[10px]">3 ตัวบน</div>
-                <div className="text-lg font-bold font-mono text-amber-600">{result.top3}</div>
-              </div>
-              <div className="bg-green-50 rounded-lg p-2">
-                <div className="text-muted text-[10px]">2 ตัวบน</div>
-                <div className="text-lg font-bold font-mono text-green-600">{result.top2}</div>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-2">
-                <div className="text-muted text-[10px]">2 ตัวล่าง</div>
-                <div className="text-lg font-bold font-mono text-blue-600">{result.bottom2}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {result && <ResultCard result={result} />}
 
       {/* Countdown */}
-      <div className="px-4 mb-3">
-        <div className="card p-3 text-center">
-          <div className="text-muted text-xs mb-1">เวลาที่เหลือ</div>
-          <div className={`text-3xl font-bold font-mono ${countdown <= 30 ? 'text-red-500' : ''}`}
-            style={{ color: countdown > 30 ? 'var(--color-primary)' : undefined }}>
-            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-          </div>
-          <div className="text-muted text-xs mt-1">ผลรวมเลข: {totalSum.toLocaleString()}</div>
-        </div>
-      </div>
+      <CountdownCard countdown={countdown} totalSum={totalSum} />
 
       {/* ⭐ Main Tabs — แทงหวย / ยิงเลข */}
       <div className="px-4 mb-3">
@@ -429,177 +321,38 @@ function YeekeePlayContent() {
         </div>
       </div>
 
-      {/* ================================================================= */}
-      {/* Tab: แทงหวย — copy จาก /lottery/[type] เต็ม flow                  */}
-      {/* ================================================================= */}
+      {/* Tab content */}
       {mainTab === 'bet' && !result && (
-        <>
-          {/* Message */}
-          {betMessage && (
-            <div className="px-4 mb-3">
-              <div className={`rounded-lg px-4 py-2.5 text-sm font-medium text-center ${
-                betMessage.includes('สำเร็จ') ? 'bg-green-50 text-green-600' :
-                betMessage.includes('ผิดพลาด') ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
-              }`}>
-                {betMessage}
-              </div>
-            </div>
-          )}
-
-          {/* ⭐ ประเภทการแทง — ใช้ BetTypeSelector component เดียวกับทุกหวย */}
-          <div className="px-4 mb-3">
-            <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">ประเภทการแทง</h2>
-            <BetTypeSelector />
-          </div>
-
-          {/* จำนวนเงิน + กลับตัวเลข */}
-          <div className="px-4 mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xs font-semibold text-muted uppercase tracking-wider">จำนวนเงิน (บาท)</h2>
-              {betSlip.length > 0 && digitCount >= 2 && (
-                <button
-                  onClick={() => {
-                    const lastItem = betSlip[betSlip.length - 1]
-                    if (lastItem) handleReverse(lastItem.number)
-                  }}
-                  className="text-[10px] font-semibold px-2.5 py-1 rounded-full transition active:scale-95"
-                  style={{ background: 'rgba(212,160,23,0.1)', color: 'var(--color-gold)' }}
-                >
-                  🔄 กลับตัวเลข
-                </button>
-              )}
-            </div>
-            <div className="quick-amount mb-2">
-              {[5, 10, 20, 50, 100].map(amt => (
-                <button
-                  key={amt}
-                  onClick={() => setBetAmount(amt)}
-                  className={betAmount === amt ? 'active' : ''}
-                >
-                  ฿{amt}
-                </button>
-              ))}
-            </div>
-            <input
-              type="number"
-              value={betAmount}
-              onChange={(e) => setBetAmount(Math.max(1, Number(e.target.value)))}
-              className="w-full rounded-lg px-4 py-2.5 text-center text-sm font-bold border border-gray-200 focus:border-teal-500 focus:outline-none"
-              style={{ background: 'var(--color-bg-card)' }}
-              min={1}
-            />
-          </div>
-
-          {/* 3 Sub-tabs: กดเลขเอง / เลือกจากแผง / เลขวิน */}
-          <div className="px-4 mb-3">
-            <div className="card p-1 flex gap-1 mb-3">
-              {betSubTabs.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setBetSubTab(tab.key)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
-                    betSubTab === tab.key ? 'text-white shadow-md' : 'text-secondary'
-                  }`}
-                  style={{ background: betSubTab === tab.key ? 'var(--color-primary)' : 'transparent' }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab Content — ต้องเลือกประเภทแทงก่อน */}
-            {selectedBetTypes.length === 0 ? (
-              <div className="card p-6 text-center">
-                <p className="text-muted text-sm">กรุณาเลือกประเภทการแทงก่อน</p>
-              </div>
-            ) : (
-              <>
-                {betSubTab === 'keypad' && (
-                  <div>
-                    <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">กดเลข ({digitCount} หลัก)</h2>
-                    <NumberPad
-                      digitCount={digitCount}
-                      onComplete={handleAddNumber}
-                      resetTrigger={betResetKey}
-                    />
-                  </div>
-                )}
-                {betSubTab === 'grid' && (
-                  <NumberGrid digitCount={digitCount} onSelect={handleAddNumber} />
-                )}
-                {betSubTab === 'lucky' && (
-                  <LuckyNumbers digitCount={digitCount} onSelect={handleAddNumber} />
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Bet Slip */}
-          <div className="px-4 pb-4">
-            <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider">รายการแทง</h2>
-            <BetSlip onConfirm={handleConfirm} loading={submitting} />
-          </div>
-        </>
+        <BetTab
+          betMessage={betMessage}
+          betSubTab={betSubTab}
+          setBetSubTab={setBetSubTab}
+          selectedBetTypesLength={selectedBetTypes.length}
+          betAmount={betAmount}
+          setBetAmount={setBetAmount}
+          betSlipLength={betSlip.length}
+          digitCount={digitCount}
+          betResetKey={betResetKey}
+          submitting={submitting}
+          hasReversible={hasReversible}
+          onAddNumber={handleAddNumber}
+          onReverseLast={handleReverseLast}
+          onConfirm={handleConfirm}
+        />
       )}
-
-      {/* ================================================================= */}
-      {/* Tab: ยิงเลข — WebSocket real-time                                 */}
-      {/* ================================================================= */}
       {mainTab === 'shoot' && !result && (
-        <div className="px-4 mb-3">
-          {shootMessage && (
-            <div className={`rounded-lg px-4 py-2.5 text-sm font-medium text-center mb-3 ${
-              shootMessage.includes('แล้ว') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-            }`}>
-              {shootMessage}
-            </div>
-          )}
-          <h2 className="text-xs font-semibold text-muted mb-2 uppercase tracking-wider text-center">กดเลข 5 หลัก แล้วกดยิง (ฟรี)</h2>
-          {/* ⭐ ใช้ onChange เก็บค่า — ไม่ auto-fire ตอนกดครบ */}
-          <NumberPad
-            digitCount={5}
-            onComplete={() => {}} // ไม่ auto-fire
-            onChange={handleShootNumberChange}
-            resetTrigger={shootResetKey}
-          />
-
-          {/* ⭐ ปุ่มยิงเลข — กดได้เฉพาะเมื่อครบ 5 หลัก + ไม่ติด cooldown */}
-          <button
-            onClick={handleShootConfirm}
-            disabled={shootNumber.length !== 5 || cooldownRemaining > 0}
-            className="w-full mt-3 py-3 rounded-xl text-white font-bold text-base transition-all active:scale-[0.97] disabled:opacity-40"
-            style={{
-              background: shootNumber.length === 5 && cooldownRemaining <= 0
-                ? 'linear-gradient(135deg, #FF9F0A, #FF6B00)'
-                : '#C7C7CC',
-            }}
-          >
-            {cooldownRemaining > 0
-              ? `รอ ${cooldownRemaining} วินาที`
-              : shootNumber.length === 5
-                ? `🎯 ยิงเลข ${shootNumber}`
-                : `กดเลขอีก ${5 - shootNumber.length} หลัก`
-            }
-          </button>
-        </div>
+        <ShootTab
+          shootMessage={shootMessage}
+          shootNumber={shootNumber}
+          shootResetKey={shootResetKey}
+          cooldownRemaining={cooldownRemaining}
+          onShootNumberChange={handleShootNumberChange}
+          onConfirm={handleShootConfirm}
+        />
       )}
 
       {/* เลขที่ยิงมา Live — แสดงทั้ง 2 tabs */}
-      <div className="px-4 pb-24">
-        <div className="section-title px-0">
-          <span>เลขที่ยิงมา ({shoots.length})</span>
-        </div>
-        <div className="card p-2 max-h-48 overflow-y-auto">
-          {shoots.length === 0 ? (
-            <div className="text-muted text-center py-6 text-sm">ยังไม่มีคนยิง</div>
-          ) : shoots.map((s, i) => (
-            <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg mb-1" style={{ background: 'var(--color-bg-card-alt)' }}>
-              <span className="text-sm text-secondary">{maskBotUsername(s.member_username)}</span>
-              <span className="font-mono font-bold" style={{ color: 'var(--color-primary)' }}>{s.number}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <LiveShootsList shoots={shoots} />
     </div>
   )
 }
